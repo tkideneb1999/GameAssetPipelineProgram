@@ -116,10 +116,13 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>$(SolutionDir)\thirdParty\imgui;$(SolutionDir)thirdParty\glfw-3.3.4-WIN64\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>$(SolutionDir)thirdParty\glfw-3.3.4-WIN64\lib-vc2019;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opengl32.lib;glfw3.lib;kernel32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -130,16 +133,37 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>$(SolutionDir)\thirdParty\imgui;$(SolutionDir)thirdParty\glfw-3.3.4-WIN64\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>$(SolutionDir)thirdParty\glfw-3.3.4-WIN64\lib-vc2019;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opengl32.lib;glfw3.lib;kernel32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="source\main.cpp" />
+    <ClCompile Include="thirdParty\imgui\backends\imgui_impl_glfw.cpp" />
+    <ClCompile Include="thirdParty\imgui\backends\imgui_impl_opengl3.cpp" />
+    <ClCompile Include="thirdParty\imgui\imgui.cpp" />
+    <ClCompile Include="thirdParty\imgui\imgui_demo.cpp" />
+    <ClCompile Include="thirdParty\imgui\imgui_draw.cpp" />
+    <ClCompile Include="thirdParty\imgui\imgui_tables.cpp" />
+    <ClCompile Include="thirdParty\imgui\imgui_widgets.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="thirdParty\imgui\backends\imgui_impl_glfw.h" />
+    <ClInclude Include="thirdParty\imgui\backends\imgui_impl_opengl3.h" />
+    <ClInclude Include="thirdParty\imgui\backends\imgui_impl_opengl3_loader.h" />
+    <ClInclude Include="thirdParty\imgui\imconfig.h" />
+    <ClInclude Include="thirdParty\imgui\imgui.h" />
+    <ClInclude Include="thirdParty\imgui\imgui_internal.h" />
+    <ClInclude Include="thirdParty\imgui\imstb_rectpack.h" />
+    <ClInclude Include="thirdParty\imgui\imstb_textedit.h" />
+    <ClInclude Include="thirdParty\imgui\imstb_truetype.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
