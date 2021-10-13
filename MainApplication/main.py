@@ -41,6 +41,8 @@ while True:
 
 from PyQt5 import QtWidgets as qtw
 from MainApplication_GUI import Ui_MainWindow
+from PipelineConfig_GUI import PipelineConfigGUI
+from PipelineConfig_GUI import PipelineStepGUI
 import sys
 
 
@@ -49,14 +51,10 @@ class MainWindow(qtw.QMainWindow):
         super().__init__()
         self.ui_MainWindow = Ui_MainWindow()
         self.ui_MainWindow.setupUi(self)
-        self.ui_MainWindow.addAsset_button.clicked.connect(self.add_Asset)
-        self.ItemCount = 0
+        self.pipeline_GUI = PipelineConfigGUI(self.ui_MainWindow.pipelines_tab)
+        self.ui_MainWindow.pipelines_tab.layout().addWidget(self.pipeline_GUI)
 
 
-    def add_Asset(self):
-        newItem = qtw.QListWidgetItem(str(self.ItemCount))
-        self.ItemCount += 1
-        self.ui_MainWindow.assetList_list.addItem(newItem)
 
 if __name__ == '__main__':
     app = qtw.QApplication(sys.argv)
@@ -65,3 +63,4 @@ if __name__ == '__main__':
     window.show()
 
     app.exec_()
+
