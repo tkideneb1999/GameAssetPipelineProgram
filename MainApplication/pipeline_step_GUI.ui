@@ -87,7 +87,7 @@
     </widget>
    </item>
    <item>
-    <widget class="QComboBox" name="comboBox"/>
+    <widget class="QComboBox" name="step_program_combo_box"/>
    </item>
   </layout>
  </widget>

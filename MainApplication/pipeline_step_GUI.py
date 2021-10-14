@@ -48,9 +48,9 @@ class Ui_pipeline_step(object):
         self.program_label.setFont(font)
         self.program_label.setObjectName("program_label")
         self.verticalLayout.addWidget(self.program_label)
-        self.comboBox = QtWidgets.QComboBox(pipeline_step)
-        self.comboBox.setObjectName("comboBox")
-        self.verticalLayout.addWidget(self.comboBox)
+        self.step_program_combo_box = QtWidgets.QComboBox(pipeline_step)
+        self.step_program_combo_box.setObjectName("step_program_combo_box")
+        self.verticalLayout.addWidget(self.step_program_combo_box)
 
         self.retranslateUi(pipeline_step)
         QtCore.QMetaObject.connectSlotsByName(pipeline_step)
