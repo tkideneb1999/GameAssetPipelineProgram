@@ -24,6 +24,12 @@ class Pipeline(qtw.QWidget):
         remove_step_button.clicked.connect(self.remove_pipeline_step_gui)
         button_layout.addWidget(remove_step_button)
 
+        # Edit Step Button
+        edit_step_button = qtw.QPushButton("Edit Step")
+        edit_step_button.setMinimumSize(100, 100)
+        edit_step_button.clicked.connect(self.edit_pipeline_step)
+        button_layout.addWidget(edit_step_button)
+
         layout.addLayout(button_layout)
         self.setLayout(layout)
 
@@ -42,6 +48,13 @@ class Pipeline(qtw.QWidget):
             for i in selected_step:
                 self.pipeline_list.takeItem(i.row())
 
+    def edit_pipeline_step(self):
+        selected_step = self.pipeline_list.selectedIndexes()
+        if not selected_step:
+            return
+        else:
+            pass # TODO Implement Edit Pipeline Step
+
 
 class PipelineStep(qtw.QWidget):
     def __init__(self, parent):
@@ -49,10 +62,3 @@ class PipelineStep(qtw.QWidget):
         self.ui_pipeline_step = Ui_pipeline_step()
         self.ui_pipeline_step.setupUi(self)
 
-        # Set Pipeline Steps
-        step_list = ["Modeling", "UV Mapping", "Textures", "Game Import"]
-        self.ui_pipeline_step.pipeline_step_combo_box.addItems(step_list)
-
-        # Set Program for Pipeline Steps
-        program_list = ["Blender", "Substance Painter", "Unity"]
-        self.ui_pipeline_step.step_program_combo_box.addItems(program_list)

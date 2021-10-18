@@ -1,51 +1,14 @@
-import socket
-import threading
-import transmission
-
-'''
-HEADER = 64
-PORT = 5050
-SERVER = socket.gethostbyname(socket.gethostname())
-ADDR = (SERVER, PORT)
-FORMAT = 'utf-8'
-DISCONNECT_MSG = "!DISCONNECT"
-
-
-def handle_client(conn, addr):
-    print(f"{addr} connected.")
-
-    connected = True
-    while connected:
-        msg = transmission.receiveMessage(conn)
-        if msg is None:
-            continue
-        if msg == DISCONNECT_MSG:
-            connected = False
-
-        print(f"[{addr}] {msg}")
-    print("[CLIENT] Client Closed Connection")
-    conn.close()
-
-
-server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-server.bind(ADDR)
-
-server.listen()
-print(f"started Listening on {SERVER}")
-
-while True:
-    conn, addr = server.accept()
-    thread = threading.Thread(target=handle_client, args=[conn, addr])
-    thread.start()
-'''
+import sys
+from pathlib import Path
 
 from PyQt5 import QtWidgets as qtw
 from PyQt5 import QtCore as qtc
+
 from MainApplication_GUI import Ui_MainWindow
 from Pipeline import Pipeline
 from assetManager import AssetManager
 from projectWizard import ProjectWizard
-import sys
+from pipelineServer import ServerListeningThread
 
 
 class MainWindow(qtw.QMainWindow):
@@ -61,9 +24,8 @@ class MainWindow(qtw.QMainWindow):
         self.assetManager = AssetManager(self.ui_MainWindow.assets_tab)
         self.ui_MainWindow.assets_tab.layout().addWidget(self.assetManager)
 
-        # launch project setup wizard
         self.project_name = ""
-        self.project_dir = ""
+        self.project_dir = Path()
         self.levels = []
 
     def launch_project_wizard(self):
@@ -74,11 +36,57 @@ class MainWindow(qtw.QMainWindow):
             print("No Project dir set")
             return
 
-        # set project data
-        self.project_name = project_wizard.get_project_name_data()
-        self.project_dir = project_wizard.get_project_dir_data()
-        self.levels = project_wizard.get_levels_data()
+        # Check Data
+        proj_name = project_wizard.get_project_name_data()
+        proj_dir = Path(project_wizard.get_project_dir_data()) / self.project_name
+        proj_lvls = project_wizard.get_levels_data()
+
+        if not proj_dir.parents[0].exists():
+            print("Current Project Dir is no a valid path. Restarting Wizard")
+            self.launch_project_wizard()
+            return
+
+        # Check if Project Name is set
+        if proj_name == "":
+            print("No Project Name set. Restarting Wizard")
+            self.launch_project_wizard()
+            return
+
+        if len(proj_lvls) == 0:
+            print("No Levels Supplied. Restarting Project Wizard")
+            self.launch_project_wizard()
+            return
+
+        # Set Project Data
+        self.project_name = proj_name
+        self.project_dir = proj_dir
+        self.levels = proj_lvls
+
+        # Set Asset Manager Data
         self.assetManager.add_levels(self.levels)
+        self.assetManager.set_project_dir(self.project_dir)
+
+        # Create Level Folders
+        for lvl in self.levels:
+            path = self.project_dir / lvl
+            path.mkdir(parents=True)
+            print(path)
+
+        # TODO: Create metadata file to find Project
+
+    def launch_server_thread(self):
+        self.server = ServerListeningThread()
+        self.server.new_connection_signal.connect(self.on_new_client_connected)
+        self.server.start()
+
+    @qtc.pyqtSlot()
+    def on_new_client_connected(self):
+        new_server_index = len(self.server.connectionThreads - 1)
+        print("New Client Connected")
+        self.server.connectionThreads[new_server_index].msg_received_signal.connect(self.print_client_message)
+
+    def print_client_message(self, msg):
+        print(msg)
 
 
 if __name__ == '__main__':
@@ -87,5 +95,6 @@ if __name__ == '__main__':
     window = MainWindow()
     window.show()
     window.launch_project_wizard()
+    window.launch_server_thread()
 
     app.exec_()

@@ -3,17 +3,18 @@ import socket
 HEADER = 64
 FORMAT = 'utf-8'
 
-def sendMessage(message, socket):
+
+def send_message(message, sock):
     e_msg = message.encode(FORMAT)
     l_msg = len(message)
     h_msg = str(l_msg).encode(FORMAT)
     h_msg += b' ' * (HEADER - len(h_msg))
-    socket.send(h_msg)
-    socket.send(e_msg)
+    sock.send(h_msg)
+    sock.send(e_msg)
     print(f"[SENT] {message}")
 
 
-def receiveMessage(connection):
+def receive_message(connection):
     msg_length = connection.recv(HEADER).decode(FORMAT)
     if not msg_length:
         return None
