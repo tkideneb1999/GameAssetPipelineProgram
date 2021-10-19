@@ -46,7 +46,6 @@ class ServerListeningThread(qtc.QThread):
         super().__init__(parent)
         self.connectionThreads = []
 
-
     def run(self):
         PORT = 5050
         SERVER = socket.gethostbyname(socket.gethostname())

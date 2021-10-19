@@ -1,5 +1,7 @@
 import sys
 from pathlib import Path
+import json
+import os
 
 from PyQt5 import QtWidgets as qtw
 from PyQt5 import QtCore as qtc
@@ -8,7 +10,6 @@ from MainApplication_GUI import Ui_MainWindow
 from Pipeline import Pipeline
 from assetManager import AssetManager
 from projectWizard import ProjectWizard
-from pipelineServer import ServerListeningThread
 
 
 class MainWindow(qtw.QMainWindow):
@@ -36,19 +37,35 @@ class MainWindow(qtw.QMainWindow):
             print("No Project dir set")
             return
 
+        # If Existing Project is opened
+        if project_wizard.open_existing_project:
+            self.project_dir = Path(project_wizard.existing_project_file).parent
+            self.load_project_info()
+            self.assetManager.add_levels(self.levels)
+            self.assetManager.set_project_dir(self.project_dir)
+            self.assetManager.load_asset_list()
+            return
+
         # Check Data
         proj_name = project_wizard.get_project_name_data()
-        proj_dir = Path(project_wizard.get_project_dir_data()) / self.project_name
+        proj_dir = project_wizard.get_project_dir_data()
         proj_lvls = project_wizard.get_levels_data()
-
-        if not proj_dir.parents[0].exists():
-            print("Current Project Dir is no a valid path. Restarting Wizard")
-            self.launch_project_wizard()
-            return
 
         # Check if Project Name is set
         if proj_name == "":
             print("No Project Name set. Restarting Wizard")
+            self.launch_project_wizard()
+            return
+
+        if proj_dir is None:
+            print("Current Project Dir is no a valid path. Restarting Wizard")
+            self.launch_project_wizard()
+            return
+
+        proj_dir = Path(proj_dir) / proj_name
+
+        if not proj_dir.parents[0].exists():
+            print("Current Project Dir is no a valid path. Restarting Wizard")
             self.launch_project_wizard()
             return
 
@@ -72,29 +89,40 @@ class MainWindow(qtw.QMainWindow):
             path.mkdir(parents=True)
             print(path)
 
-        # TODO: Create metadata file to find Project
+        self.save_project_info()
 
-    def launch_server_thread(self):
-        self.server = ServerListeningThread()
-        self.server.new_connection_signal.connect(self.on_new_client_connected)
-        self.server.start()
+    # -------------
+    # SERIALIZATION
+    # -------------
+    def save_project_info(self):
+        path = self.project_dir / "projectInfo.gapaproj"
+        if not path.exists():
+            if not path.is_file():
+                path.touch()
+        with path.open("w", encoding="utf-8") as f:
+            project_data = {"name": self.project_name, "levels": json.dumps(self.levels)}
+            f.write(json.dumps(project_data, indent=4))
+            f.close()
 
-    @qtc.pyqtSlot()
-    def on_new_client_connected(self):
-        new_server_index = len(self.server.connectionThreads - 1)
-        print("New Client Connected")
-        self.server.connectionThreads[new_server_index].msg_received_signal.connect(self.print_client_message)
+    def load_project_info(self):
+        path = self.project_dir / "projectInfo.gapaproj"
+        if not path.exists():
+            if not path.is_file():
+                if not path.suffix == "gapaproj":
+                    raise Exception("Not a valid project info file")
+        with path.open("r", encoding="utf-8") as f:
+            project_data = json.loads(f.read())
+            self.project_name = project_data["name"]
+            self.levels = json.loads(project_data["levels"])
 
-    def print_client_message(self, msg):
-        print(msg)
 
 
 if __name__ == '__main__':
     app = qtw.QApplication(sys.argv)
+    print(sys.argv)
 
     window = MainWindow()
     window.show()
     window.launch_project_wizard()
-    window.launch_server_thread()
 
     app.exec_()

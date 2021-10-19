@@ -1,4 +1,5 @@
 from PyQt5 import QtWidgets as qtw
+
 from asset_GUI import Ui_asset
 
 
@@ -11,7 +12,8 @@ class Asset(qtw.QWidget):
         self.level = level
         self.tags = tags
         self.asset_type = asset_type
-        self.pipeline_step = "Modeling"  # TODO: Make dependent of first pipeline step
+        self.pipeline_step = "Modeling"  # TODO: Assets: Make dependent of first pipeline step
+        self.pipeline = "Point to Pipeline" # TODO: Assets: Make Pipeline Variable refer to pipeline as string
         self.comment = comment
 
         self.update_list_ui()
@@ -20,6 +22,3 @@ class Asset(qtw.QWidget):
         self.ui_asset.name_label.setText(self.name)
         self.ui_asset.type_label.setText(self.asset_type)
         self.ui_asset.pipeline_step_label.setText(self.pipeline_step)
-
-    def serialize_metadata(self):
-        pass

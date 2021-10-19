@@ -8,8 +8,7 @@ class NewAssetWizard(qtw.QDialog):
         self.ui_new_asset_wizard = Ui_new_asset_wizard()
         self.ui_new_asset_wizard.setupUi(self)
         self.setWindowTitle("Create New Asset")
-        for lvl in levels:
-            self.ui_new_asset_wizard.levels_combo_box.addItems(lvl)
+        self.ui_new_asset_wizard.levels_combo_box.addItems(levels)
         print("Test")
 
     def get_name_data(self):
