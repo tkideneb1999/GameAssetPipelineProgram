@@ -1,5 +1,8 @@
 from PyQt5 import QtWidgets as qtw
+
 from pipeline_step_GUI import Ui_pipeline_step
+from pipeline_step_input_GUI import Ui_pipeline_step_input
+from pipeline_step_output_GUI import Ui_pipeline_step_output
 
 
 class Pipeline(qtw.QWidget):
@@ -61,4 +64,29 @@ class PipelineStep(qtw.QWidget):
         super().__init__(parent)
         self.ui_pipeline_step = Ui_pipeline_step()
         self.ui_pipeline_step.setupUi(self)
+        self.inputs = []
+        self.outputs = []
+
+        self.ui_pipeline_step.add_output_button.clicked.connect(self.add_output)
+
+    def add_input(self):
+        pass
+
+    def add_output(self):
+        self.outputs.append(PipelineStepOutput(self))
+        self.ui_pipeline_step.outputs_layout.addWidget(self.outputs[len(self.outputs) - 1])
+
+
+class PipelineStepInput(qtw.QWidget):
+    def __init__(self, parent):
+        super(PipelineStepInput, self).__init__(parent)
+        self.ui_pipeline_step_input = Ui_pipeline_step_input()
+        self.ui_pipeline_step_input.setupUi(self)
+
+
+class PipelineStepOutput(qtw.QWidget):
+    def __init__(self, parent):
+        super(PipelineStepOutput, self).__init__(parent)
+        self.ui_pipeline_step_output = Ui_pipeline_step_output()
+        self.ui_pipeline_step_output.setupUi(self)
 

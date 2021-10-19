@@ -116,7 +116,6 @@ class MainWindow(qtw.QMainWindow):
             self.levels = json.loads(project_data["levels"])
 
 
-
 if __name__ == '__main__':
     app = qtw.QApplication(sys.argv)
     print(sys.argv)
