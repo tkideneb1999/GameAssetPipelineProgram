@@ -6,13 +6,19 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>222</width>
+    <width>400</width>
     <height>208</height>
    </rect>
   </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
   <property name="minimumSize">
    <size>
-    <width>150</width>
+    <width>400</width>
     <height>110</height>
    </size>
   </property>
@@ -23,38 +29,33 @@
    <property name="sizeConstraint">
     <enum>QLayout::SetDefaultConstraint</enum>
    </property>
+   <property name="leftMargin">
+    <number>6</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>6</number>
+   </property>
+   <property name="bottomMargin">
+    <number>0</number>
+   </property>
    <item>
-    <widget class="QLabel" name="pipeline_step_label">
+    <widget class="QLabel" name="pipeline_step_name_label">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
-     <property name="minimumSize">
-      <size>
-       <width>0</width>
-       <height>20</height>
-      </size>
-     </property>
-     <property name="maximumSize">
-      <size>
-       <width>16777215</width>
-       <height>20</height>
-      </size>
-     </property>
-     <property name="font">
-      <font>
-       <pointsize>10</pointsize>
-      </font>
-     </property>
      <property name="text">
-      <string>Pipeline Step</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignCenter</set>
+      <string>Pipeline Step Name</string>
      </property>
     </widget>
+   </item>
+   <item>
+    <widget class="QLineEdit" name="pipeline_step_name_lineedit"/>
    </item>
    <item>
     <widget class="QLabel" name="program_label">
@@ -111,9 +112,15 @@
        </item>
        <item>
         <widget class="QPushButton" name="add_input_button">
+         <property name="minimumSize">
+          <size>
+           <width>100</width>
+           <height>0</height>
+          </size>
+         </property>
          <property name="maximumSize">
           <size>
-           <width>64</width>
+           <width>16777215</width>
            <height>20</height>
           </size>
          </property>
@@ -147,6 +154,12 @@
        </item>
        <item>
         <widget class="QPushButton" name="add_output_button">
+         <property name="minimumSize">
+          <size>
+           <width>100</width>
+           <height>0</height>
+          </size>
+         </property>
          <property name="maximumSize">
           <size>
            <width>16777215</width>
