@@ -35,6 +35,7 @@ class MainWindow(qtw.QMainWindow):
         result = project_wizard.exec_()
         if result == 0:
             print("No Project dir set")
+            self.launch_project_wizard()
             return
 
         # If Existing Project is opened
@@ -44,6 +45,7 @@ class MainWindow(qtw.QMainWindow):
             self.assetManager.add_levels(self.levels)
             self.assetManager.set_project_dir(self.project_dir)
             self.assetManager.load_asset_list()
+            self.pipeline_GUI.set_project_dir(self.project_dir)
             return
 
         # Check Data
@@ -83,6 +85,9 @@ class MainWindow(qtw.QMainWindow):
         self.assetManager.add_levels(self.levels)
         self.assetManager.set_project_dir(self.project_dir)
 
+        # Set Pipeline Data
+        self.pipeline_GUI.set_project_dir(self.project_dir)
+
         # Create Level Folders
         for lvl in self.levels:
             path = self.project_dir / lvl
@@ -90,6 +95,7 @@ class MainWindow(qtw.QMainWindow):
             print(path)
 
         self.save_project_info()
+        self.assetManager.save_asset_list()
 
     # -------------
     # SERIALIZATION
@@ -100,7 +106,11 @@ class MainWindow(qtw.QMainWindow):
             if not path.is_file():
                 path.touch()
         with path.open("w", encoding="utf-8") as f:
-            project_data = {"name": self.project_name, "levels": json.dumps(self.levels)}
+            level_data = {0: len(self.levels)}
+            for i in range(len(self.levels)):
+                level_data[i + 1] = self.levels[i]
+
+            project_data = {"name": self.project_name, "levels": level_data}
             f.write(json.dumps(project_data, indent=4))
             f.close()
 
@@ -113,7 +123,12 @@ class MainWindow(qtw.QMainWindow):
         with path.open("r", encoding="utf-8") as f:
             project_data = json.loads(f.read())
             self.project_name = project_data["name"]
-            self.levels = json.loads(project_data["levels"])
+
+            self.levels.clear()
+            level_data = project_data["levels"]
+            level_count = level_data["0"]
+            for i in range(level_count):
+                self.levels.append(level_data[f"{i+1}"])
 
 
 if __name__ == '__main__':
