@@ -4,16 +4,19 @@ from pathlib import Path
 from PyQt5 import QtWidgets as qtw
 from PyQt5 import QtCore as qtc
 
-import pipelineServer
 from pipeline_step_GUI import Ui_pipeline_step
 from pipeline_step_input_GUI import Ui_pipeline_step_input
 from pipeline_step_output_GUI import Ui_pipeline_step_output
 
 
-class Pipeline(qtw.QWidget):
+class PipelineConfigurator(qtw.QWidget):
+
+    pipeline_saved_signal = qtc.pyqtSignal(Path, str)
+
     def __init__(self, parent):
         super().__init__(parent)
 
+        # Data
         self.name = "Pipeline_1"
         self.project_dir = Path()
         self.pipeline_steps = []
@@ -191,10 +194,16 @@ class Pipeline(qtw.QWidget):
         with path.open("w", encoding="utf-8") as f:
             f.write(json.dumps(data, indent=4))
             f.close()
+        self.pipeline_saved_signal.emit(path, self.name)
 
     def load(self, path: Path):
-        for s in self.pipeline_steps:
-            s.delete_step() # TODO(BUG): does not delete all steps
+        # Delete Previous Pipeline
+        for i in reversed(range(len(self.pipeline_steps))):
+            self.pipeline_steps[i].delete_step()
+            # TODO(BUG): does not delete all steps
+        self.pipeline_steps.clear()
+        self.io_connections.clear()
+
         with path.open("r", encoding="utf-8")as f:
             data = json.loads(f.read())
             self.name = data["name"]
@@ -323,10 +332,10 @@ class PipelineStep(qtw.QWidget):
     def save_pipeline_step(self):
         inputs_data = []
         for i in range(len(self.inputs)):
-            inputs_data.append(self.inputs[i].save_input())
+            inputs_data.append(self.inputs[i].save())
         outputs_data = []
         for i in range(len(self.outputs)):
-            outputs_data.append(self.outputs[i].save_output())
+            outputs_data.append(self.outputs[i].save())
         data = {
             "name": self.name,
             "id": self.uid,
@@ -354,7 +363,7 @@ class PipelineStep(qtw.QWidget):
             self.outputs.append(PipelineStepOutput(self, o["id"], len(self.outputs)))
             self.ui_pipeline_step.outputs_layout.addWidget(self.outputs[len(self.outputs) - 1])
             self.outputs[len(self.outputs) - 1].output_deleted.connect(self.output_deleted)
-            self.outputs[len(self.outputs) - 1].load_output(o)
+            self.outputs[len(self.outputs) - 1].load(o)
 
 
 class PipelineStepInput(qtw.QWidget):
@@ -395,7 +404,7 @@ class PipelineStepInput(qtw.QWidget):
     def output_selected(self):
         self.input_mapped.emit(self.uid, self.ui_pipeline_step_input.input_name_combobox.currentText())
 
-    def save_input(self):
+    def save(self):
         return {"id": self.uid}
 
 
@@ -429,8 +438,8 @@ class PipelineStepOutput(qtw.QWidget):
         self.name = f"{user_name}_{self.uid}"
         self.ui_pipeline_step_output.output_name_lineedit.setText(self.name)
 
-    def save_output(self):
+    def save(self):
         return {"id": self.uid, "name": self.name}
 
-    def load_output(self, data: dict):
+    def load(self, data: dict):
         self.name = data["name"]

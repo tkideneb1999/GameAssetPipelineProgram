@@ -17,12 +17,15 @@ class AssetManager(qtw.QWidget):
 
         self.ui_asset_manager.add_asset_button.clicked.connect(self.add_new_asset)
         self.ui_asset_manager.remove_asset_button.clicked.connect(self.remove_asset)
+
+        # Data
         self.assets = []
         self.levels = []
         self.project_dir = Path()
+        self.pipelines = []
 
     def add_new_asset(self):
-        dialog = NewAssetWizard(self.levels)
+        dialog = NewAssetWizard(self.levels, self.pipelines)
         dialog.setWindowModality(qtc.Qt.ApplicationModal)
         result = dialog.exec_()
         if result == 0:
@@ -30,6 +33,7 @@ class AssetManager(qtw.QWidget):
 
         # Get new asset data
         asset_name = dialog.get_name_data()
+        asset_pipeline = dialog.get_pipeline_data()
         asset_level = dialog.get_level_data()
         asset_tags = dialog.get_tags_data()
         asset_comment = dialog.get_comment_data()
@@ -50,7 +54,12 @@ class AssetManager(qtw.QWidget):
             return
 
         # Create Asset
-        new_asset = Asset(self.ui_asset_manager.asset_list, asset_name, asset_level, asset_tags, "Model", asset_comment)
+        new_asset = Asset(
+            self.ui_asset_manager.asset_list,
+            asset_name,
+            asset_pipeline,
+            asset_level,
+            asset_tags, "Model", asset_comment)
         asset_item = qtw.QListWidgetItem()
         asset_item.setSizeHint(new_asset.sizeHint())
         self.ui_asset_manager.asset_list.addItem(asset_item)
@@ -105,6 +114,10 @@ class AssetManager(qtw.QWidget):
         for lvl in levels:
             self.levels.append(lvl)
         print("Viable Levels: ", self.levels)
+
+    def update_pipelines(self, pipelines):
+        self.pipelines = pipelines
+        print(self.pipelines)
 
     def set_project_dir(self, project_dir):
         self.project_dir = project_dir

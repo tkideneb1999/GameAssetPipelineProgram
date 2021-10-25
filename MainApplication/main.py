@@ -7,7 +7,7 @@ from PyQt5 import QtWidgets as qtw
 from PyQt5 import QtCore as qtc
 
 from MainApplication_GUI import Ui_MainWindow
-from Pipeline import Pipeline
+from pipelineConfigurator import PipelineConfigurator
 from assetManager import AssetManager
 from projectWizard import ProjectWizard
 
@@ -19,15 +19,19 @@ class MainWindow(qtw.QMainWindow):
         self.ui_MainWindow.setupUi(self)
 
         # set up tabs
-        self.pipeline_GUI = Pipeline(self.ui_MainWindow.pipelines_tab)
+        self.pipeline_GUI = PipelineConfigurator(self.ui_MainWindow.pipelines_tab)
+        self.pipeline_GUI.pipeline_saved_signal.connect(self.add_pipeline)
+
         self.ui_MainWindow.pipelines_tab.layout().addWidget(self.pipeline_GUI)
 
         self.assetManager = AssetManager(self.ui_MainWindow.assets_tab)
         self.ui_MainWindow.assets_tab.layout().addWidget(self.assetManager)
 
+        # Data
         self.project_name = ""
         self.project_dir = Path()
         self.levels = []
+        self.pipelines = {}
 
     def launch_project_wizard(self):
         project_wizard = ProjectWizard()
@@ -97,6 +101,12 @@ class MainWindow(qtw.QMainWindow):
         self.save_project_info()
         self.assetManager.save_asset_list()
 
+    def add_pipeline(self, path: Path, name: str):
+        r_path = path.relative_to(self.project_dir)
+        self.pipelines[name] = r_path
+        self.save_project_info()
+        self.assetManager.update_pipelines(list(self.pipelines.keys()))
+
     # -------------
     # SERIALIZATION
     # -------------
@@ -106,11 +116,10 @@ class MainWindow(qtw.QMainWindow):
             if not path.is_file():
                 path.touch()
         with path.open("w", encoding="utf-8") as f:
-            level_data = {0: len(self.levels)}
-            for i in range(len(self.levels)):
-                level_data[i + 1] = self.levels[i]
-
-            project_data = {"name": self.project_name, "levels": level_data}
+            pipeline_data = {}
+            for name in self.pipelines:
+                pipeline_data[name] = str(self.pipelines[name])
+            project_data = {"name": self.project_name, "levels": self.levels, "pipelines": pipeline_data}
             f.write(json.dumps(project_data, indent=4))
             f.close()
 
@@ -125,10 +134,12 @@ class MainWindow(qtw.QMainWindow):
             self.project_name = project_data["name"]
 
             self.levels.clear()
-            level_data = project_data["levels"]
-            level_count = level_data["0"]
-            for i in range(level_count):
-                self.levels.append(level_data[f"{i+1}"])
+            self.levels = project_data["levels"]
+
+            self.pipelines.clear()
+            pipeline_data = project_data["pipelines"]
+            for name in pipeline_data:
+                self.pipelines[name] = Path(pipeline_data[name])
 
 
 if __name__ == '__main__':

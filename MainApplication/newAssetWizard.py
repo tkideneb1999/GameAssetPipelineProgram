@@ -3,16 +3,20 @@ from newAssetWizard_GUI import Ui_new_asset_wizard
 
 
 class NewAssetWizard(qtw.QDialog):
-    def __init__(self, levels):
+    def __init__(self, levels, pipelines):
         super().__init__()
         self.ui_new_asset_wizard = Ui_new_asset_wizard()
         self.ui_new_asset_wizard.setupUi(self)
         self.setWindowTitle("Create New Asset")
         self.ui_new_asset_wizard.levels_combo_box.addItems(levels)
+        self.ui_new_asset_wizard.pipeline_combobox.addItems(pipelines)
         print("Test")
 
     def get_name_data(self):
         return self.ui_new_asset_wizard.name_line_edit.text()
+
+    def get_pipeline_data(self):
+        return self.ui_new_asset_wizard.pipeline_combobox.currentText()
 
     def get_level_data(self):
         return self.ui_new_asset_wizard.levels_combo_box.currentText()

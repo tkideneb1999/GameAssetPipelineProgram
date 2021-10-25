@@ -4,7 +4,7 @@ from asset_GUI import Ui_asset
 
 
 class Asset(qtw.QWidget):
-    def __init__(self, parent, name="test Asset", level="lvl01", tags=[], asset_type="Model", comment=""):
+    def __init__(self, parent, name: str, pipeline: str, level="lvl01", tags=[], asset_type="Model", comment=""):
         super().__init__(parent)
         self.ui_asset = Ui_asset()
         self.ui_asset.setupUi(self)
@@ -13,8 +13,9 @@ class Asset(qtw.QWidget):
         self.tags = tags
         self.asset_type = asset_type
         self.pipeline_step = "Modeling"  # TODO: Assets: Make dependent of first pipeline step
-        self.pipeline = "Point to Pipeline" # TODO: Assets: Make Pipeline Variable refer to pipeline as string
+        self.pipeline = "Point to Pipeline"  # TODO: Assets: Make Pipeline Variable refer to pipeline as string
         self.comment = comment
+        self.pipeline = pipeline
 
         self.update_list_ui()
 
