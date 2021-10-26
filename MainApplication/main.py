@@ -15,17 +15,18 @@ from projectWizard import ProjectWizard
 class MainWindow(qtw.QMainWindow):
     def __init__(self):
         super().__init__()
-        self.ui_MainWindow = Ui_MainWindow()
-        self.ui_MainWindow.setupUi(self)
+        self.ui = Ui_MainWindow()
+        self.ui.setupUi(self)
+        self.setWindowTitle("Game Asset Pipeline Automation")
 
         # set up tabs
-        self.pipeline_GUI = PipelineConfigurator(self.ui_MainWindow.pipelines_tab)
-        self.pipeline_GUI.pipeline_saved_signal.connect(self.add_pipeline)
+        self.pipeline_configurator = PipelineConfigurator(self.ui.pipelines_tab)
+        self.pipeline_configurator.pipeline_saved_signal.connect(self.add_pipeline)
 
-        self.ui_MainWindow.pipelines_tab.layout().addWidget(self.pipeline_GUI)
+        self.ui.pipelines_tab.layout().addWidget(self.pipeline_configurator)
 
-        self.assetManager = AssetManager(self.ui_MainWindow.assets_tab)
-        self.ui_MainWindow.assets_tab.layout().addWidget(self.assetManager)
+        self.assetManager = AssetManager(self.ui.assets_tab)
+        self.ui.assets_tab.layout().addWidget(self.assetManager)
 
         # Data
         self.project_name = ""
@@ -49,7 +50,8 @@ class MainWindow(qtw.QMainWindow):
             self.assetManager.add_levels(self.levels)
             self.assetManager.set_project_dir(self.project_dir)
             self.assetManager.load_asset_list()
-            self.pipeline_GUI.set_project_dir(self.project_dir)
+            self.assetManager.update_pipelines(self.pipelines)
+            self.pipeline_configurator.set_project_dir(self.project_dir)
             return
 
         # Check Data
@@ -90,7 +92,7 @@ class MainWindow(qtw.QMainWindow):
         self.assetManager.set_project_dir(self.project_dir)
 
         # Set Pipeline Data
-        self.pipeline_GUI.set_project_dir(self.project_dir)
+        self.pipeline_configurator.set_project_dir(self.project_dir)
 
         # Create Level Folders
         for lvl in self.levels:
@@ -105,7 +107,7 @@ class MainWindow(qtw.QMainWindow):
         r_path = path.relative_to(self.project_dir)
         self.pipelines[name] = r_path
         self.save_project_info()
-        self.assetManager.update_pipelines(list(self.pipelines.keys()))
+        self.assetManager.update_pipelines(self.pipelines)
 
     # -------------
     # SERIALIZATION

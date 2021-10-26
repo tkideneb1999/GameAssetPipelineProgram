@@ -97,6 +97,7 @@ class Pipeline:
         with path.open("w", encoding="utf-8") as f:
             f.write(json.dumps(data, indent=4))
             f.close()
+        return path
 
     def load(self, path: Path):
         with path.open("r", encoding="utf-8")as f:

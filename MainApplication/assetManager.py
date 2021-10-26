@@ -7,11 +7,12 @@ from PyQt5 import QtCore as qtc
 from assetManager_GUI import Ui_asset_manager
 from asset import Asset
 from newAssetWizard import NewAssetWizard
+from pipeline import Pipeline
 
 
 class AssetManager(qtw.QWidget):
     def __init__(self, parent):
-        super().__init__(parent, )
+        super().__init__(parent)
         self.ui_asset_manager = Ui_asset_manager()
         self.ui_asset_manager.setupUi(self)
 
@@ -22,10 +23,12 @@ class AssetManager(qtw.QWidget):
         self.assets = []
         self.levels = []
         self.project_dir = Path()
-        self.pipelines = []
+        self.pipelines = {}
+        self.registered_programs = []
 
     def add_new_asset(self):
-        dialog = NewAssetWizard(self.levels, self.pipelines)
+        pipeline_names = list(self.pipelines.keys())
+        dialog = NewAssetWizard(self.levels, pipeline_names)
         dialog.setWindowModality(qtc.Qt.ApplicationModal)
         result = dialog.exec_()
         if result == 0:
@@ -33,10 +36,12 @@ class AssetManager(qtw.QWidget):
 
         # Get new asset data
         asset_name = dialog.get_name_data()
-        asset_pipeline = dialog.get_pipeline_data()
+        asset_pipeline_name = dialog.get_pipeline_data()
         asset_level = dialog.get_level_data()
         asset_tags = dialog.get_tags_data()
         asset_comment = dialog.get_comment_data()
+
+        asset_pipeline_dir = self.project_dir / self.pipelines[asset_pipeline_name]
 
         # Check Data
         # Check if Asset Name already exists in Level
@@ -57,9 +62,11 @@ class AssetManager(qtw.QWidget):
         new_asset = Asset(
             self.ui_asset_manager.asset_list,
             asset_name,
-            asset_pipeline,
-            asset_level,
-            asset_tags, "Model", asset_comment)
+            pipeline_dir=asset_pipeline_dir,
+            level=asset_level,
+            tags=asset_tags,
+            asset_type="Model",
+            comment=asset_comment)
         asset_item = qtw.QListWidgetItem()
         asset_item.setSizeHint(new_asset.sizeHint())
         self.ui_asset_manager.asset_list.addItem(asset_item)
@@ -72,7 +79,13 @@ class AssetManager(qtw.QWidget):
         abs_asset_path.mkdir()
         self.save_asset(new_asset)
         self.save_asset_list()
-        # TODO: Assets: Create intermediate file structure
+
+        # Create Pipeline Step Files
+        pipeline = Pipeline()
+        pipeline.load(asset_pipeline_dir)
+        for s in range(len(pipeline.pipeline_steps)):
+            path = abs_asset_path / pipeline.pipeline_steps[s].name / "export"
+            path.mkdir(parents=True)
 
     def add_asset_data(self, name: str, level: str, tags: list, comment: str):
         # Check Data
@@ -160,9 +173,8 @@ class AssetManager(qtw.QWidget):
             "name": asset.name,
             "level": asset.level,
             "type": asset.asset_type,
-            "pipeline": asset.pipeline,
-            "pipeline_step": asset.pipeline_step,
-            "tags": json.dumps(asset.tags),
+            "pipeline_dir": str(asset.pipeline_dir),
+            "tags": asset.tags,
             "comment": asset.comment
         }
 
@@ -181,7 +193,7 @@ class AssetManager(qtw.QWidget):
             asset.name = asset_data["name"]
             asset.level = asset_data["level"]
             asset.type = asset_data["type"]
-            asset.pipeline = asset_data["pipeline"]
+            asset.pipeline = asset_data["pipeline_dir"]
             asset.tags = json.loads(asset_data["tags"])
             asset.comment = asset_data["comment"]
 

@@ -1,4 +1,3 @@
-import json
 from pathlib import Path
 from enum import Enum
 
@@ -19,7 +18,7 @@ class IODataEnum(Enum):
 
 class PipelineConfigurator(qtw.QWidget):
 
-    pipeline_saved_signal = qtc.pyqtSignal(Path, str)
+    pipeline_saved_signal = qtc.pyqtSignal(Path, str)  # Path to pipeline, name of pipeline
 
     def __init__(self, parent):
         super().__init__(parent)
@@ -33,6 +32,7 @@ class PipelineConfigurator(qtw.QWidget):
         # -Pipeline Name Line Edit
         self.name_line_edit = qtw.QLineEdit("Pipeline Name")
         self.name_line_edit.setText(self.current_pipeline.name)
+        self.name_line_edit.editingFinished.connect(self.pipeline_name_changed)
         layout.addWidget(self.name_line_edit)
 
         layout_1 = qtw.QHBoxLayout()
@@ -83,7 +83,7 @@ class PipelineConfigurator(qtw.QWidget):
         text = self.name_line_edit.text()
         if " " in text:
             print("name contains space")
-            self.name_line_edit.setText(self.name)
+            self.name_line_edit.setText(self.current_pipeline.name)
             return
         self.current_pipeline.name = text
 
@@ -178,7 +178,8 @@ class PipelineConfigurator(qtw.QWidget):
 
     def save(self):
         path = self.project_dir / "pipelines"
-        self.current_pipeline.save(path)
+        path = self.current_pipeline.save(path)
+        self.pipeline_saved_signal.emit(path, self.current_pipeline.name)
 
     def load(self, path: Path):
         for s in self.step_widgets:
@@ -263,6 +264,9 @@ class PipelineStepGUI(qtw.QWidget):
 
         # Add Output Button
         self.ui.add_output_button.clicked.connect(self.add_output)
+
+        #Name Line Edit
+        self.ui.pipeline_step_name_lineedit.editingFinished.connect(self.rename_step)
 
         # Right-Click Menu
         self.setContextMenuPolicy(qtc.Qt.CustomContextMenu)
