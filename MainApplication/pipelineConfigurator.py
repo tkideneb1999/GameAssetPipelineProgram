@@ -1,12 +1,20 @@
 import json
 from pathlib import Path
+from enum import Enum
 
 from PyQt5 import QtWidgets as qtw
 from PyQt5 import QtCore as qtc
 
+from pipeline import Pipeline
 from pipeline_step_GUI import Ui_pipeline_step
 from pipeline_step_input_GUI import Ui_pipeline_step_input
 from pipeline_step_output_GUI import Ui_pipeline_step_output
+
+
+class IODataEnum(Enum):
+    Name = 0
+    AssetType = 1
+    SelectedOutput = 2
 
 
 class PipelineConfigurator(qtw.QWidget):
@@ -17,45 +25,47 @@ class PipelineConfigurator(qtw.QWidget):
         super().__init__(parent)
 
         # Data
-        self.name = "Pipeline_1"
+        self.current_pipeline = Pipeline()
         self.project_dir = Path()
-        self.pipeline_steps = []
-        self.io_connections = {}
-        self.step_id_counter = 0
 
+        # <editor-fold desc="GUI">
         layout = qtw.QVBoxLayout()
+        # -Pipeline Name Line Edit
         self.name_line_edit = qtw.QLineEdit("Pipeline Name")
-        self.name_line_edit.setText(self.name)
+        self.name_line_edit.setText(self.current_pipeline.name)
         layout.addWidget(self.name_line_edit)
 
         layout_1 = qtw.QHBoxLayout()
 
-        # Scroll Area for Pipeline Steps
+        # -Scroll Area for Pipeline Steps
         self.scroll_bar = qtw.QScrollArea(self)
         self.scroll_bar.setVerticalScrollBarPolicy(qtc.Qt.ScrollBarAlwaysOff)
         self.scroll_bar.setHorizontalScrollBarPolicy(qtc.Qt.ScrollBarAlwaysOn)
         self.scroll_bar.setWidgetResizable(True)
 
         self.scrollbar_layout = qtw.QHBoxLayout()
+        self.scrollbar_layout.addStretch()
         self.scrollable_widget = qtw.QWidget()
         self.scrollable_widget.setLayout(self.scrollbar_layout)
         self.scroll_bar.setWidget(self.scrollable_widget)
 
         layout_1.addWidget(self.scroll_bar)
 
-        # Edit Pipeline Buttons
+        self.step_widgets = []
+
+        # -Edit Pipeline Buttons
         button_layout = qtw.QVBoxLayout()
-        # Add Step Button
+        # --Add Step Button
         add_step_button = qtw.QPushButton("Add Step")
         add_step_button.setMinimumSize(100, 100)
-        add_step_button.clicked.connect(self.add_pipeline_step)
+        add_step_button.clicked.connect(self.add_step)
         button_layout.addWidget(add_step_button)
-        # Save Pipeline Button
+        # --Save Pipeline Button
         save_pipeline_button = qtw.QPushButton("Save")
         save_pipeline_button.setMinimumSize(100, 100)
         save_pipeline_button.clicked.connect(self.save)
         button_layout.addWidget(save_pipeline_button)
-        # Load Pipeline Button
+        # --Load Pipeline Button
         load_pipeline_button = qtw.QPushButton("Load")
         load_pipeline_button.setMinimumSize(100, 100)
         load_pipeline_button.clicked.connect(self.load_pipeline_dialog)
@@ -64,6 +74,7 @@ class PipelineConfigurator(qtw.QWidget):
         layout_1.addLayout(button_layout)
         layout.addLayout(layout_1)
         self.setLayout(layout)
+        # </editor-fold>
 
     def set_project_dir(self, project_dir: Path):
         self.project_dir = project_dir
@@ -74,7 +85,7 @@ class PipelineConfigurator(qtw.QWidget):
             print("name contains space")
             self.name_line_edit.setText(self.name)
             return
-        self.name = text
+        self.current_pipeline.name = text
 
     def load_pipeline_dialog(self):
         file_dialog = qtw.QFileDialog(self)
@@ -86,360 +97,308 @@ class PipelineConfigurator(qtw.QWidget):
             return
         path = Path(file_dialog.selectedFiles()[0])
         self.load(path)
-        pass
 
     # -------------------------
-    # Add/Remove Pipeline Steps
-    # -------------------------
+    # <editor-fold, desc="Pipeline Step Function Handlers">
+    # Pipeline Step Function Handlers
 
-    def add_pipeline_step(self):
-        self.pipeline_steps.append(PipelineStep(self, f"s{self.step_id_counter}", len(self.pipeline_steps)))
-        self.step_id_counter += 1
-        self.scrollable_widget.layout().addWidget(self.pipeline_steps[len(self.pipeline_steps) - 1])
-        self.pipeline_steps[len(self.pipeline_steps) - 1].outputs_changed_signal.connect(self.pipeline_steps_outputs_changed)
-        self.pipeline_steps[len(self.pipeline_steps) - 1].step_deleted_signal.connect(self.pipeline_step_deleted)
-        self.pipeline_steps[len(self.pipeline_steps) - 1].io_mapped_signal.connect(self.connect_step_io)
+    def add_step(self):
+        name = self.current_pipeline.add_step()[1]
+        self.step_widgets.append(PipelineStepGUI(len(self.step_widgets), self.scrollable_widget))
+        self.scrollbar_layout.insertWidget(self.scrollbar_layout.count() - 1, self.step_widgets[-1])
+        self.step_widgets[-1].set_name(name)
+        self.step_widgets[-1].s_step_deleted.connect(self.remove_step)
+        self.step_widgets[-1].s_step_renamed.connect(self.rename_step)
 
-        self.pipeline_steps[len(self.pipeline_steps) - 1].input_added_signal.connect(self.input_added)
-        self.pipeline_steps[len(self.pipeline_steps) - 1].input_deleted_signal.connect(self.input_deleted)
+        self.step_widgets[-1].s_input_added.connect(self.input_added)
+        self.step_widgets[-1].s_input_removed.connect(self.input_removed)
+        self.step_widgets[-1].s_input_modified.connect(self.input_modified)
 
-        self.pipeline_steps[len(self.pipeline_steps) - 1].output_deleted_signal.connect(self.output_deleted)
+        self.step_widgets[-1].s_output_added.connect(self.output_added)
+        self.step_widgets[-1].s_output_removed.connect(self.output_removed)
+        self.step_widgets[-1].s_output_modified.connect(self.output_modified)
 
-    def pipeline_step_deleted(self, index: int):
-        # Delete Input IO Connections of Pipeline Step
-        for i in self.pipeline_steps[index].inputs:
-            self.delete_io_connection_if_exists(i.uid)
+    def remove_step(self, index: int):
+        self.current_pipeline.remove_step(index)
+        for i in range(index + 1, len(self.step_widgets)):
+            self.step_widgets[i].index -= 1
+        del self.step_widgets[index]
 
-        # Delete Output IO Connections of Pipeline Step
-        for o in self.pipeline_steps[index].outputs:
-            output_list = list(self.io_connections.values())
-            indices = []
-            for i in range(len(output_list)):
-                if output_list[i] == o.uid:
-                    indices.append(i)
-            input_list = list(self.io_connections.keys())
-            for i in indices:
-                del self.io_connections[input_list[i]]
+    def rename_step(self, step_index: int, name: str):
+        self.current_pipeline.pipeline_steps[step_index].name = name
 
-        # Delete Pipeline Step from List and correct indices
-        for i in range(index + 1, len(self.pipeline_steps)):
-            self.pipeline_steps[i].index -= 1
-        del self.pipeline_steps[index]
+    # </editor-fold>
 
-    # ---------------
-    # I/O Connections
-    # ---------------
+    # -----------------------
+    # <editor-fold, desc="Input/Output Function Handlers">
+    # Input/Output Function Handlers
 
-    def pipeline_steps_outputs_changed(self, index: int):
-        print("outputs changed")
+    def input_added(self, step_index: int):
+        self.current_pipeline.add_input(step_index)
+        self.update_possible_outputs(step_index - 1)
+
+    def input_removed(self, step_index: int, input_index: int):
+        self.current_pipeline.remove_input(step_index, input_index)
+
+    def input_modified(self, step_index: int, input_index: int, data_field: IODataEnum, data: str):
+        if data_field == IODataEnum.SelectedOutput:
+            self.current_pipeline.connect_io(self.current_pipeline.get_uid(step_index, True, input_index), data)
+
+    def output_added(self, step_index: int):
+        name = self.current_pipeline.add_output(step_index)[1]
+        self.step_widgets[step_index].outputs[-1].set_name(name)
+        self.update_possible_outputs(step_index)
+
+    def output_removed(self, step_index: int, output_index: int):
+        self.current_pipeline.remove_output(step_index, output_index)
+        self.update_possible_outputs(step_index)
+
+    def output_modified(self, step_index: int, output_index: int, data_field: IODataEnum, data: str):
+        if data_field == IODataEnum.Name:
+            self.current_pipeline.pipeline_steps[step_index].outputs[output_index].name = data
+
+    def update_possible_outputs(self, step_index: int, override_io=True):
         pipeline_outputs = []
-        for k in range(len(self.pipeline_steps)):
-            if k > index:
-                for i in self.pipeline_steps[k].inputs:
+        for k in range(len(self.step_widgets)):
+            if k > step_index:
+                for i in self.step_widgets[k].inputs:
                     i.set_possible_outputs(pipeline_outputs)
-                    self.delete_io_connection_if_exists(i.uid)
-            for o in self.pipeline_steps[k].outputs:
-                pipeline_outputs.append(o.uid)
-        print(self.io_connections)
+                    if override_io:
+                        self.current_pipeline.delete_io_connection_if_exists(
+                            self.current_pipeline.get_uid(k, True, i.index))
+            for o in self.step_widgets[k].outputs:
+                pipeline_outputs.append(self.current_pipeline.get_uid(k, False, o.index))
 
-    def connect_step_io(self, in_id: str, out_id: str):
-        self.io_connections[in_id] = out_id
-        print(self.io_connections)
+    # </editor-fold>
 
-    def input_added(self, step_index: int, input_index: int):
-        pipeline_outputs = []
-        for k in range(0, step_index):
-            for o in self.pipeline_steps[k].outputs:
-                pipeline_outputs.append(o.uid)
-        self.pipeline_steps[step_index].inputs[input_index].set_possible_outputs(pipeline_outputs)
-
-    def input_deleted(self, uid: str):
-        self.delete_io_connection_if_exists(uid)
-        print(self.io_connections)
-
-    def output_deleted(self, uid: str):
-        connected_outputs = list(self.io_connections.values())
-        if uid in connected_outputs:
-            key = list(self.io_connections.keys())[connected_outputs.index(uid)]
-            del self.io_connections[key]
-        print(self.io_connections)
-
-    def delete_io_connection_if_exists(self, input_id: str):
-        if input_id in self.io_connections:
-            del self.io_connections[input_id]
-
-    # -------------
+    # -----------------------------------
+    # <editor-fold, desc="Serialization">
     # Serialization
-    # -------------
+    # -----------------------------------
 
     def save(self):
-        # Collect Save Data
-        step_data = []
-        for i in range(len(self.pipeline_steps)):
-            step_data.append(self.pipeline_steps[i].save_pipeline_step())
-        data = {
-            "name": self.name,
-            "io_connections": self.io_connections,
-            "step_id_counter": self.step_id_counter,
-            "steps": step_data
-            }
-
-        # Write Data
         path = self.project_dir / "pipelines"
-        if not path.exists():
-            path.mkdir(parents=True)
-        path = path / f"{self.name}.json"
-        if not path.is_file():
-            path.touch()
-        with path.open("w", encoding="utf-8") as f:
-            f.write(json.dumps(data, indent=4))
-            f.close()
-        self.pipeline_saved_signal.emit(path, self.name)
+        self.current_pipeline.save(path)
 
     def load(self, path: Path):
-        # Delete Previous Pipeline
-        for i in reversed(range(len(self.pipeline_steps))):
-            self.pipeline_steps[i].delete_step()
-            # TODO(BUG): does not delete all steps
-        self.pipeline_steps.clear()
-        self.io_connections.clear()
+        for s in self.step_widgets:
+            s.delete_step()
+        self.current_pipeline.load(path)
+        for k in range(len(self.current_pipeline.pipeline_steps)):
+            # Create Step GUI
+            self.step_widgets.append(PipelineStepGUI(k, self.scrollable_widget))
+            self.scrollbar_layout.insertWidget(self.scrollbar_layout.count() - 1, self.step_widgets[-1])
+            self.step_widgets[-1].set_name(self.current_pipeline.pipeline_steps[k].name)
+            self.step_widgets[-1].s_step_deleted.connect(self.remove_step)
+            self.step_widgets[-1].s_step_renamed.connect(self.rename_step)
 
-        with path.open("r", encoding="utf-8")as f:
-            data = json.loads(f.read())
-            self.name = data["name"]
-            self.name_line_edit.setText(self.name)
-            self.step_id_counter = data["step_id_counter"]
+            self.step_widgets[-1].s_input_added.connect(self.input_added)
+            self.step_widgets[-1].s_input_removed.connect(self.input_removed)
+            self.step_widgets[-1].s_input_modified.connect(self.input_modified)
 
-            # Load Steps
-            for i in data["steps"]:
-                self.pipeline_steps.append(PipelineStep(self, i["id"], len(self.pipeline_steps)))
+            self.step_widgets[-1].s_output_added.connect(self.output_added)
+            self.step_widgets[-1].s_output_removed.connect(self.output_removed)
+            self.step_widgets[-1].s_output_modified.connect(self.output_modified)
 
-                # Setup necessary signals for pipeline steps
-                self.scrollable_widget.layout().addWidget(self.pipeline_steps[len(self.pipeline_steps) - 1])
-                self.pipeline_steps[len(self.pipeline_steps) - 1].outputs_changed_signal.connect(
-                    self.pipeline_steps_outputs_changed)
-                self.pipeline_steps[len(self.pipeline_steps) - 1].step_deleted_signal.connect(
-                    self.pipeline_step_deleted)
-                self.pipeline_steps[len(self.pipeline_steps) - 1].io_mapped_signal.connect(self.connect_step_io)
+            # Create Inputs for Step
+            for i in range(len(self.current_pipeline.pipeline_steps[k].inputs)):
+                self.step_widgets[-1].load_input("")  # TODO(Pipeline): Implement asset Type
 
-                self.pipeline_steps[len(self.pipeline_steps) - 1].input_added_signal.connect(self.input_added)
-                self.pipeline_steps[len(self.pipeline_steps) - 1].input_deleted_signal.connect(self.input_deleted)
+            # Create Outputs for Step
+            for o in range(len(self.current_pipeline.pipeline_steps[k].outputs)):
+                self.step_widgets[-1].load_output("")  # TODO(Pipeline): Implement asset Type
+                self.step_widgets[-1].outputs[-1].set_name(self.current_pipeline.pipeline_steps[k].outputs[o].name)
 
-                self.pipeline_steps[len(self.pipeline_steps) - 1].output_deleted_signal.connect(self.output_deleted)
-                self.pipeline_steps[len(self.pipeline_steps) - 1].load_pipeline_step(i)
+        # Update Input Selections
+        self.update_possible_outputs(0, override_io=False)
 
-            # Wrangle IO
-            self.pipeline_steps_outputs_changed(0)
-            self.io_connections = data["io_connections"]
-            print(self.io_connections)
-            for k in self.io_connections:
-                for s in self.pipeline_steps:
-                    for i in s.inputs:
-                        if i.uid == k:
-                            i.set_selection_with_text(self.io_connections[k])
-            # TODO: Optimize search
+        # Set correct selected output in Input Selection
+        for iuid in self.current_pipeline.io_connections:
+            for s in range(len(self.current_pipeline.pipeline_steps)):
+                for i in range(len(self.current_pipeline.pipeline_steps[s].inputs)):
+                    if iuid == self.current_pipeline.pipeline_steps[s].inputs[i].uid:
+                        self.step_widgets[s].inputs[i].set_selection_with_text(
+                            self.current_pipeline.io_connections[iuid])
+        # TODO(Pipeline Configurator): Optimize search
+
+    # </editor-fold>
+
+    # -----------------------------
+    # <editor-fold, desc="Helpers">
+    # Helpers
+    # -----------------------------
+
+    def get_stepWidget_at_index(self, index: int):
+        return self.scrollbar_layout.itemAt(index).widget()
+
+    # </editor-fold>
 
 
-class PipelineStep(qtw.QWidget):
+class PipelineStepGUI(qtw.QWidget):
+    # <editor-fold, desc="Signals">
     # Signals
-    input_added_signal = qtc.pyqtSignal(int, int)
-    input_deleted_signal = qtc.pyqtSignal(str)
+    # -Pipeline Step Signals
+    s_step_renamed = qtc.pyqtSignal(int, str)
+    s_step_deleted = qtc.pyqtSignal(int)
 
-    outputs_changed_signal = qtc.pyqtSignal(int)
-    output_deleted_signal = qtc.pyqtSignal(str)
+    # -Pipeline Input Signals
+    s_input_added = qtc.pyqtSignal(int)
+    s_input_removed = qtc.pyqtSignal(int, int)
+    s_input_modified = qtc.pyqtSignal(int, int, IODataEnum, str)
 
-    step_deleted_signal = qtc.pyqtSignal(int)
-    io_mapped_signal = qtc.pyqtSignal(str, str)
+    # -Pipeline OutputSignals
+    s_output_added = qtc.pyqtSignal(int)
+    s_output_removed = qtc.pyqtSignal(int, int)
+    s_output_modified = qtc.pyqtSignal(int, int, IODataEnum, str)
+    # </editor-fold>
 
-    def __init__(self, parent, uid: str, index: int):
+    def __init__(self, index: int, parent=None):
         # GUI
         super().__init__(parent)
+        self.ui = Ui_pipeline_step()
+        self.ui.setupUi(self)
 
-        self.ui_pipeline_step = Ui_pipeline_step()
-        self.ui_pipeline_step.setupUi(self)
+        # Add Input Button
+        self.ui.add_input_button.clicked.connect(self.add_input)
 
-        self.ui_pipeline_step.add_output_button.clicked.connect(self.add_output)
-        self.ui_pipeline_step.add_input_button.clicked.connect(self.add_input)
+        # Add Output Button
+        self.ui.add_output_button.clicked.connect(self.add_output)
 
+        # Right-Click Menu
         self.setContextMenuPolicy(qtc.Qt.CustomContextMenu)
-        self.customContextMenuRequested.connect(self.open_context_menu)
+        self.customContextMenuRequested.connect(self.launch_context_menu)
 
         # Data
-        self.name = f"step_{uid}"
+        self.index = index
         self.inputs = []
         self.outputs = []
-        self.uid = uid
-        self.index = index
-        self.input_id_counter = 0
-        self.output_id_counter = 0
 
-        self.ui_pipeline_step.pipeline_step_name_lineedit.setText(self.name)
-
-    def open_context_menu(self, pos):
-        menu = qtw.QMenu()
-
-        delete_option = menu.addAction("Delete Step")
-        delete_option.triggered.connect(self.delete_step)
-
+    def launch_context_menu(self, pos):
+        menu = qtw.QMenu(self)
+        delete_action = menu.addAction("Delete")
+        delete_action.triggered.connect(self.delete_step)
         menu.exec_(self.mapToGlobal(pos))
 
+    def rename_step(self):
+        self.s_step_renamed.emit(self.index, self.ui.pipeline_step_name_lineedit.text())
+
+    def set_name(self, new_name: str):
+        self.ui.pipeline_step_name_lineedit.setText(new_name)
+
     def delete_step(self):
-        self.step_deleted_signal.emit(self.index)
+        print(f"Deleting Step at index: {self.index}")
+        self.s_step_deleted.emit(self.index)
         self.deleteLater()
 
-    def input_mapped(self, in_id: str, out_id: str):
-        self.io_mapped_signal.emit(in_id, out_id)
+    # --------------
+    # Inputs/Outputs
 
-    # -------------------------
-    # Add/Remove Inputs/Outputs
-    # -------------------------
-
+    # Input Handling
     def add_input(self):
-        print("Adding Input")
-        self.inputs.append(PipelineStepInput(self, f"{self.uid}i{self.input_id_counter}", len(self.inputs)))
-        self.input_id_counter += 1
-        self.ui_pipeline_step.inputs_layout.addWidget(self.inputs[len(self.inputs) - 1])
-        self.inputs[len(self.inputs) - 1].input_mapped.connect(self.input_mapped)
-        self.inputs[len(self.inputs) - 1].input_deleted.connect(self.input_deleted)
-        self.input_added_signal.emit(self.index, self.inputs[len(self.inputs) - 1].index)
+        self.inputs.append(PipelineInputGUI(len(self.inputs), self))
+        self.ui.inputs_layout.addWidget(self.inputs[-1])
+        self.inputs[-1].s_remove.connect(self.remove_input)
+        self.inputs[-1].s_modified.connect(self.modified_input)
+        self.s_input_added.emit(self.index)
 
-    def input_deleted(self, index):
-        print("Deleting Input")
-        self.input_deleted_signal.emit( self.inputs[index].uid)
-        for i in range(index+1, len(self.inputs)):
+    def remove_input(self, input_index: int):
+        self.s_input_removed.emit(self.index, input_index)
+        for i in range(input_index + 1, len(self.inputs)):
             self.inputs[i].index -= 1
-        del self.inputs[index]
+        del self.inputs[input_index]
 
+    def modified_input(self, input_index: int, data_field: IODataEnum, data: str):
+        self.s_input_modified.emit(self.index, input_index, data_field, data)
+
+    # Output Handling
     def add_output(self):
-        print("Adding Output")
-        self.outputs.append(PipelineStepOutput(self, f"{self.uid}o{self.output_id_counter}", len(self.outputs)))
-        self.output_id_counter += 1
-        self.ui_pipeline_step.outputs_layout.addWidget(self.outputs[len(self.outputs) - 1])
-        self.outputs[len(self.outputs) - 1].output_deleted.connect(self.output_deleted)
-        self.outputs_changed_signal.emit(self.index)
+        self.outputs.append(PipelineOutputGUI(len(self.outputs), self))
+        self.ui.outputs_layout.addWidget(self.outputs[-1])
+        self.outputs[-1].s_remove.connect(self.remove_output)
+        self.outputs[-1].s_modified.connect(self.modified_output)
+        self.s_output_added.emit(self.index)
 
-    def output_deleted(self, index):
-        print("Deleting Output")
-        self.output_deleted_signal.emit(self.outputs[index].uid)
-        for i in range(index+1, len(self.outputs)):
+    def remove_output(self, output_index: int):
+        for i in range(output_index + 1, len(self.outputs)):
             self.outputs[i].index -= 1
-        del self.outputs[index]
-        self.outputs_changed_signal.emit(self.index)
+        del self.outputs[output_index]
+        self.s_output_removed.emit(self.index, output_index)
 
-    # -------------
+    def modified_output(self, output_index: int, data_field: IODataEnum, data: str):
+        self.s_output_modified.emit(self.index, output_index, data_field, data)
+
     # Serialization
-    # -------------
-    def save_pipeline_step(self):
-        inputs_data = []
-        for i in range(len(self.inputs)):
-            inputs_data.append(self.inputs[i].save())
-        outputs_data = []
-        for i in range(len(self.outputs)):
-            outputs_data.append(self.outputs[i].save())
-        data = {
-            "name": self.name,
-            "id": self.uid,
-            "input_id_counter": self.input_id_counter,
-            "output_id_counter": self.output_id_counter,
-            "inputs": inputs_data,
-            "outputs": outputs_data
-            }
-        return data
+    def load_input(self, asset_type):
+        self.inputs.append(PipelineInputGUI(len(self.inputs), self))
+        self.ui.inputs_layout.addWidget(self.inputs[-1])
+        self.inputs[-1].s_remove.connect(self.remove_input)
+        self.inputs[-1].s_modified.connect(self.modified_input)
 
-    def load_pipeline_step(self, data: dict):
-        self.name = data["name"]
-        self.input_id_counter = data["input_id_counter"]
-        self.output_id_counter = data["output_id_counter"]
-
-        # load inputs
-        for i in data["inputs"]:
-            self.inputs.append(PipelineStepInput(self, i["id"], len(self.inputs)))
-            self.ui_pipeline_step.inputs_layout.addWidget(self.inputs[len(self.inputs) - 1])
-            self.inputs[len(self.inputs) - 1].input_mapped.connect(self.input_mapped)
-            self.inputs[len(self.inputs) - 1].input_deleted.connect(self.input_deleted)
-
-        # load outputs
-        for o in data["outputs"]:
-            self.outputs.append(PipelineStepOutput(self, o["id"], len(self.outputs)))
-            self.ui_pipeline_step.outputs_layout.addWidget(self.outputs[len(self.outputs) - 1])
-            self.outputs[len(self.outputs) - 1].output_deleted.connect(self.output_deleted)
-            self.outputs[len(self.outputs) - 1].load(o)
+    def load_output(self, asset_type):
+        self.outputs.append(PipelineOutputGUI(len(self.outputs), self))
+        self.ui.outputs_layout.addWidget(self.outputs[-1])
+        self.outputs[-1].s_remove.connect(self.remove_output)
+        self.outputs[-1].s_modified.connect(self.modified_output)
 
 
-class PipelineStepInput(qtw.QWidget):
+class PipelineInputGUI(qtw.QWidget):
+    s_remove = qtc.pyqtSignal(int) # input index
+    s_modified = qtc.pyqtSignal(int, IODataEnum, str)  # input index, data type, data
 
-    # Signals
-    input_deleted = qtc.pyqtSignal(int)
-    input_mapped = qtc.pyqtSignal(str, str)
+    def __init__(self, index: int, parent=None):
 
-    def __init__(self, parent, uid: str, index: int):
         # GUI
-        super(PipelineStepInput, self).__init__(parent)
-        self.ui_pipeline_step_input = Ui_pipeline_step_input()
-        self.ui_pipeline_step_input.setupUi(self)
-        self.ui_pipeline_step_input.remove_input_button.clicked.connect(self.delete_input)
-        self.ui_pipeline_step_input.input_name_combobox.activated.connect(self.output_selected)
+        super().__init__(parent)
+        self.ui = Ui_pipeline_step_input()
+        self.ui.setupUi(self)
+        self.ui.remove_input_button.clicked.connect(self.remove)
+        self.ui.input_name_combobox.activated.connect(self.selected_output)
 
         # Data
         self.index = index
-        self.uid = uid
+
+    def remove(self):
+        self.s_remove.emit(self.index)
+        self.deleteLater()
+
+    def selected_output(self):
+        self.s_modified.emit(self.index, IODataEnum.SelectedOutput, self.ui.input_name_combobox.currentText())
+
+    def set_possible_outputs(self, outputs:list):
+        self.ui.input_name_combobox.clear()
+        self.ui.input_name_combobox.addItem("----")
+        self.ui.input_name_combobox.model().item(0).setEnabled(False)
+        self.ui.input_name_combobox.addItems(outputs)
 
     def set_selection_with_text(self, text: str):
-        index = self.ui_pipeline_step_input.input_name_combobox.findText(text)
+        index = self.ui.input_name_combobox.findText(text)
         if index == -1:
             raise Exception("text not in combobox")
-        self.ui_pipeline_step_input.input_name_combobox.setCurrentIndex(index)
-        pass
-
-    def delete_input(self):
-        self.input_deleted.emit(self.index)
-        self.deleteLater()
-
-    def set_possible_outputs(self, outputs: list):
-        self.ui_pipeline_step_input.input_name_combobox.clear()
-        self.ui_pipeline_step_input.input_name_combobox.addItem("----")
-        self.ui_pipeline_step_input.input_name_combobox.model().item(0).setEnabled(False)
-        self.ui_pipeline_step_input.input_name_combobox.addItems(outputs)
-
-    def output_selected(self):
-        self.input_mapped.emit(self.uid, self.ui_pipeline_step_input.input_name_combobox.currentText())
-
-    def save(self):
-        return {"id": self.uid}
+        self.ui.input_name_combobox.setCurrentIndex(index)
 
 
-class PipelineStepOutput(qtw.QWidget):
+class PipelineOutputGUI(qtw.QWidget):
+    s_remove = qtc.pyqtSignal(int) # output index
+    s_modified = qtc.pyqtSignal(int, IODataEnum, str)  # output index, data type, data
 
-    # Signals
-    output_deleted = qtc.pyqtSignal(int)
+    def __init__(self, index, parent=None):
 
-    def __init__(self, parent, uid: str, index: int):
         # GUI
-        super(PipelineStepOutput, self).__init__(parent)
-        self.ui_pipeline_step_output = Ui_pipeline_step_output()
-        self.ui_pipeline_step_output.setupUi(self)
-        self.ui_pipeline_step_output.remove_output_button.clicked.connect(self.delete_output)
+        super().__init__(parent)
+        self.ui = Ui_pipeline_step_output()
+        self.ui.setupUi(self)
+        self.ui.remove_output_button.clicked.connect(self.remove)
+        self.ui.output_name_lineedit.editingFinished.connect(self.changed_name)
 
         # Data
         self.index = index
-        self.uid = uid
-        self.name = f"output_{uid}"
 
-        self.ui_pipeline_step_output.output_name_lineedit.setText(self.name)
-        self.ui_pipeline_step_output.output_name_lineedit.editingFinished.connect(self.renamed_output)
-
-    def delete_output(self):
-        self.output_deleted.emit(self.index)
+    def remove(self):
+        self.s_remove.emit(self.index)
         self.deleteLater()
 
-    def renamed_output(self):
-        user_name = self.ui_pipeline_step_output.output_name_lineedit.text()
+    def changed_name(self):
+        self.s_modified.emit(self.index, IODataEnum.Name, self.ui.output_name_lineedit.text())
 
-        self.name = f"{user_name}_{self.uid}"
-        self.ui_pipeline_step_output.output_name_lineedit.setText(self.name)
-
-    def save(self):
-        return {"id": self.uid, "name": self.name}
-
-    def load(self, data: dict):
-        self.name = data["name"]
+    def set_name(self, new_name: str):
+        self.ui.output_name_lineedit.setText(new_name)

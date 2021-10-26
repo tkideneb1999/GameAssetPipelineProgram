@@ -13,6 +13,7 @@ class Pipeline:
     def add_step(self):
         self.pipeline_steps.append(PipelineStep(f"s{self.step_id_counter}"))
         self.step_id_counter += 1
+        return self.pipeline_steps[-1].uid, self.pipeline_steps[-1].name
 
     def remove_step(self, index: int):
         for i in self.pipeline_steps[index].inputs:
@@ -59,6 +60,15 @@ class Pipeline:
             del self.io_connections[inputs[i]]
         return uid
 
+    def get_uid(self, step_index: int, is_input: bool, io_index=-1):
+        if io_index == -1:
+            return self.pipeline_steps[step_index].uid
+        else:
+            if is_input:
+                return self.pipeline_steps[step_index].inputs[io_index].uid
+            else:
+                return self.pipeline_steps[step_index].outputs[io_index].uid
+
     # ---------
     # Handle IO
     # ---------
@@ -85,7 +95,7 @@ class Pipeline:
         if not path.is_file():
             path.touch()
         with path.open("w", encoding="utf-8") as f:
-            f.write(json.dumps(data))
+            f.write(json.dumps(data, indent=4))
             f.close()
 
     def load(self, path: Path):
@@ -98,6 +108,7 @@ class Pipeline:
             for s in data["steps"]:
                 steps.append(PipelineStep(""))
                 steps[len(steps) - 1].load(s)
+            self.pipeline_steps = steps
             f.close()
 
     # -------
@@ -128,9 +139,9 @@ class PipelineStep:
         return uid
 
     def add_output(self):
-        self.outputs.append(PipelineInput(f"{self.uid}i{self.output_id_counter}"))
+        self.outputs.append(PipelineOutput(f"{self.uid}o{self.output_id_counter}"))
         self.output_id_counter += 1
-        return self.outputs[len(self.outputs) - 1].uid
+        return self.outputs[len(self.outputs) - 1].uid, self.outputs[len(self.outputs) - 1].name
 
     def remove_output(self, index: int):
         uid = self.outputs[index].uid

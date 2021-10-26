@@ -65,7 +65,7 @@
         <bool>true</bool>
        </property>
        <attribute name="title">
-        <string>Pipelines Configurator</string>
+        <string>Pipeline Configurator</string>
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_3"/>
       </widget>

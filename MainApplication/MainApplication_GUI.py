@@ -63,5 +63,5 @@ class Ui_MainWindow(object):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
         self.tabs.setTabText(self.tabs.indexOf(self.assets_tab), _translate("MainWindow", "Assets"))
-        self.tabs.setTabText(self.tabs.indexOf(self.pipelines_tab), _translate("MainWindow", "Pipelines Configurator"))
+        self.tabs.setTabText(self.tabs.indexOf(self.pipelines_tab), _translate("MainWindow", "Pipeline Configurator"))
         self.tabs.setTabText(self.tabs.indexOf(self.settings_tab), _translate("MainWindow", "Settings"))
