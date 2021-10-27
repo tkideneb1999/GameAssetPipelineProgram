@@ -109,6 +109,9 @@ class MainWindow(qtw.QMainWindow):
         self.save_project_info()
         self.assetManager.update_pipelines(self.pipelines)
 
+    def set_current_project(self):
+        pass
+
     # -------------
     # SERIALIZATION
     # -------------

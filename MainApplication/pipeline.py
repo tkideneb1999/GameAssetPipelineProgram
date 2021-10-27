@@ -1,6 +1,8 @@
 from pathlib import Path
 import json
 
+# TODO(Pipeline): Add possible Programs
+# TODO(Pipeline): Presets for programs
 
 class Pipeline:
     def __init__(self):

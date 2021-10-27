@@ -5,6 +5,7 @@ from PyQt5 import QtWidgets as qtw
 from PyQt5 import QtCore as qtc
 
 from assetManager_GUI import Ui_asset_manager
+from asset_GUI import Ui_asset
 from asset import Asset
 from newAssetWizard import NewAssetWizard
 from pipeline import Pipeline
@@ -13,11 +14,11 @@ from pipeline import Pipeline
 class AssetManager(qtw.QWidget):
     def __init__(self, parent):
         super().__init__(parent)
-        self.ui_asset_manager = Ui_asset_manager()
-        self.ui_asset_manager.setupUi(self)
+        self.ui = Ui_asset_manager()
+        self.ui.setupUi(self)
 
-        self.ui_asset_manager.add_asset_button.clicked.connect(self.add_new_asset)
-        self.ui_asset_manager.remove_asset_button.clicked.connect(self.remove_asset)
+        self.ui.add_asset_button.clicked.connect(self.add_new_asset)
+        self.ui.remove_asset_button.clicked.connect(self.remove_asset)
 
         # Data
         self.assets = []
@@ -60,24 +61,26 @@ class AssetManager(qtw.QWidget):
 
         # Create Asset
         new_asset = Asset(
-            self.ui_asset_manager.asset_list,
             asset_name,
             pipeline_dir=asset_pipeline_dir,
             level=asset_level,
             tags=asset_tags,
             asset_type="Model",
             comment=asset_comment)
-        asset_item = qtw.QListWidgetItem()
-        asset_item.setSizeHint(new_asset.sizeHint())
-        self.ui_asset_manager.asset_list.addItem(asset_item)
-        self.ui_asset_manager.asset_list.setItemWidget(asset_item, new_asset)
 
-        self.assets.append(new_asset)
+        asset_view = AssetView(new_asset, self.ui.asset_list)
+
+        asset_item = qtw.QListWidgetItem()
+        asset_item.setSizeHint(asset_view.sizeHint())
+        self.ui.asset_list.addItem(asset_item)
+        self.ui.asset_list.setItemWidget(asset_item, asset_view)
+
+        self.assets.append(asset_view)
 
         # Create Files
         abs_asset_path = self.project_dir / new_asset.level / new_asset.name
         abs_asset_path.mkdir()
-        self.save_asset(new_asset)
+        self.save_asset(asset_view)
         self.save_asset_list()
 
         # Create Pipeline Step Files
@@ -87,38 +90,13 @@ class AssetManager(qtw.QWidget):
             path = abs_asset_path / pipeline.pipeline_steps[s].name / "export"
             path.mkdir(parents=True)
 
-    def add_asset_data(self, name: str, level: str, tags: list, comment: str):
-        # Check Data
-        # Check if Asset Name already exists in Level
-        for a in self.assets:
-            if a.name == name and a.level == level:
-                print(f"Asset{name} already exists in Level {level}.")
-                # TODO: Assets: Optimize Asset search
-                return False
-
-        # Check if selected level is viable
-        if level not in self.levels:
-            print(f"{level} is not a valid Level.")
-            return False
-
-        # Create Asset
-        new_asset = Asset(self.ui_asset_manager.asset_list, name, level, tags, "Model",
-                          comment)
-        asset_item = qtw.QListWidgetItem()
-        asset_item.setSizeHint(new_asset.sizeHint())
-        self.ui_asset_manager.asset_list.addItem(asset_item)
-        self.ui_asset_manager.asset_list.setItemWidget(asset_item, new_asset)
-
-        self.assets.append(new_asset)
-        return True
-
     def remove_asset(self):
-        selected_assets = self.ui_asset_manager.asset_list.selectedIndexes()
+        selected_assets = self.ui.asset_list.selectedIndexes()
         if not selected_assets:
             return
         else:
             for i in selected_assets:
-                self.ui_asset_manager.asset_list.takeItem(i.row())
+                self.ui.asset_list.takeItem(i.row())
                 self.assets.remove(self.assets[i.row()])
 
         # TODO: Remove Folder and files
@@ -146,7 +124,7 @@ class AssetManager(qtw.QWidget):
         with path.open("w", encoding="utf-8") as f:
             f.write(f"assets {len(self.assets)}\n")
             for i in range(len(self.assets)):
-                data = f"{self.assets[i].name},{self.assets[i].level}\n"
+                data = f"{self.assets[i].asset.name},{self.assets[i].asset.level}\n"
                 f.write(data)
             f.close()
 
@@ -161,45 +139,39 @@ class AssetManager(qtw.QWidget):
             for i in range(num_assets):
                 asset_data_s = f.readline()
                 asset_data = asset_data_s.split(',')
-                asset = Asset(self.ui_asset_manager.asset_list, name=asset_data[0], level=asset_data[1].replace('\n', ''))
+
+                asset = Asset(name=asset_data[0], level=asset_data[1].replace('\n', ''))
                 self.load_asset(asset)
 
-    def save_asset(self, asset):
-        asset_path = self.project_dir / asset.level / asset.name / f"{asset.name}.meta"
-        if not asset_path.exists():
-            if not asset_path.is_file():
-                asset_path.touch()
-        asset_data = {
-            "name": asset.name,
-            "level": asset.level,
-            "type": asset.asset_type,
-            "pipeline_dir": str(asset.pipeline_dir),
-            "tags": asset.tags,
-            "comment": asset.comment
-        }
-
-        with asset_path.open('w', encoding="utf-8") as f:
-            f.write(json.dumps(asset_data, indent=4))
-            f.close()
+    def save_asset(self, asset_view):
+        asset_view.asset.save(self.project_dir)
 
     def load_asset(self, asset):
-        asset_path = self.project_dir / asset.level / asset.name / f"{asset.name}.meta"
-        if not asset_path.exists():
-            if not asset_path.is_file():
-                raise Exception("File does not exist!")
-        with asset_path.open('r', encoding='utf-8') as f:
-            data = f.read()
-            asset_data = json.loads(data)
-            asset.name = asset_data["name"]
-            asset.level = asset_data["level"]
-            asset.type = asset_data["type"]
-            asset.pipeline = asset_data["pipeline_dir"]
-            asset.tags = json.loads(asset_data["tags"])
-            asset.comment = asset_data["comment"]
+        asset_view = AssetView(asset, self.ui.asset_list)
+        asset_view.asset.load(self.project_dir)
 
         asset_item = qtw.QListWidgetItem()
-        asset_item.setSizeHint(asset.sizeHint())
-        self.ui_asset_manager.asset_list.addItem(asset_item)
-        self.ui_asset_manager.asset_list.setItemWidget(asset_item, asset)
+        asset_item.setSizeHint(asset_view.sizeHint())
+        self.ui.asset_list.addItem(asset_item)
+        self.ui.asset_list.setItemWidget(asset_item, asset_view)
 
-        self.assets.append(asset)
+        self.assets.append(asset_view)
+        asset_view.update_ui()
+
+
+class AssetView(qtw.QWidget):
+    def __init__(self, asset: Asset, parent=None):
+        # GUI
+        super().__init__(parent)
+        self.ui = Ui_asset()
+        self.ui.setupUi(self)
+
+        # Data
+        self.asset = asset
+
+        self.update_ui()
+
+    def update_ui(self):
+        self.ui.name_label.setText(self.asset.name)
+        self.ui.type_label.setText(self.asset.asset_type)
+
