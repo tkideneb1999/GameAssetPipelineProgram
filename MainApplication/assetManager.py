@@ -47,7 +47,7 @@ class AssetManager(qtw.QWidget):
         # Check Data
         # Check if Asset Name already exists in Level
         for a in self.assets:
-            if a.name == asset_name and a.level == asset_level:
+            if a.asset.name == asset_name and a.asset.level == asset_level:
                 print(f"Asset{asset_name} already exists in Level {asset_level}.")
                 # TODO: Assets: Optimize Asset search
                 self.add_new_asset()
