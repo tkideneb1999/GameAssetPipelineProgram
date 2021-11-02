@@ -1,13 +1,13 @@
 import sys
 from pathlib import Path
 import json
-import os
 
 from PyQt5 import QtWidgets as qtw
 from PyQt5 import QtCore as qtc
 
 from MainApplication_GUI import Ui_MainWindow
 from pipelineConfigurator import PipelineConfigurator
+from settingsView import SettingsView
 from assetManager import AssetManager
 from projectWizard import ProjectWizard
 
@@ -27,6 +27,9 @@ class MainWindow(qtw.QMainWindow):
 
         self.assetManager = AssetManager(self.ui.assets_tab)
         self.ui.assets_tab.layout().addWidget(self.assetManager)
+
+        self.settingsWidget = SettingsView(self.ui.settings_tab)
+        self.ui.settings_tab.layout().addWidget(self.settingsWidget)
 
         # Data
         self.project_name = ""

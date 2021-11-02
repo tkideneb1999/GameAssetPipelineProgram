@@ -44,6 +44,8 @@ class Ui_MainWindow(object):
         self.tabs.addTab(self.pipelines_tab, "")
         self.settings_tab = QtWidgets.QWidget()
         self.settings_tab.setObjectName("settings_tab")
+        self.verticalLayout_2 = QtWidgets.QVBoxLayout(self.settings_tab)
+        self.verticalLayout_2.setObjectName("verticalLayout_2")
         self.tabs.addTab(self.settings_tab, "")
         self.verticalLayout.addWidget(self.tabs)
         MainWindow.setCentralWidget(self.centralwidget)
@@ -56,7 +58,7 @@ class Ui_MainWindow(object):
         MainWindow.setStatusBar(self.statusbar)
 
         self.retranslateUi(MainWindow)
-        self.tabs.setCurrentIndex(0)
+        self.tabs.setCurrentIndex(2)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):

@@ -6,6 +6,7 @@ import json
 
 # TODO(Blender Export): Sync Code to Main Application
 
+
 class Pipeline:
     def __init__(self):
         # Data
@@ -19,7 +20,7 @@ class Pipeline:
         self.step_id_counter += 1
         return self.pipeline_steps[-1].uid, self.pipeline_steps[-1].name
 
-    def remove_step(self, index: int):
+    def remove_step(self, index: int) -> None:
         for i in self.pipeline_steps[index].inputs:
             self.delete_io_connection_if_exists(i.uid)
         deletion_output_uids = []
@@ -33,10 +34,10 @@ class Pipeline:
 
         del self.pipeline_steps[index]
 
-    def add_input(self, step: int):
+    def add_input(self, step: int) -> str:
         return self.pipeline_steps[step].add_input()
 
-    def remove_input(self, step: int, index: int):
+    def remove_input(self, step: int, index: int) -> str:
         uid = self.pipeline_steps[step].remove_input(index)
         self.delete_io_connection_if_exists(uid)
         return uid
@@ -44,7 +45,7 @@ class Pipeline:
     def add_output(self, step: int):
         return self.pipeline_steps[step].add_output()
 
-    def remove_output(self, step: int, index: int):
+    def remove_output(self, step: int, index: int) -> str:
         uid = self.pipeline_steps[step].remove_output(index)
         output_list = list(self.io_connections.values())
 
@@ -64,7 +65,7 @@ class Pipeline:
             del self.io_connections[inputs[i]]
         return uid
 
-    def get_uid(self, step_index: int, is_input: bool, io_index=-1):
+    def get_uid(self, step_index: int, is_input: bool, io_index=-1) -> str:
         if io_index == -1:
             return self.pipeline_steps[step_index].uid
         else:

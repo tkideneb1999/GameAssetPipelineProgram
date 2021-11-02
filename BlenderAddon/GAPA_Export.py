@@ -22,9 +22,7 @@ class TestWindow(qtw.QDialog):
         self.ui = Ui_export_Wizard()
         self.ui.setupUi(self)
 
-        # TODO(Blender Export): Load asset List
         # TODO(Blender Export): New Asset Wizard
-        # TODO(Blender Export): Get Project Path
 
         self.qt_queue = None
         self.project_name = ""
@@ -32,11 +30,13 @@ class TestWindow(qtw.QDialog):
         self.levels = []
         self.pipelines = {}
         self.assets = []
+        self.loaded_asset = None
 
         self.load_project_info(project_info)
         self.load_asset_list()
 
-        self.ui.level_combobox.addItems(list(self.pipelines.keys()))  # TODO(Blender Addon): Actually filter asset list
+        self.ui.level_combobox.addItems(list(self.pipelines.keys()))
+        # TODO(Blender Addon): Actually filter asset list -> traffic light, name system
         self.ui.asset_list.itemClicked.connect(self.asset_list_item_clicked)
 
     def close_dialog(self):
@@ -46,8 +46,17 @@ class TestWindow(qtw.QDialog):
     def asset_list_item_clicked(self, item: qtw.QListWidgetItem):
         selected_index = self.ui.asset_list.currentIndex().row()
         asset_data_light = self.assets[selected_index]
-        asset = self.load_asset_details(asset_data_light[0], asset_data_light[1])
-        self.display_asset_info(asset)
+        self.loaded_asset = self.load_asset_details(asset_data_light[0], asset_data_light[1])
+        self.display_asset_info(self.loaded_asset)
+
+    def publish_asset(self):
+        # TODO(Blender Addon): Create folder structure if it does not exist
+
+        # TODO(Blender Addon): save work file first time opening scene
+        # TODO(Blender Addon): save in Blend file for what asset this is
+        # TODO(Blender Addon): export selected assets
+        # TODO(Blender Addon): Update asset meta file
+        pass
 
     def display_asset_info(self, asset: Asset):
         self.ui.asset_name_label.setText(asset.name)
