@@ -1,5 +1,4 @@
 from pathlib import Path
-import json
 
 from PyQt5 import QtWidgets as qtw
 from PyQt5 import QtCore as qtc
@@ -8,7 +7,6 @@ from assetManager_GUI import Ui_asset_manager
 from asset_GUI import Ui_asset
 from asset import Asset
 from newAssetWizard import NewAssetWizard
-from pipeline import Pipeline
 
 
 class AssetManager(qtw.QWidget):
@@ -41,6 +39,16 @@ class AssetManager(qtw.QWidget):
         asset_level = dialog.get_level_data()
         asset_tags = dialog.get_tags_data()
         asset_comment = dialog.get_comment_data()
+
+        if asset_name == "":
+            print("[New Asset Wizard] Choose a name!")
+            self.add_new_asset()
+            return
+
+        if asset_pipeline_name == "":
+            print("[New Asset Wizard] Choose a pipeline or create a new one!")
+            self.add_new_asset()
+            return
 
         asset_pipeline_dir = self.project_dir / self.pipelines[asset_pipeline_name]
 
@@ -77,18 +85,9 @@ class AssetManager(qtw.QWidget):
 
         self.assets.append(asset_view)
 
-        # Create Files
-        abs_asset_path = self.project_dir / new_asset.level / new_asset.name
-        abs_asset_path.mkdir()
+        # Serialize Asset
         self.save_asset(asset_view)
         self.save_asset_list()
-
-        # Create Pipeline Step Files
-        pipeline = Pipeline()
-        pipeline.load(asset_pipeline_dir)
-        for s in range(len(pipeline.pipeline_steps)):
-            path = abs_asset_path / pipeline.pipeline_steps[s].name / "export"
-            path.mkdir(parents=True)
 
     def remove_asset(self):
         selected_assets = self.ui.asset_list.selectedIndexes()
@@ -99,7 +98,7 @@ class AssetManager(qtw.QWidget):
                 self.ui.asset_list.takeItem(i.row())
                 self.assets.remove(self.assets[i.row()])
 
-        # TODO: Remove Folder and files
+        # TODO(Asset Manager): Remove Folder and files
 
     def add_levels(self, levels):
         for lvl in levels:
@@ -174,4 +173,3 @@ class AssetView(qtw.QWidget):
     def update_ui(self):
         self.ui.name_label.setText(self.asset.name)
         self.ui.type_label.setText(self.asset.asset_type)
-

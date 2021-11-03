@@ -33,3 +33,6 @@ class ProgramRegistration:
 
     def get_program_addon_enabled(self, name: str) -> bool:
         return self.registered_programs[name]["addonEnabled"]
+
+    def get_program_list(self):
+        return list(self.registered_programs.keys())

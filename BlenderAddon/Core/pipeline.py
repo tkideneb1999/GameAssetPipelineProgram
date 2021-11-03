@@ -1,10 +1,7 @@
 from pathlib import Path
 import json
 
-# TODO(Pipeline): Add possible Programs
 # TODO(Pipeline): Presets for programs
-
-# TODO(Blender Export): Sync Code to Main Application
 
 
 class Pipeline:
@@ -15,7 +12,10 @@ class Pipeline:
         self.io_connections = {}
         self.step_id_counter = 0
 
-    def add_step(self):
+    # -------------
+    # Pipeline Step
+    # -------------
+    def add_step(self) -> tuple:
         self.pipeline_steps.append(PipelineStep(f"s{self.step_id_counter}"))
         self.step_id_counter += 1
         return self.pipeline_steps[-1].uid, self.pipeline_steps[-1].name
@@ -34,6 +34,14 @@ class Pipeline:
 
         del self.pipeline_steps[index]
 
+    def set_program(self, step_index: int, program_name: str) -> None:
+        self.pipeline_steps[step_index].set_program(program_name)
+        print(
+            f"{self.pipeline_steps[step_index].program} is set as a program for step {self.pipeline_steps[step_index].uid}")
+
+    # --------------
+    # Inputs/Outputs
+    # --------------
     def add_input(self, step: int) -> str:
         return self.pipeline_steps[step].add_input()
 
@@ -42,7 +50,7 @@ class Pipeline:
         self.delete_io_connection_if_exists(uid)
         return uid
 
-    def add_output(self, step: int):
+    def add_output(self, step: int) -> str:
         return self.pipeline_steps[step].add_output()
 
     def remove_output(self, step: int, index: int) -> str:
@@ -65,26 +73,17 @@ class Pipeline:
             del self.io_connections[inputs[i]]
         return uid
 
-    def get_uid(self, step_index: int, is_input: bool, io_index=-1) -> str:
-        if io_index == -1:
-            return self.pipeline_steps[step_index].uid
-        else:
-            if is_input:
-                return self.pipeline_steps[step_index].inputs[io_index].uid
-            else:
-                return self.pipeline_steps[step_index].outputs[io_index].uid
-
     # ---------
     # Handle IO
     # ---------
-    def connect_io(self, input_uid: str, output_uid: str):
+    def connect_io(self, input_uid: str, output_uid: str) -> None:
         self.io_connections[input_uid] = output_uid
         print(self.io_connections)
 
     # -------------
     # Serialization
     # -------------
-    def save(self, path: Path):
+    def save(self, path: Path) -> Path:
         steps_data = []
         for s in self.pipeline_steps:
             steps_data.append(s.save())
@@ -104,7 +103,7 @@ class Pipeline:
             f.close()
         return path
 
-    def load(self, path: Path):
+    def load(self, path: Path) -> None:
         with path.open("r", encoding="utf-8")as f:
             data = json.loads(f.read())
             self.name = data["name"]
@@ -120,36 +119,52 @@ class Pipeline:
     # -------
     # Helpers
     # -------
-    def delete_io_connection_if_exists(self, input_id: str):
+    def delete_io_connection_if_exists(self, input_id: str) -> None:
         if input_id in self.io_connections:
             del self.io_connections[input_id]
+
+    def get_step_program(self, step_index: int) -> str:
+        return self.pipeline_steps[step_index].program
+
+    def get_uid(self, step_index: int, is_input: bool, io_index=-1) -> str:
+        if io_index == -1:
+            return self.pipeline_steps[step_index].uid
+        else:
+            if is_input:
+                return self.pipeline_steps[step_index].inputs[io_index].uid
+            else:
+                return self.pipeline_steps[step_index].outputs[io_index].uid
 
 
 class PipelineStep:
     def __init__(self, uid: str):
         self.name = f"step_{uid}"
+        self.program = ""
         self.inputs = []
         self.outputs = []
         self.uid = uid
         self.input_id_counter = 0
         self.output_id_counter = 0
 
-    def add_input(self):
+    def set_program(self, program_name: str) -> None:
+        self.program = program_name
+
+    def add_input(self) -> str:
         self.inputs.append(PipelineInput(f"{self.uid}i{self.input_id_counter}"))
         self.input_id_counter += 1
         return self.inputs[len(self.inputs) - 1].uid
 
-    def remove_input(self, index: int):
+    def remove_input(self, index: int) -> str:
         uid = self.inputs[index].uid
         del self.inputs[index]
         return uid
 
-    def add_output(self):
+    def add_output(self) -> tuple:
         self.outputs.append(PipelineOutput(f"{self.uid}o{self.output_id_counter}"))
         self.output_id_counter += 1
         return self.outputs[len(self.outputs) - 1].uid, self.outputs[len(self.outputs) - 1].name
 
-    def remove_output(self, index: int):
+    def remove_output(self, index: int) -> str:
         uid = self.outputs[index].uid
         del self.outputs[index]
         return uid
@@ -157,7 +172,7 @@ class PipelineStep:
     # -------------
     # Serialization
     # -------------
-    def save(self):
+    def save(self) -> dict:
         input_data = []
         for i in self.inputs:
             input_data.append(i.save())
@@ -166,15 +181,17 @@ class PipelineStep:
             output_data.append(o.save())
         data = {"name": self.name,
                 "uid": self.uid,
+                "program": self.program,
                 "input_id_counter": self.input_id_counter,
                 "output_id_counter": self.output_id_counter,
                 "inputs": input_data,
                 "outputs": output_data}
         return data
 
-    def load(self, data: dict):
+    def load(self, data: dict) -> None:
         self.name = data["name"]
         self.uid = data["uid"]
+        self.program = data["program"]
         self.input_id_counter = data["input_id_counter"]
         self.output_id_counter = data["output_id_counter"]
 
@@ -195,13 +212,11 @@ class PipelineInput:
     def __init__(self, uid: str):
         self.uid = uid
 
-    def save(self):
+    def save(self) -> dict:
         return {"uid": self.uid}
-        pass
 
-    def load(self, data: dict):
+    def load(self, data: dict) -> None:
         self.uid = data["uid"]
-        pass
 
 
 class PipelineOutput:
@@ -209,11 +224,9 @@ class PipelineOutput:
         self.name = f"output_{uid}"
         self.uid = uid
 
-    def save(self):
+    def save(self) -> dict:
         return {"uid": self.uid, "name": self.name}
-        pass
 
-    def load(self, data: dict):
+    def load(self, data: dict) -> None:
         self.name = data["name"]
         self.uid = data["uid"]
-        pass

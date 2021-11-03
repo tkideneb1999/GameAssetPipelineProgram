@@ -5,6 +5,7 @@ from PyQt5 import QtWidgets as qtw
 from PyQt5 import QtCore as qtc
 
 from pipeline import Pipeline
+from settings import Settings
 from pipeline_step_GUI import Ui_pipeline_step
 from pipeline_step_input_GUI import Ui_pipeline_step_input
 from pipeline_step_output_GUI import Ui_pipeline_step_output
@@ -98,6 +99,15 @@ class PipelineConfigurator(qtw.QWidget):
         path = Path(file_dialog.selectedFiles()[0])
         self.load(path)
 
+    def update_registered_programs(self):
+        programs = Settings().program_registration.get_program_list()
+        for step_w in self.step_widgets:
+            step_w.update_program_selection(programs)
+            selected_program = self.current_pipeline.get_step_program(step_w.index)
+            if not step_w.set_program_selection_by_name(selected_program):
+                # Delete Program from pipeline
+                self.current_pipeline.set_program(step_w.index, "")
+
     # -------------------------
     # <editor-fold, desc="Pipeline Step Function Handlers">
     # Pipeline Step Function Handlers
@@ -109,6 +119,7 @@ class PipelineConfigurator(qtw.QWidget):
         self.step_widgets[-1].set_name(name)
         self.step_widgets[-1].s_step_deleted.connect(self.remove_step)
         self.step_widgets[-1].s_step_renamed.connect(self.rename_step)
+        self.step_widgets[-1].s_step_program_selected.connect(self.set_program)
 
         self.step_widgets[-1].s_input_added.connect(self.input_added)
         self.step_widgets[-1].s_input_removed.connect(self.input_removed)
@@ -126,6 +137,9 @@ class PipelineConfigurator(qtw.QWidget):
 
     def rename_step(self, step_index: int, name: str):
         self.current_pipeline.pipeline_steps[step_index].name = name
+
+    def set_program(self, step_index: int, program_name: str):
+        self.current_pipeline.set_program(step_index, program_name)
 
     # </editor-fold>
 
@@ -192,6 +206,7 @@ class PipelineConfigurator(qtw.QWidget):
             self.step_widgets[-1].set_name(self.current_pipeline.pipeline_steps[k].name)
             self.step_widgets[-1].s_step_deleted.connect(self.remove_step)
             self.step_widgets[-1].s_step_renamed.connect(self.rename_step)
+            self.step_widgets[-1].s_step_program_selected.connect(self.set_program)
 
             self.step_widgets[-1].s_input_added.connect(self.input_added)
             self.step_widgets[-1].s_input_removed.connect(self.input_removed)
@@ -240,6 +255,7 @@ class PipelineStepGUI(qtw.QWidget):
     # Signals
     # -Pipeline Step Signals
     s_step_renamed = qtc.pyqtSignal(int, str)
+    s_step_program_selected = qtc.pyqtSignal(int, str)
     s_step_deleted = qtc.pyqtSignal(int)
 
     # -Pipeline Input Signals
@@ -265,8 +281,13 @@ class PipelineStepGUI(qtw.QWidget):
         # Add Output Button
         self.ui.add_output_button.clicked.connect(self.add_output)
 
-        #Name Line Edit
+        # Name Line Edit
         self.ui.pipeline_step_name_lineedit.editingFinished.connect(self.rename_step)
+
+        # Program Combobox
+        settings = Settings()
+        self.ui.program_combobox.addItems(settings.program_registration.get_program_list())
+        self.ui.program_combobox.currentTextChanged.connect(self.select_program)
 
         # Right-Click Menu
         self.setContextMenuPolicy(qtc.Qt.CustomContextMenu)
@@ -277,22 +298,36 @@ class PipelineStepGUI(qtw.QWidget):
         self.inputs = []
         self.outputs = []
 
-    def launch_context_menu(self, pos):
+    def launch_context_menu(self, pos) -> None:
         menu = qtw.QMenu(self)
         delete_action = menu.addAction("Delete")
         delete_action.triggered.connect(self.delete_step)
         menu.exec_(self.mapToGlobal(pos))
 
-    def rename_step(self):
+    def rename_step(self) -> None:
         self.s_step_renamed.emit(self.index, self.ui.pipeline_step_name_lineedit.text())
 
-    def set_name(self, new_name: str):
+    def set_name(self, new_name: str) -> None:
         self.ui.pipeline_step_name_lineedit.setText(new_name)
 
-    def delete_step(self):
+    def delete_step(self) -> None:
         print(f"Deleting Step at index: {self.index}")
         self.s_step_deleted.emit(self.index)
         self.deleteLater()
+
+    def set_program_selection_by_name(self, program_name: str) -> bool:
+        # TODO(Pipeline Configurator): If text is not in list
+        if self.ui.program_combobox.findText(program_name) == -1:
+            return False
+        self.ui.program_combobox.setCurrentText(program_name)
+        return True
+
+    def update_program_selection(self, program_names: list) -> None:
+        self.ui.program_combobox.clear()
+        self.ui.program_combobox.addItems(program_names)
+
+    def select_program(self, new_program: str) -> None:
+        self.s_step_program_selected.emit(self.index, new_program)
 
     # --------------
     # Inputs/Outputs

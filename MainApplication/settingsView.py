@@ -1,12 +1,15 @@
 from pathlib import Path
 
 from PyQt5 import QtWidgets as qtw
+from PyQt5 import QtCore as qtc
 
 from settings_GUI import Ui_settings
 from settings import Settings
 
 
 class SettingsView(qtw.QWidget):
+    s_program_registered = qtc.pyqtSignal()
+
     def __init__(self, parent=None):
         super(SettingsView, self).__init__(parent)
         self.ui = Ui_settings()
@@ -37,6 +40,8 @@ class SettingsView(qtw.QWidget):
 
         # Update UI
         self.update_programs_list()
+
+        self.s_program_registered.emit()
 
     def update_programs_list(self) -> None:
         self.ui.programs_list.clear()

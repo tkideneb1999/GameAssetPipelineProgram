@@ -2,11 +2,12 @@ from pathlib import Path
 import sys
 import queue
 import json
+import functools
 
 import bpy
 
 # Append Path to PyQt5
-pyQt_path = Path(r"F:\Studium\7 Semester\Bachelor Project\GameAssetPipelineProgram\venv\Lib\site-packages")
+pyQt_path = Path(r"D:\Studium\7 Semester\Bachelor Project\GameAssetPipelineProgram\venv\Lib\site-packages")
 sys.path.append(str(pyQt_path))
 
 from PyQt5 import QtWidgets as qtw
@@ -24,7 +25,6 @@ class TestWindow(qtw.QDialog):
 
         # TODO(Blender Export): New Asset Wizard
 
-        self.qt_queue = None
         self.project_name = ""
         self.project_dir = project_info.parent
         self.levels = []
@@ -35,9 +35,10 @@ class TestWindow(qtw.QDialog):
         self.load_project_info(project_info)
         self.load_asset_list()
 
-        self.ui.level_combobox.addItems(list(self.pipelines.keys()))
+        self.ui.level_combobox.addItems(self.levels)
         # TODO(Blender Addon): Actually filter asset list -> traffic light, name system
         self.ui.asset_list.itemClicked.connect(self.asset_list_item_clicked)
+        self.ui.publish_button.clicked.connect(self.publish_asset)
 
     def close_dialog(self):
         print("Closing Window")
@@ -50,8 +51,11 @@ class TestWindow(qtw.QDialog):
         self.display_asset_info(self.loaded_asset)
 
     def publish_asset(self):
-        # TODO(Blender Addon): Create folder structure if it does not exist
-
+        if self.loaded_asset is None:
+            print("[GAPA] No Asset selected")
+            return
+        path = self.project_dir / self.loaded_asset.level / self.loaded_asset.name
+        self.save_blend_file(path)
         # TODO(Blender Addon): save work file first time opening scene
         # TODO(Blender Addon): save in Blend file for what asset this is
         # TODO(Blender Addon): export selected assets
@@ -121,10 +125,12 @@ class TestWindow(qtw.QDialog):
         asset.load(self.project_dir)
         return asset
 
-    def save_blend_file(self, asset: Asset):
+    def save_blend_file(self, dir: Path):
         # bpy.ops.wm.save_as_mainfile(filepath=)
-        # TODO(Blender Export): save blend file in correct folder
-        pass
+        # Determine Pipeline Step
+        print("[GAPA][Qt] Issued Save Command")
+        func = functools.partial(bpy.ops.wm.save_as_mainfile, filepath=str(dir))
+        self.bpy_queue.put(func)
 
 
 class GAPAExport(bpy.types.Operator):
@@ -145,6 +151,7 @@ class GAPAExport(bpy.types.Operator):
         self.qt_app = (qtw.QApplication.instance() or qtw.QApplication(sys.argv))
 
     def _execute_queued(self):
+        print("[GAPA][Bpy] Executing Queue")
         while not self.bpy_queue.empty():
             function = self.bpy_queue.get()
             print(f"[GAPA] Running Function {function.func.__name__} from Blender Queue")
@@ -171,11 +178,13 @@ class GAPAExport(bpy.types.Operator):
             return {'FINISHED'}
 
         self.qt_window = TestWindow(Path(project_info))
-        self.qt_window.qt_queue = self.qt_queue
+        TestWindow.qt_queue = self.qt_queue
+        TestWindow.bpy_queue = self.bpy_queue
         self.qt_window.add_qt_timer()
         self.qt_window.show()
 
         wm = context.window_manager
+        print("[GAPA][Bpy] Adding Timer")
         self.bpy_timer = wm.event_timer_add(0.001, window=context.window)
         return {'RUNNING_MODAL'}
 

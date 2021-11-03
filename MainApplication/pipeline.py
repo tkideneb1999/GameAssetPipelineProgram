@@ -34,9 +34,10 @@ class Pipeline:
 
         del self.pipeline_steps[index]
 
-    def set_program(self):
-        # TODO(Pipeline): Add possible Programs
-        pass
+    def set_program(self, step_index: int, program_name: str) -> None:
+        self.pipeline_steps[step_index].set_program(program_name)
+        print(
+            f"{self.pipeline_steps[step_index].program} is set as a program for step {self.pipeline_steps[step_index].uid}")
 
     # --------------
     # Inputs/Outputs
@@ -82,7 +83,7 @@ class Pipeline:
     # -------------
     # Serialization
     # -------------
-    def save(self, path: Path) -> None:
+    def save(self, path: Path) -> Path:
         steps_data = []
         for s in self.pipeline_steps:
             steps_data.append(s.save())
@@ -100,6 +101,7 @@ class Pipeline:
         with path.open("w", encoding="utf-8") as f:
             f.write(json.dumps(data, indent=4))
             f.close()
+        return path
 
     def load(self, path: Path) -> None:
         with path.open("r", encoding="utf-8")as f:
@@ -121,6 +123,9 @@ class Pipeline:
         if input_id in self.io_connections:
             del self.io_connections[input_id]
 
+    def get_step_program(self, step_index: int) -> str:
+        return self.pipeline_steps[step_index].program
+
     def get_uid(self, step_index: int, is_input: bool, io_index=-1) -> str:
         if io_index == -1:
             return self.pipeline_steps[step_index].uid
@@ -140,6 +145,9 @@ class PipelineStep:
         self.uid = uid
         self.input_id_counter = 0
         self.output_id_counter = 0
+
+    def set_program(self, program_name: str) -> None:
+        self.program = program_name
 
     def add_input(self) -> str:
         self.inputs.append(PipelineInput(f"{self.uid}i{self.input_id_counter}"))
@@ -173,6 +181,7 @@ class PipelineStep:
             output_data.append(o.save())
         data = {"name": self.name,
                 "uid": self.uid,
+                "program": self.program,
                 "input_id_counter": self.input_id_counter,
                 "output_id_counter": self.output_id_counter,
                 "inputs": input_data,
@@ -182,6 +191,7 @@ class PipelineStep:
     def load(self, data: dict) -> None:
         self.name = data["name"]
         self.uid = data["uid"]
+        self.program = data["program"]
         self.input_id_counter = data["input_id_counter"]
         self.output_id_counter = data["output_id_counter"]
 

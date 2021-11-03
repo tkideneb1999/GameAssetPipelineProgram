@@ -10,7 +10,6 @@ class NewAssetWizard(qtw.QDialog):
         self.setWindowTitle("Create New Asset")
         self.ui_new_asset_wizard.levels_combo_box.addItems(levels)
         self.ui_new_asset_wizard.pipeline_combobox.addItems(pipelines)
-        print("Test")
 
     def get_name_data(self):
         return self.ui_new_asset_wizard.name_line_edit.text()
