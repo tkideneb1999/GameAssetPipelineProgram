@@ -95,8 +95,9 @@ class AssetManager(qtw.QWidget):
             return
         else:
             for i in selected_assets:
-                self.ui.asset_list.takeItem(i.row())
-                self.assets.remove(self.assets[i.row()])
+                print("[Asset Manager] Remove not yet implemented")
+                # self.ui.asset_list.takeItem(i.row())
+                # self.assets.remove(self.assets[i.row()])
 
         # TODO(Asset Manager): Remove Folder and files
 

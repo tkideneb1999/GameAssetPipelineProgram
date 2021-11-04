@@ -15,12 +15,12 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_2">
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_3">
+    <layout class="QHBoxLayout" name="main_layout">
      <property name="topMargin">
       <number>0</number>
      </property>
      <item>
-      <layout class="QVBoxLayout" name="verticalLayout">
+      <layout class="QVBoxLayout" name="asset_list_layout">
        <item>
         <widget class="QLabel" name="asset_list_label">
          <property name="font">
@@ -53,7 +53,7 @@
         </widget>
        </item>
        <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_2">
+        <layout class="QHBoxLayout" name="asset_list_buttons_layout">
          <property name="topMargin">
           <number>0</number>
          </property>
@@ -81,94 +81,122 @@
       </layout>
      </item>
      <item>
-      <layout class="QFormLayout" name="formLayout">
+      <layout class="QVBoxLayout" name="asset_details_pipeline_layout">
        <property name="leftMargin">
         <number>0</number>
        </property>
-       <item row="0" column="0">
-        <widget class="QLabel" name="asset_name_d_label">
+       <item>
+        <layout class="QHBoxLayout" name="asset_details_spacer_layout">
+         <property name="rightMargin">
+          <number>0</number>
+         </property>
+         <item>
+          <layout class="QFormLayout" name="asset_details_layout">
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <item row="0" column="0">
+            <widget class="QLabel" name="asset_name_d_label">
+             <property name="text">
+              <string>Name:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QLabel" name="asset_name_label">
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QLabel" name="asset_level_d_label">
+             <property name="text">
+              <string>Level:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="1">
+            <widget class="QLabel" name="asset_level_label">
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="0">
+            <widget class="QLabel" name="asset_pipeline_d_label">
+             <property name="text">
+              <string>Pipeline:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="1">
+            <widget class="QLabel" name="asset_pipeline_label">
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="0">
+            <widget class="QLabel" name="asset_tags_d_label">
+             <property name="text">
+              <string>Tags:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="1">
+            <widget class="QLabel" name="asset_tags_label">
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="0">
+            <widget class="QLabel" name="asset_comment_d_label">
+             <property name="text">
+              <string>Comment:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="1">
+            <widget class="QLabel" name="asset_comment_label">
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <widget class="QLabel" name="label">
          <property name="text">
-          <string>Name:</string>
+          <string>Pipeline</string>
          </property>
         </widget>
        </item>
-       <item row="0" column="1">
-        <widget class="QLabel" name="asset_name_label">
-         <property name="text">
-          <string/>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="0">
-        <widget class="QLabel" name="asset_level_d_label">
-         <property name="text">
-          <string>Level:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="1">
-        <widget class="QLabel" name="asset_level_label">
-         <property name="text">
-          <string/>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="0">
-        <widget class="QLabel" name="asset_pipeline_d_label">
-         <property name="text">
-          <string>Pipeline:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="1">
-        <widget class="QLabel" name="asset_pipeline_label">
-         <property name="text">
-          <string/>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="0">
-        <widget class="QLabel" name="asset_tags_d_label">
-         <property name="text">
-          <string>Tags:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="1">
-        <widget class="QLabel" name="asset_tags_label">
-         <property name="text">
-          <string/>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="0">
-        <widget class="QLabel" name="asset_comment_d_label">
-         <property name="text">
-          <string>Comment:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="1">
-        <widget class="QLabel" name="asset_comment_label">
-         <property name="text">
-          <string/>
+       <item>
+        <widget class="QListWidget" name="pipeline_list">
+         <property name="flow">
+          <enum>QListView::LeftToRight</enum>
          </property>
         </widget>
        </item>
       </layout>
-     </item>
-     <item>
-      <spacer name="horizontalSpacer">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
      </item>
     </layout>
    </item>
@@ -210,22 +238,6 @@
  </widget>
  <resources/>
  <connections>
-  <connection>
-   <sender>publish_button</sender>
-   <signal>clicked()</signal>
-   <receiver>export_Wizard</receiver>
-   <slot>accept()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>446</x>
-     <y>353</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>287</x>
-     <y>187</y>
-    </hint>
-   </hints>
-  </connection>
   <connection>
    <sender>cancel_Button</sender>
    <signal>clicked()</signal>

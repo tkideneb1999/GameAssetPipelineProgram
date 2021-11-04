@@ -18,6 +18,9 @@ class Pipeline:
     def add_step(self) -> tuple:
         self.pipeline_steps.append(PipelineStep(f"s{self.step_id_counter}"))
         self.step_id_counter += 1
+        if len(self.pipeline_steps) > 1:
+            if self.pipeline_steps[-2].next_step == "":
+                self.pipeline_steps[-2].set_next_step(self.pipeline_steps[-1].uid)
         return self.pipeline_steps[-1].uid, self.pipeline_steps[-1].name
 
     def remove_step(self, index: int) -> None:
@@ -135,10 +138,17 @@ class Pipeline:
             else:
                 return self.pipeline_steps[step_index].outputs[io_index].uid
 
+    def get_next_step_uid(self, current_step_uid: str) -> str:
+        for s in self.pipeline_steps:
+            if s.uid == current_step_uid:
+                return s.next_step
+        return ""
+
 
 class PipelineStep:
     def __init__(self, uid: str):
         self.name = f"step_{uid}"
+        self.next_step = ""
         self.program = ""
         self.inputs = []
         self.outputs = []
@@ -148,6 +158,9 @@ class PipelineStep:
 
     def set_program(self, program_name: str) -> None:
         self.program = program_name
+
+    def set_next_step(self, next_step_uid: str) -> None:
+        self.next_step = next_step_uid
 
     def add_input(self) -> str:
         self.inputs.append(PipelineInput(f"{self.uid}i{self.input_id_counter}"))
@@ -181,6 +194,7 @@ class PipelineStep:
             output_data.append(o.save())
         data = {"name": self.name,
                 "uid": self.uid,
+                "next_step": self.next_step,
                 "program": self.program,
                 "input_id_counter": self.input_id_counter,
                 "output_id_counter": self.output_id_counter,
@@ -191,6 +205,7 @@ class PipelineStep:
     def load(self, data: dict) -> None:
         self.name = data["name"]
         self.uid = data["uid"]
+        self.next_step = data["next_step"]
         self.program = data["program"]
         self.input_id_counter = data["input_id_counter"]
         self.output_id_counter = data["output_id_counter"]

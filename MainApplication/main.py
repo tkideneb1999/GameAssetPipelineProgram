@@ -52,8 +52,8 @@ class MainWindow(qtw.QMainWindow):
             self.load_project_info()
             self.assetManager.add_levels(self.levels)
             self.assetManager.set_project_dir(self.project_dir)
-            self.assetManager.load_asset_list()
             self.assetManager.update_pipelines(self.pipelines)
+            self.assetManager.load_asset_list()
             self.pipeline_configurator.set_project_dir(self.project_dir)
             return
 

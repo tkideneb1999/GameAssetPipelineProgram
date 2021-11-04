@@ -114,6 +114,8 @@ class PipelineConfigurator(qtw.QWidget):
 
     def add_step(self):
         name = self.current_pipeline.add_step()[1]
+        self.current_pipeline.set_program(len(self.current_pipeline.pipeline_steps) - 1,
+                                          Settings().program_registration.get_program_list()[0])
         self.step_widgets.append(PipelineStepGUI(len(self.step_widgets), self.scrollable_widget))
         self.scrollbar_layout.insertWidget(self.scrollbar_layout.count() - 1, self.step_widgets[-1])
         self.step_widgets[-1].set_name(name)
