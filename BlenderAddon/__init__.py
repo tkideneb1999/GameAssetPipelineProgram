@@ -5,11 +5,13 @@ bl_info = {
 }
 
 
+from pathlib import Path
+
 import bpy
 
 from . import GAPA_Export
 from . import preferences
-
+from .Core.settings import Settings
 
 def menu_func(self, context):
     self.layout.operator(GAPA_Export.GAPAExport.bl_idname)
@@ -22,6 +24,11 @@ def register():
     for c in classes:
         bpy.utils.register_class(c)
     bpy.types.TOPBAR_MT_file.append(menu_func)
+    # TODO(Blender Addon): set addon enabled in settings
+    settings = Settings()
+    settings.load()
+    blender_path = Path(bpy.app.binary_path)
+    settings.enable_addon(blender_path.stem)
 
 
 def unregister():

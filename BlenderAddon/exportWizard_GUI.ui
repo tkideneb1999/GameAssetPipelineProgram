@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>573</width>
-    <height>368</height>
+    <width>756</width>
+    <height>367</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -183,18 +183,82 @@
         </layout>
        </item>
        <item>
-        <widget class="QLabel" name="label">
-         <property name="text">
-          <string>Pipeline</string>
+        <layout class="QHBoxLayout" name="pipeline_outputs_layout">
+         <property name="topMargin">
+          <number>0</number>
          </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QListWidget" name="pipeline_list">
-         <property name="flow">
-          <enum>QListView::LeftToRight</enum>
+         <property name="rightMargin">
+          <number>0</number>
          </property>
-        </widget>
+         <item>
+          <layout class="QVBoxLayout" name="pipeline_layout">
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <item>
+            <widget class="QLabel" name="label">
+             <property name="text">
+              <string>Pipeline</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QListWidget" name="pipeline_list">
+             <property name="flow">
+              <enum>QListView::LeftToRight</enum>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <layout class="QVBoxLayout" name="verticalLayout">
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <item>
+            <widget class="QLabel" name="outputs_label">
+             <property name="text">
+              <string>Outputs</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QListWidget" name="outputs_list">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>100</width>
+               <height>16777215</height>
+              </size>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QCheckBox" name="export_selected_checkbox">
+             <property name="text">
+              <string>Export Selected</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="file_format_label">
+             <property name="text">
+              <string>File Format</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QComboBox" name="file_format_combobox"/>
+           </item>
+          </layout>
+         </item>
+        </layout>
        </item>
       </layout>
      </item>

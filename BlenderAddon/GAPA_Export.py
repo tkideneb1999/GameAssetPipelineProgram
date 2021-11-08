@@ -5,7 +5,7 @@ import queue
 import bpy
 
 # Append Path to PyQt5
-pyQt_path = Path(r"F:\Studium\7 Semester\Bachelor Project\GameAssetPipelineProgram\venv\Lib\site-packages")
+pyQt_path = Path(r"D:\Studium\7 Semester\Bachelor Project\GameAssetPipelineProgram\venv\Lib\site-packages")
 sys.path.append(str(pyQt_path))
 
 from PyQt5 import QtWidgets as qtw
@@ -50,11 +50,12 @@ class GAPAExport(bpy.types.Operator):
     def execute(self, context):
         print("[GAPA] Starting Asset Exporter")
         project_info = context.preferences.addons[__package__].preferences.project_dir
+        print(bpy.app.binary_path)
         if project_info == "":
             print("[GAPA] No valid Project Dir set")
             return {'FINISHED'}
 
-        self.qt_window = ExportWizardView(Path(project_info))
+        self.qt_window = ExportWizardView(Path(project_info), "blender")
         ExportWizardView.qt_queue = self.qt_queue
         ExportWizardView.bpy_queue = self.bpy_queue
         self.qt_window.add_qt_timer()

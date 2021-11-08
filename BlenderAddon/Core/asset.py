@@ -42,20 +42,39 @@ class Asset:
                 state = pipeline_states[1]
             step_asset_info = {"state": state,
                                "output_info": outputs_info,
-                               "new_update": False,
                                "old_version": False}
             self.pipeline_progress[step.uid] = step_asset_info
+            # {step_uid: {
+            #       "state": "files missing", -> progress on step, indicates if a user can begin or is finished
+            #       "output_info": {
+            #           output_uid: {
+            #               "published": False, -> whether output has been exported
+            #               "version": 0 -> current version of published asset, increases with new publish
+            #               }
+            #           }
+            #       "old_version": False -> user works with old version
+            #       }
+            # }
 
-    def publish_step_file(self, step_uid: str, output_uid: str) -> None:
+    def publish_step_file(self, step_uid: str, output_uid: str, export_suffix: str) -> Path:
+        """
+        Updates the pipeline progress and returns the
+        export directory for the file to be published.
+        :param step_uid: unique identifier of the pipeline step
+        :param output_uid: unique identifier of the output
+        :param export_suffix: export suffix without .
+        :returns: relative path to the project directory the file should be saved in
+        """
+
         # Set new Update and Old Version
-        self.pipeline_progress[step_uid]["new_update"] = True
         self.pipeline_progress[step_uid]["old_version"] = False
 
         # Check if all Outputs are exported
         outputs_info = dict(self.pipeline_progress[step_uid]["output_info"])
         output_info = outputs_info[output_uid]
         output_info["published"] = True
-        output_info["version"] += 1
+        output_version = output_info["version"] + 1
+        output_info["version"] = output_version
         print(output_info)
         all_exported = True
         for i in list(outputs_info.values()):
@@ -70,15 +89,55 @@ class Asset:
         # Update next steps that they use an old version
         pipeline = Pipeline()
         pipeline.load(self.pipeline_dir)
-        self.update_next_steps(pipeline, step_uid, "old_version", True)
 
-    # Recursively update next steps
-    def update_next_steps(self, pipeline: Pipeline, step_uid: str, data_type: str, value) -> None:
-        next_step = pipeline.get_next_step_uid(step_uid)
-        if next_step == "":
-            return
-        self.pipeline_progress[next_step][data_type] = value
-        self.update_next_steps(pipeline, next_step, data_type, value)
+        # Update Pipeline Progress
+        # TODO(Asset): Update based on connected inputs
+        # Check to which inputs the output is connected
+        outputs = list(pipeline.io_connections.values())
+        output_indices = []
+        for i in range(len(outputs)):
+            if outputs[i] == output_uid:
+                output_indices.append(i)
+        inputs = list(pipeline.io_connections.keys())
+        connected_inputs = []
+        affected_steps = set()
+        for i in output_indices:
+            connected_inputs.append(inputs[i])
+            # get all steps of inputs
+            affected_steps.add(pipeline.get_step_uid_from_io(inputs[i]))
+
+        # For steps of connected inputs see if all inputs have outputs that have published files
+        for step_uid in affected_steps:
+            if self.pipeline_progress[step_uid]["state"] == pipeline_states[0]:
+                step_index = pipeline.get_step_index_by_uid(step_uid)
+                has_all_files = True
+                for i in pipeline.pipeline_steps[step_index].inputs:
+                    connected_output_uid = pipeline.io_connections.get(i.uid)
+                    if connected_output_uid is None:
+                        continue
+                    output_step_uid = pipeline.get_step_uid_from_io(connected_output_uid)
+
+                    #   look up states of other inputs of step
+                    output_published = self.pipeline_progress[output_step_uid]["output_info"][connected_output_uid]["published"]
+                    if not output_published:
+                        has_all_files = False
+
+                # check if all inputs have files
+                if has_all_files:
+                    # if so set pipeline state to not_started
+                    self.pipeline_progress[step_uid]["state"] = pipeline_states[1]
+            else:
+                self.pipeline_progress[step_uid]["old_version"] = True
+
+
+
+        # Generate File Path
+        step_index = pipeline.get_step_index_by_uid(step_uid)
+        output_index = pipeline.pipeline_steps[step_index].get_io_index_by_uid(output_uid)
+        step_folder_name = pipeline.pipeline_steps[step_index].get_folder_name()
+        file_name = pipeline.pipeline_steps[step_index].outputs[output_index].get_file_name()
+        save_dir = Path() / self.level / self.name / step_folder_name / "export" / f"{file_name}.{output_version}.{export_suffix}"
+        return save_dir
 
     def save_work_file(self, step_uid: str, workfile_path: str) -> None:
         self.pipeline_progress[step_uid]["state"] = pipeline_states[2]
@@ -101,7 +160,7 @@ class Asset:
             #            export
 
             for step in pipeline.pipeline_steps:
-                step_dir = asset_dir / f"{step.uid}_{step.name}"
+                step_dir = asset_dir / step.get_folder_name()
                 workfiles_dir = step_dir / "workfiles"
                 print(f"[Asset Creation] Creating: {workfiles_dir}")
                 workfiles_dir.mkdir(parents=True)
