@@ -1,5 +1,5 @@
-from pathlib import Path
 import json
+from pathlib import Path
 
 from .pipeline import Pipeline
 
@@ -107,11 +107,11 @@ class Asset:
             affected_steps.add(pipeline.get_step_uid_from_io(inputs[i]))
 
         # For steps of connected inputs see if all inputs have outputs that have published files
-        for step_uid in affected_steps:
-            if self.pipeline_progress[step_uid]["state"] == pipeline_states[0]:
-                step_index = pipeline.get_step_index_by_uid(step_uid)
+        for a_step_uid in affected_steps:
+            if self.pipeline_progress[a_step_uid]["state"] == pipeline_states[0]:
+                a_step_index = pipeline.get_step_index_by_uid(a_step_uid)
                 has_all_files = True
-                for i in pipeline.pipeline_steps[step_index].inputs:
+                for i in pipeline.pipeline_steps[a_step_index].inputs:
                     connected_output_uid = pipeline.io_connections.get(i.uid)
                     if connected_output_uid is None:
                         continue
@@ -125,19 +125,45 @@ class Asset:
                 # check if all inputs have files
                 if has_all_files:
                     # if so set pipeline state to not_started
-                    self.pipeline_progress[step_uid]["state"] = pipeline_states[1]
+                    self.pipeline_progress[a_step_uid]["state"] = pipeline_states[1]
             else:
-                self.pipeline_progress[step_uid]["old_version"] = True
-
-
+                self.pipeline_progress[a_step_uid]["old_version"] = True
 
         # Generate File Path
         step_index = pipeline.get_step_index_by_uid(step_uid)
         output_index = pipeline.pipeline_steps[step_index].get_io_index_by_uid(output_uid)
+        if output_index == -1:
+            raise Exception("[GAPA] -1 is no Valid output index")
         step_folder_name = pipeline.pipeline_steps[step_index].get_folder_name()
+        print(f"[GAPA] step index of {step_uid}: {step_index}\n       output index of {output_uid}: {output_index}")
         file_name = pipeline.pipeline_steps[step_index].outputs[output_index].get_file_name()
         save_dir = Path() / self.level / self.name / step_folder_name / "export" / f"{file_name}.{output_version}.{export_suffix}"
         return save_dir
+
+    def import_assets(self, step_index: int) -> list[Path]:
+        """
+        :param step_uid: unique id of step
+        :returns: list of filepaths for assets to import
+        """
+        pipeline = Pipeline()
+        pipeline.load(self.pipeline_dir)
+        rel_asset_dir = Path() / self.level / self.name
+        filetype = "fbx"  # TODO(Blender Addon): implement file type
+        filepaths = []
+        for i in pipeline.pipeline_steps[step_index].inputs:
+            # get connected output
+            output_uid = pipeline.io_connections[i.uid]
+            # reconstruct relative file path
+            #   get step folder
+            output_step_uid = pipeline.get_step_uid_from_io(output_uid)
+            output_step_index = pipeline.get_step_index_by_uid(output_step_uid)
+            folder_name = pipeline.pipeline_steps[output_step_index].get_folder_name()
+            #   get file name of output
+            output_index = pipeline.pipeline_steps[output_step_index].get_io_index_by_uid(output_uid)
+            file_name = pipeline.pipeline_steps[output_step_index].outputs[output_index].get_file_name()
+            version = self.pipeline_progress[output_step_uid]["output_info"][output_uid]["version"]
+            filepaths.append(rel_asset_dir / folder_name / "export" / f"{file_name}.{version}.{filetype}")
+        return filepaths
 
     def save_work_file(self, step_uid: str, workfile_path: str) -> None:
         self.pipeline_progress[step_uid]["state"] = pipeline_states[2]

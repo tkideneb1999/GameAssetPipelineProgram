@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from .program_registration import ProgramRegistration
+from program_registration import ProgramRegistration
 
 
 class Settings:

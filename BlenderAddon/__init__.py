@@ -10,14 +10,17 @@ from pathlib import Path
 import bpy
 
 from . import GAPA_Export
+from . import GAPA_Import
 from . import preferences
 from .Core.settings import Settings
 
+
 def menu_func(self, context):
     self.layout.operator(GAPA_Export.GAPAExport.bl_idname)
+    self.layout.operator(GAPA_Import.GAPAImport.bl_idname)
 
 
-classes = [GAPA_Export.GAPAExport, preferences.GAPA_Preferences]
+classes = [GAPA_Export.GAPAExport, GAPA_Import.GAPAImport, preferences.GAPA_Preferences]
 
 
 def register():

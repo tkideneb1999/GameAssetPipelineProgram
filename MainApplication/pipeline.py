@@ -168,6 +168,24 @@ class Pipeline:
         uid_split = io_uid.split(".")
         return uid_split[0]
 
+    def get_step_name(self, step_uid: str) -> str:
+        """
+        :param step_uid: unique id of step
+        :returns: name of the step
+        """
+        index = self.get_step_index_by_uid(step_uid)
+        return self.pipeline_steps[index].name
+
+    def get_output_name(self, output_uid: str) -> str:
+        """
+        :param output_uid: unique id of output
+        :returns: name of the output
+        """
+        step_uid = self.get_step_uid_from_io(output_uid)
+        step_index = self.get_step_index_by_uid(step_uid)
+        output_index = self.pipeline_steps[step_index].get_io_index_by_uid(output_uid)
+        return self.pipeline_steps[step_index].outputs[output_index].name
+
 
 class PipelineStep:
     def __init__(self, uid: str):
@@ -217,11 +235,11 @@ class PipelineStep:
         """
         if is_input:
             for i in range(len(self.inputs)):
-                if self.inputs[i] == io_uid:
+                if self.inputs[i].uid == io_uid:
                     return i
         else:
             for i in range(len(self.outputs)):
-                if self.outputs[i] == io_uid:
+                if self.outputs[i].uid == io_uid:
                     return i
         return -1
 
