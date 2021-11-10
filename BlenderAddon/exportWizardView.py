@@ -15,7 +15,6 @@ from PyQt5 import QtCore as qtc
 from .Core.asset import Asset
 from .exportWizard_GUI import Ui_export_Wizard
 from .PipelineStepViewer_GUI import Ui_pipeline_step_viewer
-from .Core.pipeline import Pipeline
 
 
 class ExportWizardView(qtw.QDialog):
@@ -34,7 +33,6 @@ class ExportWizardView(qtw.QDialog):
         self.assets = []
         self.shown_assets = []
         self.loaded_asset = None
-        self.loaded_pipeline = None
         self.program = program
 
         self.load_project_info(project_info)
@@ -45,6 +43,7 @@ class ExportWizardView(qtw.QDialog):
         self.ui.level_combobox.currentTextChanged.connect(self.level_selection_changed)
         selected_level = self.ui.level_combobox.currentText()
         self.level_selection_changed(selected_level)
+
         # TODO(Blender Addon): Actually filter asset list -> traffic light, name system
         self.ui.asset_list.itemClicked.connect(self.asset_list_item_clicked)
         self.ui.publish_button.clicked.connect(self.publish_asset)
@@ -55,7 +54,7 @@ class ExportWizardView(qtw.QDialog):
         print("Closing Window")
         self.accept()
 
-    def asset_list_item_clicked(self, item: qtw.QListWidgetItem):
+    def asset_list_item_clicked(self):
         selected_index = self.ui.asset_list.currentIndex().row()
         asset_data_light = self.shown_assets[selected_index]
         self.loaded_asset = self.load_asset_details(asset_data_light[0], asset_data_light[1])
@@ -86,7 +85,7 @@ class ExportWizardView(qtw.QDialog):
 
         # Get selected step uid and output uid
         selected_step_index = self.ui.pipeline_list.currentRow()
-        selected_step = self.loaded_pipeline.pipeline_steps[selected_step_index]
+        selected_step = self.loaded_asset.pipeline.pipeline_steps[selected_step_index]
         selected_step_uid = selected_step.uid
         print(f"[GAPA] selected index: {selected_step_index}; uid: {selected_step_uid}")
 
@@ -118,11 +117,9 @@ class ExportWizardView(qtw.QDialog):
         self.accept()
 
     def display_asset_info(self, asset: Asset) -> None:
-        self.loaded_pipeline = Pipeline()
-        self.loaded_pipeline.load(asset.pipeline_dir)
         self.ui.asset_name_label.setText(asset.name)
         self.ui.asset_level_label.setText(asset.level)
-        self.ui.asset_pipeline_label.setText(self.loaded_pipeline.name)
+        self.ui.asset_pipeline_label.setText(self.loaded_asset.pipeline.name)
         tags_string = ""
         for t in asset.tags:
             tags_string = tags_string + t + ", "
@@ -131,7 +128,7 @@ class ExportWizardView(qtw.QDialog):
 
         # Display pipeline steps
         self.ui.pipeline_list.clear()
-        for step in self.loaded_pipeline.pipeline_steps:
+        for step in self.loaded_asset.pipeline.pipeline_steps:
             step_widget = PipelineStepViewer(step.name, step.program, asset.pipeline_progress[step.uid]["state"])
             step_item = qtw.QListWidgetItem(parent=self.ui.pipeline_list)
             step_item.setSizeHint(step_widget.sizeHint())
@@ -145,7 +142,7 @@ class ExportWizardView(qtw.QDialog):
     def display_step_outputs(self):
         # Show Outputs
         index = self.ui.pipeline_list.currentRow()
-        outputs = self.loaded_pipeline.pipeline_steps[index].outputs
+        outputs = self.loaded_asset.pipeline.pipeline_steps[index].outputs
         outputs_names = []
         for o in outputs:
             outputs_names.append(o.name)
@@ -199,8 +196,7 @@ class ExportWizardView(qtw.QDialog):
                 self.pipelines[name] = Path(pipeline_data[name])
 
     def load_asset_details(self, name: str, level: str) -> Asset:
-        asset = Asset(name, level=level)
-        asset.load(self.project_dir)
+        asset = Asset(name, level, self.project_dir)
         return asset
 
     def save_blend_file(self, save_dir: Path):

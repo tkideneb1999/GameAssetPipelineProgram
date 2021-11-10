@@ -71,3 +71,12 @@ class GAPAExport(bpy.types.Operator):
         print("[GAPA] Cancelling")
         wm = context.window_manager
         wm.event_timer_remove(self.bpy_timer)
+
+    def start_window(self) -> None:
+        pass
+
+    def export_files(self, filepath: Path) -> None:
+        pass
+
+    def save_workfile(self, filepath: Path) -> None:
+        pass

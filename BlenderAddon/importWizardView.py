@@ -15,7 +15,6 @@ from PyQt5 import QtCore as qtc
 from .Core.asset import Asset
 from .importWizard_GUI import Ui_import_Wizard
 from .PipelineStepViewer_GUI import Ui_pipeline_step_viewer
-from .Core.pipeline import Pipeline
 
 
 class ImportWizardView(qtw.QDialog):
@@ -33,7 +32,6 @@ class ImportWizardView(qtw.QDialog):
         self.pipelines = {}
         self.assets = []
         self.loaded_asset = None
-        self.loaded_pipeline = None
         self.program = program
 
         self.load_project_info(project_info)
@@ -81,20 +79,20 @@ class ImportWizardView(qtw.QDialog):
         self.bpy_queue.put(func)
 
         # save workfile
-        multi_asset_workfile = False #TODO(Blender Addon): Multi Asset Workfiles
+        multi_asset_workfile = False  # TODO(Blender Addon): Multi Asset Workfiles
         if multi_asset_workfile is False:
-            selected_step = self.loaded_pipeline.pipeline_steps[step_index]
-            path = self.project_dir / self.loaded_asset.level / self.loaded_asset.name / selected_step.get_folder_name / f"{self.loaded_asset.name}.blend"
-            self.save_blend_file(path)
+            selected_step = self.loaded_asset.pipeline.pipeline_steps[step_index]
+            rel_wf_path = Path() / self.loaded_asset.level / self.loaded_asset.name / selected_step.get_folder_name() / "workfiles" / f"{self.loaded_asset.name}.blend"
+            abs_wf_path = self.project_dir / rel_wf_path
+            self.loaded_asset.save_work_file(selected_step.uid, str(rel_wf_path))
+            self.save_blend_file(abs_wf_path)
 
         self.accept()
 
     def display_asset_info(self, asset: Asset):
-        self.loaded_pipeline = Pipeline()
-        self.loaded_pipeline.load(asset.pipeline_dir)
         self.ui.asset_name_label.setText(asset.name)
         self.ui.asset_level_label.setText(asset.level)
-        self.ui.asset_pipeline_label.setText(self.loaded_pipeline.name)
+        self.ui.asset_pipeline_label.setText(self.loaded_asset.pipeline.name)
         tags_string = ""
         for t in asset.tags:
             tags_string = tags_string + t + ", "
@@ -102,7 +100,8 @@ class ImportWizardView(qtw.QDialog):
         self.ui.asset_comment_label.setText(asset.comment)
 
         # Display pipeline steps
-        for step in self.loaded_pipeline.pipeline_steps:
+        self.ui.pipeline_list.clear()
+        for step in self.loaded_asset.pipeline.pipeline_steps:
             step_widget = PipelineStepViewer(step.name, step.program, asset.pipeline_progress[step.uid]["state"])
             step_item = qtw.QListWidgetItem(parent=self.ui.pipeline_list)
             step_item.setSizeHint(step_widget.sizeHint())
@@ -116,11 +115,11 @@ class ImportWizardView(qtw.QDialog):
     def display_step_inputs(self):
         # Show Inputs
         index = self.ui.pipeline_list.currentRow()
-        inputs = self.loaded_pipeline.pipeline_steps[index].inputs
+        inputs = self.loaded_asset.pipeline.pipeline_steps[index].inputs
         inputs_names = []
         for i in inputs:
-            output_uid = self.loaded_pipeline.io_connections[i.uid]
-            output_name = self.loaded_pipeline.get_output_name(output_uid)
+            output_uid = self.loaded_asset.pipeline.io_connections[i.uid]
+            output_name = self.loaded_asset.pipeline.get_output_name(output_uid)
             inputs_names.append(output_name)
         self.ui.inputs_list.clear()
         self.ui.inputs_list.addItems(inputs_names)
@@ -174,8 +173,7 @@ class ImportWizardView(qtw.QDialog):
                 self.pipelines[name] = Path(pipeline_data[name])
 
     def load_asset_details(self, name: str, level: str) -> Asset:
-        asset = Asset(name, level=level)
-        asset.load(self.project_dir)
+        asset = Asset(name, level, self.project_dir)
         return asset
 
     def save_blend_file(self, save_dir: Path):
