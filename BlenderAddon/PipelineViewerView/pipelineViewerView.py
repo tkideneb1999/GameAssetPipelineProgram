@@ -2,10 +2,10 @@ from PyQt5.QtWidgets import QWidget
 from PyQt5.QtWidgets import QListWidgetItem
 from PyQt5 import QtCore as qtc
 
-from MainApplication.PipelineViewerView.pipelineViewer_GUI import Ui_pipeline_viewer
-from MainApplication.PipelineViewerView.pipelineStepViewer_GUI import Ui_pipeline_step_viewer
+from .pipelineViewer_GUI import Ui_pipeline_viewer
+from .pipelineStepViewer_GUI import Ui_pipeline_step_viewer
 
-from MainApplication.asset import Asset
+from ..Core.asset import Asset
 
 
 class PipelineViewerView(QWidget):

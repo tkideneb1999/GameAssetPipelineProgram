@@ -2,8 +2,7 @@ from pathlib import Path
 import functools
 import json
 import sys
-
-import bpy
+from collections.abc import Callable
 
 # Append Path to PyQt5
 pyQt_path = Path(r"F:\Studium\7 Semester\Bachelor Project\GameAssetPipelineProgram\venv\Lib\site-packages")
@@ -14,7 +13,6 @@ from PyQt5 import QtCore as qtc
 
 from .Core.asset import Asset
 from .exportWizard_GUI import Ui_export_Wizard
-from .PipelineStepViewer_GUI import Ui_pipeline_step_viewer
 
 
 class ExportWizardView(qtw.QDialog):
@@ -22,53 +20,42 @@ class ExportWizardView(qtw.QDialog):
         super().__init__(parent)
         self.ui = Ui_export_Wizard()
         self.ui.setupUi(self)
+        self.ui.pipeline_viewer.set_current_program(program)
 
         # TODO(Blender Export): New Asset Wizard
 
         # Data
         self.project_name = ""
-        self.project_dir = project_info.parent
-        self.levels = []
-        self.pipelines = {}
-        self.assets = []
-        self.shown_assets = []
-        self.loaded_asset = None
-        self.program = program
+        self.project_dir: Path = project_info.parent
+        self.levels: list[str] = []
+        self.pipelines: dict[str, Path] = {}
+        self.assets: dict[str, list[str]] = {}
+        self.loaded_asset: Asset = None
+        self.program: str = program
+
+        # Functions to register
+        self.export_file_func: Callable[Path, str, bool] = None
+        self.save_workfile_func: Callable[Path] = None
 
         self.load_project_info(project_info)
         self.load_asset_list()
         # TODO(Blender Addon): Check if work file is already saved for a specific asset
 
-        self.ui.level_combobox.addItems(self.levels)
-        self.ui.level_combobox.currentTextChanged.connect(self.level_selection_changed)
-        selected_level = self.ui.level_combobox.currentText()
-        self.level_selection_changed(selected_level)
-
         # TODO(Blender Addon): Actually filter asset list -> traffic light, name system
-        self.ui.asset_list.itemClicked.connect(self.asset_list_item_clicked)
+        self.ui.asset_list.s_asset_changed.connect(self.display_selected_asset)
         self.ui.publish_button.clicked.connect(self.publish_asset)
 
-        self.ui.pipeline_list.itemSelectionChanged.connect(self.display_step_outputs)
+        self.ui.pipeline_viewer.s_step_selected.connect(self.display_step_outputs)
 
     def close_dialog(self):
         print("Closing Window")
         self.accept()
 
-    def asset_list_item_clicked(self):
-        selected_index = self.ui.asset_list.currentIndex().row()
-        asset_data_light = self.shown_assets[selected_index]
-        self.loaded_asset = self.load_asset_details(asset_data_light[0], asset_data_light[1])
-        self.display_asset_info(self.loaded_asset)
+    def register_save_workfile_func(self, func: Callable[Path]) -> None:
+        self.save_workfile_func = func
 
-    def level_selection_changed(self, level: str) -> None:
-        self.ui.asset_list.clear()
-        self.shown_assets.clear()
-        print(f"[GAPA] Currently selected level: {level}")
-        for a in self.assets:
-            if a[1] == level:
-                self.shown_assets.append(a)
-                list_view_item = qtw.QListWidgetItem(a[0])
-                self.ui.asset_list.addItem(list_view_item)
+    def register_export_func(self, func: Callable[Path, str, bool]) -> None:
+        self.export_file_func = func
 
     def publish_asset(self):
         if self.loaded_asset is None:
@@ -81,15 +68,19 @@ class ExportWizardView(qtw.QDialog):
             print("[GAPA] No output selected")
             return
 
-
+        # Check if functions are registered
+        if self.export_file_func is None:
+            raise Exception("[GAPA] 'export' Function not registered")
+        if self.save_workfile_func is None:
+            raise Exception("[GAPA] 'save_workfile' function not registered")
 
         # Get selected step uid and output uid
-        selected_step_index = self.ui.pipeline_list.currentRow()
+        selected_step_index = self.ui.pipeline_viewer.get_selected_index()
         selected_step = self.loaded_asset.pipeline.pipeline_steps[selected_step_index]
         selected_step_uid = selected_step.uid
         print(f"[GAPA] selected index: {selected_step_index}; uid: {selected_step_uid}")
 
-        multi_asset_workfile = False # TODO(Blender Addon): Multi Asset Workfiles
+        multi_asset_workfile = False  # TODO(Blender Addon): Multi Asset Workfiles
         if multi_asset_workfile is False:
             path = self.project_dir / self.loaded_asset.level / self.loaded_asset.name / selected_step.get_folder_name() / f"{self.loaded_asset.name}.blend"
             self.save_blend_file(path)
@@ -116,36 +107,24 @@ class ExportWizardView(qtw.QDialog):
 
         self.accept()
 
-    def display_asset_info(self, asset: Asset) -> None:
-        self.ui.asset_name_label.setText(asset.name)
-        self.ui.asset_level_label.setText(asset.level)
-        self.ui.asset_pipeline_label.setText(self.loaded_asset.pipeline.name)
-        tags_string = ""
-        for t in asset.tags:
-            tags_string = tags_string + t + ", "
-        self.ui.asset_tags_label.setText(tags_string)
-        self.ui.asset_comment_label.setText(asset.comment)
+    def display_selected_asset(self, level: str, index: int) -> None:
+        asset_name = self.assets[level][index]
+        self.loaded_asset = Asset(asset_name, level, project_dir=self.project_dir)
 
-        # Display pipeline steps
-        self.ui.pipeline_list.clear()
-        for step in self.loaded_asset.pipeline.pipeline_steps:
-            step_widget = PipelineStepViewer(step.name, step.program, asset.pipeline_progress[step.uid]["state"])
-            step_item = qtw.QListWidgetItem(parent=self.ui.pipeline_list)
-            step_item.setSizeHint(step_widget.sizeHint())
-            files_missing = self.loaded_asset.pipeline_progress[step.uid]["state"] == "files missing"
-            not_current_program = self.program != step.program
-            if files_missing or not_current_program:
-                step_item.setFlags(qtc.Qt.NoItemFlags)
-            self.ui.pipeline_list.addItem(step_item)
-            self.ui.pipeline_list.setItemWidget(step_item, step_widget)
+        self.ui.asset_details.update_asset_details(self.loaded_asset.name,
+                                                   self.loaded_asset.level,
+                                                   self.loaded_asset.pipeline.name,
+                                                   self.loaded_asset.tags,
+                                                   self.loaded_asset.comment)
+        self.ui.pipeline_viewer.update_view(self.loaded_asset)
 
-    def display_step_outputs(self):
+    def display_step_outputs(self, index):
         # Show Outputs
-        index = self.ui.pipeline_list.currentRow()
         outputs = self.loaded_asset.pipeline.pipeline_steps[index].outputs
         outputs_names = []
         for o in outputs:
             outputs_names.append(o.name)
+        print(f"[GAPA] Outputs: {outputs_names}")
         self.ui.outputs_list.clear()
         self.ui.outputs_list.addItems(outputs_names)
 
@@ -171,10 +150,12 @@ class ExportWizardView(qtw.QDialog):
             for i in range(num_assets):
                 asset_data_s = f.readline()
                 asset_data = asset_data_s.split(',')
-                asset_data[1] = asset_data[1].replace("\n", "")
-                print(f"[GAPA] Loaded Asset: [0]{asset_data[0]}, [1]{asset_data[1]}")
-
-                self.assets.append(asset_data)
+                asset_data[1] = asset_data[1].replace('\n', '')
+                if self.assets.get(asset_data[1]) is None:
+                    self.assets[asset_data[1]] = [asset_data[0]]
+                else:
+                    self.assets[asset_data[1]].append(asset_data[0])
+        self.ui.asset_list.update_asset_list(self.assets)
 
     def load_project_info(self, path: Path):
         if not path.exists():
@@ -195,30 +176,13 @@ class ExportWizardView(qtw.QDialog):
             for name in pipeline_data:
                 self.pipelines[name] = Path(pipeline_data[name])
 
-    def load_asset_details(self, name: str, level: str) -> Asset:
-        asset = Asset(name, level, self.project_dir)
-        return asset
-
     def save_blend_file(self, save_dir: Path):
         # TODO(Blender Addon): Determine actual location (make dependent on user whether multi asset file or not)
         print("[GAPA][Qt] Issued Save Command")
-        func = functools.partial(bpy.ops.wm.save_as_mainfile, filepath=str(save_dir))
+        func = functools.partial(self.save_workfile_func, filepath=str(save_dir))
         self.bpy_queue.put(func)
 
     def export_file(self, path: Path, file_format: str, use_selection: bool) -> None:
         # bpy.ops.export_scene.fbx(str(path), use_selection=use_selection)
-        if file_format == "fbx":
-            func = functools.partial(bpy.ops.export_scene.fbx, filepath=str(path), use_selection=use_selection)
-            self.bpy_queue.put(func)
-        else:
-            print(f"[GAPA] file format {file_format} not recognized")
-
-
-class PipelineStepViewer(qtw.QWidget):
-    def __init__(self, step_name: str, step_program:str, step_state: str, parent=None):
-        super(PipelineStepViewer, self).__init__(parent)
-        self.ui = Ui_pipeline_step_viewer()
-        self.ui.setupUi(self)
-        self.ui.step_name_label.setText(step_name)
-        self.ui.step_program_label.setText(step_program)
-        self.ui.step_state.setText(step_state)
+        func = functools.partial(self.export_file_func, str(path), file_format, use_selection)
+        self.bpy_queue.put(func)

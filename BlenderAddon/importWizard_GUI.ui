@@ -20,65 +20,20 @@
       <number>0</number>
      </property>
      <item>
-      <layout class="QVBoxLayout" name="asset_list_layout">
-       <item>
-        <widget class="QLabel" name="asset_list_label">
-         <property name="font">
-          <font>
-           <pointsize>12</pointsize>
-          </font>
-         </property>
-         <property name="text">
-          <string>Asset List</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QComboBox" name="level_combobox"/>
-       </item>
-       <item>
-        <widget class="QListWidget" name="asset_list">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="maximumSize">
-          <size>
-           <width>200</width>
-           <height>20000</height>
-          </size>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <layout class="QHBoxLayout" name="asset_list_buttons_layout">
-         <property name="topMargin">
-          <number>0</number>
-         </property>
-         <item>
-          <widget class="QPushButton" name="add_asset_button">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>200</width>
-             <height>16777215</height>
-            </size>
-           </property>
-           <property name="text">
-            <string>Add Asset</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-      </layout>
+      <widget class="AssetListView" name="asset_list" native="true">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>230</width>
+         <height>0</height>
+        </size>
+       </property>
+      </widget>
      </item>
      <item>
       <layout class="QVBoxLayout" name="asset_details_pipeline_layout">
@@ -86,101 +41,20 @@
         <number>0</number>
        </property>
        <item>
-        <layout class="QHBoxLayout" name="asset_details_spacer_layout">
-         <property name="rightMargin">
-          <number>0</number>
+        <widget class="AssetDetailsView" name="asset_details" native="true">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
          </property>
-         <item>
-          <layout class="QFormLayout" name="asset_details_layout">
-           <property name="leftMargin">
-            <number>0</number>
-           </property>
-           <item row="0" column="0">
-            <widget class="QLabel" name="asset_name_d_label">
-             <property name="text">
-              <string>Name:</string>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="1">
-            <widget class="QLabel" name="asset_name_label">
-             <property name="text">
-              <string/>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="0">
-            <widget class="QLabel" name="asset_level_d_label">
-             <property name="text">
-              <string>Level:</string>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="1">
-            <widget class="QLabel" name="asset_level_label">
-             <property name="text">
-              <string/>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="0">
-            <widget class="QLabel" name="asset_pipeline_d_label">
-             <property name="text">
-              <string>Pipeline:</string>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="1">
-            <widget class="QLabel" name="asset_pipeline_label">
-             <property name="text">
-              <string/>
-             </property>
-            </widget>
-           </item>
-           <item row="3" column="0">
-            <widget class="QLabel" name="asset_tags_d_label">
-             <property name="text">
-              <string>Tags:</string>
-             </property>
-            </widget>
-           </item>
-           <item row="3" column="1">
-            <widget class="QLabel" name="asset_tags_label">
-             <property name="text">
-              <string/>
-             </property>
-            </widget>
-           </item>
-           <item row="4" column="0">
-            <widget class="QLabel" name="asset_comment_d_label">
-             <property name="text">
-              <string>Comment:</string>
-             </property>
-            </widget>
-           </item>
-           <item row="4" column="1">
-            <widget class="QLabel" name="asset_comment_label">
-             <property name="text">
-              <string/>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </item>
-         <item>
-          <spacer name="horizontalSpacer">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>40</width>
-             <height>20</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-        </layout>
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>90</height>
+          </size>
+         </property>
+        </widget>
        </item>
        <item>
         <layout class="QHBoxLayout" name="pipeline_outputs_layout">
@@ -191,25 +65,14 @@
           <number>0</number>
          </property>
          <item>
-          <layout class="QVBoxLayout" name="pipeline_layout">
-           <property name="topMargin">
-            <number>0</number>
+          <widget class="PipelineViewerView" name="pipeline_viewer" native="true">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
            </property>
-           <item>
-            <widget class="QLabel" name="pipeline_label">
-             <property name="text">
-              <string>Pipeline</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QListWidget" name="pipeline_list">
-             <property name="flow">
-              <enum>QListView::LeftToRight</enum>
-             </property>
-            </widget>
-           </item>
-          </layout>
+          </widget>
          </item>
          <item>
           <layout class="QVBoxLayout" name="verticalLayout">
@@ -286,6 +149,26 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>PipelineViewerView</class>
+   <extends>QWidget</extends>
+   <header>.PipelineViewerView.pipelineViewerView</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>AssetListView</class>
+   <extends>QWidget</extends>
+   <header>.AssetListView.assetListView</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>AssetDetailsView</class>
+   <extends>QWidget</extends>
+   <header>.AssetDetailsView.assetDetailsView</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections>
   <connection>

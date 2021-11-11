@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'PipelineStepViewer_GUI.ui'
+# Form implementation generated from reading ui file 'pipelineStepViewer_GUI.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.4
 #
@@ -17,30 +17,30 @@ class Ui_pipeline_step_viewer(object):
         pipeline_step_viewer.resize(326, 300)
         self.formLayout = QtWidgets.QFormLayout(pipeline_step_viewer)
         self.formLayout.setObjectName("formLayout")
-        self.step_name_label = QtWidgets.QLabel(pipeline_step_viewer)
+        self.name_label = QtWidgets.QLabel(pipeline_step_viewer)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.step_name_label.sizePolicy().hasHeightForWidth())
-        self.step_name_label.setSizePolicy(sizePolicy)
-        self.step_name_label.setObjectName("step_name_label")
-        self.formLayout.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.step_name_label)
-        self.step_program_label = QtWidgets.QLabel(pipeline_step_viewer)
+        sizePolicy.setHeightForWidth(self.name_label.sizePolicy().hasHeightForWidth())
+        self.name_label.setSizePolicy(sizePolicy)
+        self.name_label.setObjectName("name_label")
+        self.formLayout.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.name_label)
+        self.program_label = QtWidgets.QLabel(pipeline_step_viewer)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.step_program_label.sizePolicy().hasHeightForWidth())
-        self.step_program_label.setSizePolicy(sizePolicy)
-        self.step_program_label.setObjectName("step_program_label")
-        self.formLayout.setWidget(1, QtWidgets.QFormLayout.LabelRole, self.step_program_label)
-        self.step_state = QtWidgets.QLabel(pipeline_step_viewer)
+        sizePolicy.setHeightForWidth(self.program_label.sizePolicy().hasHeightForWidth())
+        self.program_label.setSizePolicy(sizePolicy)
+        self.program_label.setObjectName("program_label")
+        self.formLayout.setWidget(1, QtWidgets.QFormLayout.LabelRole, self.program_label)
+        self.state_label = QtWidgets.QLabel(pipeline_step_viewer)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.step_state.sizePolicy().hasHeightForWidth())
-        self.step_state.setSizePolicy(sizePolicy)
-        self.step_state.setObjectName("step_state")
-        self.formLayout.setWidget(2, QtWidgets.QFormLayout.LabelRole, self.step_state)
+        sizePolicy.setHeightForWidth(self.state_label.sizePolicy().hasHeightForWidth())
+        self.state_label.setSizePolicy(sizePolicy)
+        self.state_label.setObjectName("state_label")
+        self.formLayout.setWidget(2, QtWidgets.QFormLayout.LabelRole, self.state_label)
         spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         self.formLayout.setItem(3, QtWidgets.QFormLayout.LabelRole, spacerItem)
 
@@ -50,6 +50,6 @@ class Ui_pipeline_step_viewer(object):
     def retranslateUi(self, pipeline_step_viewer):
         _translate = QtCore.QCoreApplication.translate
         pipeline_step_viewer.setWindowTitle(_translate("pipeline_step_viewer", "Form"))
-        self.step_name_label.setText(_translate("pipeline_step_viewer", "Step Name"))
-        self.step_program_label.setText(_translate("pipeline_step_viewer", "Program"))
-        self.step_state.setText(_translate("pipeline_step_viewer", "State"))
+        self.name_label.setText(_translate("pipeline_step_viewer", "Step Name"))
+        self.program_label.setText(_translate("pipeline_step_viewer", "Program"))
+        self.state_label.setText(_translate("pipeline_step_viewer", "State"))

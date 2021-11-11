@@ -27,7 +27,7 @@ class Asset:
         self.comment = comment
         self.workfile_paths = {}
 
-    def set_initial_pipeline_progress(self):
+    def set_initial_pipeline_progress(self) -> None:
         for step in self.pipeline.pipeline_steps:
             outputs_info = {}
             for output in step.outputs:

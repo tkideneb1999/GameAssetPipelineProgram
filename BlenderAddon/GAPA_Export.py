@@ -56,6 +56,10 @@ class GAPAExport(bpy.types.Operator):
             return {'FINISHED'}
 
         self.qt_window = ExportWizardView(Path(project_info), "blender")
+        # Register Functions
+        self.qt_window.register_save_workfile_func(self.save_workfile)
+        self.qt_window.register_export_func(self.export_file)
+
         ExportWizardView.qt_queue = self.qt_queue
         ExportWizardView.bpy_queue = self.bpy_queue
         self.qt_window.add_qt_timer()
@@ -75,8 +79,9 @@ class GAPAExport(bpy.types.Operator):
     def start_window(self) -> None:
         pass
 
-    def export_files(self, filepath: Path) -> None:
-        pass
+    def export_file(self, filepath: Path, file_format: str, use_selection: bool) -> None:
+        if file_format == "fbx":
+            bpy.ops.export_scene.fbx(filepath=str(filepath), use_selection=use_selection)
 
     def save_workfile(self, filepath: Path) -> None:
-        pass
+        bpy.ops.wm.save_as_mainfile(filepath=str(filepath))

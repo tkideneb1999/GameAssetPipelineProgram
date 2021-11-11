@@ -2,8 +2,7 @@ from pathlib import Path
 import functools
 import json
 import sys
-
-import bpy
+from collections.abc import Callable
 
 # Append Path to PyQt5
 pyQt_path = Path(r"F:\Studium\7 Semester\Bachelor Project\GameAssetPipelineProgram\venv\Lib\site-packages")
@@ -14,7 +13,6 @@ from PyQt5 import QtCore as qtc
 
 from .Core.asset import Asset
 from .importWizard_GUI import Ui_import_Wizard
-from .PipelineStepViewer_GUI import Ui_pipeline_step_viewer
 
 
 class ImportWizardView(qtw.QDialog):
@@ -22,60 +20,69 @@ class ImportWizardView(qtw.QDialog):
         super().__init__(parent)
         self.ui = Ui_import_Wizard()
         self.ui.setupUi(self)
+        self.ui.pipeline_viewer.set_current_program(program)
 
         # TODO(Blender Export): New Asset Wizard
 
         # Data
         self.project_name = ""
         self.project_dir = project_info.parent
-        self.levels = []
-        self.pipelines = {}
-        self.assets = []
-        self.loaded_asset = None
+        self.levels: list[str] = []
+        self.pipelines: dict[str, Path] = {}
+        self.assets: dict[str, list[str]] = {}
+        self.loaded_asset: Asset = None
         self.program = program
+
+        # Functions to register
+        self.import_files_func: Callable[list[Path]] = None
+        self.save_workfile_func: Callable[Path] = None
 
         self.load_project_info(project_info)
         self.load_asset_list()
         # TODO(Blender Addon): Check if work file is already saved for a specific asset
-
-        self.ui.level_combobox.addItems(self.levels)
         # TODO(Blender Addon): Actually filter asset list -> traffic light, name system
-        self.ui.asset_list.itemClicked.connect(self.asset_list_item_clicked)
-        self.ui.import_button.clicked.connect(self.import_assets)
 
-        self.ui.pipeline_list.itemSelectionChanged.connect(self.display_step_inputs)
+        self.ui.asset_list.s_asset_changed.connect(self.display_selected_asset)
+        self.ui.pipeline_viewer.s_step_selected.connect(self.display_step_inputs)
+
+        self.ui.import_button.clicked.connect(self.import_assets)
 
     def close_dialog(self):
         print("Closing Window")
         self.accept()
 
-    def asset_list_item_clicked(self, item: qtw.QListWidgetItem):
-        selected_index = self.ui.asset_list.currentIndex().row()
-        asset_data_light = self.assets[selected_index]
-        self.loaded_asset = self.load_asset_details(asset_data_light[0], asset_data_light[1])
-        self.display_asset_info(self.loaded_asset)
+    def register_save_workfile_func(self, func: Callable[Path]) -> None:
+        """
+        Registers the function that will save the workfile, to be executed when needed.
+        :param func: Function object that has a path as an input that contains the path for the work file to be saved to
+        """
+        self.save_workfile_func = func
+
+    def register_import_files_func(self, func: Callable[list[Path]]) -> None:
+        """
+        Registers the function that will import files from steps that have outputs connected to the inputs of the selected step.
+        :param func: Function object that takes a list of paths. The paths contain the location of the exported files of the outputs
+        """
+        self.import_files_func = func
 
     def import_assets(self):
         # TODO(Blender Addon): Implement Button
         if self.loaded_asset is None:
             print("[GAPA] No Asset Selected")
             return
-        if self.ui.pipeline_list.currentRow() == -1:
+        if self.ui.pipeline_viewer.get_selected_index() == -1:
             print("[GAPA] No step to work on selected")
             return
 
         # Get selected step
-        step_index = self.ui.pipeline_list.currentRow()
+        step_index = self.ui.pipeline_viewer.get_selected_index()
         rel_filepaths = self.loaded_asset.import_assets(step_index)  # TODO(Blender Addon): Handle different file types
         abs_filepaths = []
         for f in rel_filepaths:
             abs_filepaths.append(self.project_dir / f)
 
         # import assets
-        def import_files(filepaths: list[Path]):
-            for filepath in filepaths:
-                bpy.ops.import_scene.fbx(filepath=str(filepath))
-        func = functools.partial(import_files, filepaths=abs_filepaths)
+        func = functools.partial(self.import_files_func, filepaths=abs_filepaths)
         self.bpy_queue.put(func)
 
         # save workfile
@@ -89,32 +96,20 @@ class ImportWizardView(qtw.QDialog):
 
         self.accept()
 
-    def display_asset_info(self, asset: Asset):
-        self.ui.asset_name_label.setText(asset.name)
-        self.ui.asset_level_label.setText(asset.level)
-        self.ui.asset_pipeline_label.setText(self.loaded_asset.pipeline.name)
-        tags_string = ""
-        for t in asset.tags:
-            tags_string = tags_string + t + ", "
-        self.ui.asset_tags_label.setText(tags_string)
-        self.ui.asset_comment_label.setText(asset.comment)
+    def display_selected_asset(self, level: str, index: int) -> None:
+        asset_name = self.assets[level][index]
+        self.loaded_asset = Asset(asset_name, level, project_dir=self.project_dir)
 
-        # Display pipeline steps
-        self.ui.pipeline_list.clear()
-        for step in self.loaded_asset.pipeline.pipeline_steps:
-            step_widget = PipelineStepViewer(step.name, step.program, asset.pipeline_progress[step.uid]["state"])
-            step_item = qtw.QListWidgetItem(parent=self.ui.pipeline_list)
-            step_item.setSizeHint(step_widget.sizeHint())
-            files_missing = self.loaded_asset.pipeline_progress[step.uid]["state"] == "files missing"
-            not_current_program = self.program != step.program
-            if files_missing or not_current_program:
-                step_item.setFlags(qtc.Qt.NoItemFlags)
-            self.ui.pipeline_list.addItem(step_item)
-            self.ui.pipeline_list.setItemWidget(step_item, step_widget)
+        self.ui.asset_details.update_asset_details(self.loaded_asset.name,
+                                                   self.loaded_asset.level,
+                                                   self.loaded_asset.pipeline.name,
+                                                   self.loaded_asset.tags,
+                                                   self.loaded_asset.comment)
+        self.ui.pipeline_viewer.update_view(self.loaded_asset)
 
     def display_step_inputs(self):
         # Show Inputs
-        index = self.ui.pipeline_list.currentRow()
+        index = self.ui.pipeline_viewer.get_selected_index()
         inputs = self.loaded_asset.pipeline.pipeline_steps[index].inputs
         inputs_names = []
         for i in inputs:
@@ -146,12 +141,12 @@ class ImportWizardView(qtw.QDialog):
             for i in range(num_assets):
                 asset_data_s = f.readline()
                 asset_data = asset_data_s.split(',')
-                asset_data[1] = asset_data[1].replace("\n", "")
-                print(f"[GAPA] Loaded Asset: [0]{asset_data[0]}, [1]{asset_data[1]}")
-
-                self.assets.append(asset_data)
-                list_view_item = qtw.QListWidgetItem(asset_data[0])
-                self.ui.asset_list.addItem(list_view_item)
+                asset_data[1] = asset_data[1].replace('\n', '')
+                if self.assets.get(asset_data[1]) is None:
+                    self.assets[asset_data[1]] = [asset_data[0]]
+                else:
+                    self.assets[asset_data[1]].append(asset_data[0])
+        self.ui.asset_list.update_asset_list(self.assets)
 
     def load_project_info(self, path: Path):
         if not path.exists():
@@ -179,15 +174,5 @@ class ImportWizardView(qtw.QDialog):
     def save_blend_file(self, save_dir: Path):
         # TODO(Blender Addon): Determine actual location (make dependent on user whether multi asset file or not)
         print("[GAPA][Qt] Issued Save Command")
-        func = functools.partial(bpy.ops.wm.save_as_mainfile, filepath=str(save_dir))
+        func = functools.partial(self.save_workfile_func, filepath=str(save_dir))
         self.bpy_queue.put(func)
-
-
-class PipelineStepViewer(qtw.QWidget):
-    def __init__(self, step_name: str, step_program:str, step_state: str, parent=None):
-        super(PipelineStepViewer, self).__init__(parent)
-        self.ui = Ui_pipeline_step_viewer()
-        self.ui.setupUi(self)
-        self.ui.step_name_label.setText(step_name)
-        self.ui.step_program_label.setText(step_program)
-        self.ui.step_state.setText(step_state)
