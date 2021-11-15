@@ -287,12 +287,14 @@ class PipelineStep:
 class PipelineInput:
     def __init__(self, uid: str):
         self.uid = uid
+        self.name = f"input_{uid}"
 
     def save(self) -> dict:
-        return {"uid": self.uid}
+        return {"uid": self.uid, "name": self.name}
 
     def load(self, data: dict) -> None:
         self.uid = data["uid"]
+        self.name = data["name"]
 
 
 class PipelineOutput:

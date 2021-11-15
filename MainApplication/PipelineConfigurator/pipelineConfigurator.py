@@ -4,11 +4,11 @@ from enum import Enum
 from PyQt5 import QtWidgets as qtw
 from PyQt5 import QtCore as qtc
 
-from pipeline import Pipeline
-from settings import Settings
-from pipeline_step_GUI import Ui_pipeline_step
-from pipeline_step_input_GUI import Ui_pipeline_step_input
-from pipeline_step_output_GUI import Ui_pipeline_step_output
+from MainApplication.pipeline import Pipeline
+from MainApplication.settings import Settings
+from MainApplication.PipelineConfigurator.pipeline_step_GUI import Ui_pipeline_step
+from MainApplication.PipelineConfigurator.pipeline_step_input_GUI import Ui_pipeline_step_input
+from MainApplication.PipelineConfigurator.pipeline_step_output_GUI import Ui_pipeline_step_output
 
 
 class IODataEnum(Enum):
@@ -114,8 +114,10 @@ class PipelineConfigurator(qtw.QWidget):
 
     def add_step(self):
         name = self.current_pipeline.add_step()[1]
+        settings = Settings()
+        settings.load()
         self.current_pipeline.set_program(len(self.current_pipeline.pipeline_steps) - 1,
-                                          Settings().program_registration.get_program_list()[0])
+                                          settings.program_registration.get_program_list()[0])
         self.step_widgets.append(PipelineStepGUI(len(self.step_widgets), self.scrollable_widget))
         self.scrollbar_layout.insertWidget(self.scrollbar_layout.count() - 1, self.step_widgets[-1])
         self.step_widgets[-1].set_name(name)
@@ -329,6 +331,7 @@ class PipelineStepGUI(qtw.QWidget):
         self.ui.program_combobox.addItems(program_names)
 
     def select_program(self, new_program: str) -> None:
+        self.ui.program_settings.program_changed(new_program)
         self.s_step_program_selected.emit(self.index, new_program)
 
     # --------------

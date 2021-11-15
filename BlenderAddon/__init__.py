@@ -6,6 +6,7 @@ bl_info = {
 
 
 from pathlib import Path
+import os
 
 import bpy
 
@@ -13,6 +14,7 @@ from . import GAPA_Export
 from . import GAPA_Import
 from . import preferences
 from .Core.settings import Settings
+from .pipelineSettings import get_pipeline_settings_location
 
 
 def menu_func(self, context):
@@ -31,7 +33,9 @@ def register():
     settings = Settings()
     settings.load()
     blender_path = Path(bpy.app.binary_path)
-    settings.enable_addon(blender_path.stem)
+    # Get Current File
+    addon_location = Path(get_pipeline_settings_location())
+    settings.enable_addon(blender_path.stem, addon_location)
 
 
 def unregister():

@@ -34,7 +34,7 @@ class Settings:
             return
         self.program_registration.load(self.save_path)
 
-    def enable_addon(self, name: str):
+    def enable_addon(self, name: str, addon_path: Path):
         print("[GAPA] Enabling Addon in Settings")
-        self.program_registration.enable_addon(name)
+        self.program_registration.enable_addon(name, addon_path)
         self.save()

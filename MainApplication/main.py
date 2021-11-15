@@ -6,7 +6,7 @@ from PyQt5 import QtWidgets as qtw
 from PyQt5 import QtCore as qtc
 
 from MainApplication_GUI import Ui_MainWindow
-from pipelineConfigurator import PipelineConfigurator
+from MainApplication.PipelineConfigurator.pipelineConfigurator import PipelineConfigurator
 from settingsView import SettingsView
 from assetManager import AssetManager
 from projectWizard import ProjectWizard
