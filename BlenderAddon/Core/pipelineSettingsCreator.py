@@ -1,6 +1,12 @@
 class PipelineSettingsCreator:
     def __init__(self):
         self.settings: dict[str, dict[str, list[tuple[str, str]]]] = {}
+        # {configName
+        #   inputs
+        #       name, type
+        #   outputs
+        #       name, type
+        # }
 
     # def add_output_config(self, name: str, outputs: list[tuple[str, str]]) -> None:
     #     """
