@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>200</width>
-    <height>54</height>
+    <height>77</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -28,6 +28,33 @@
    </property>
    <item>
     <layout class="QVBoxLayout" name="verticalLayout">
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout_2">
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <item>
+        <widget class="QLabel" name="id_d_label">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string>uid:</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="id_label">
+         <property name="text">
+          <string>id</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
      <item>
       <widget class="QComboBox" name="input_type_combo_box">
        <property name="minimumSize">

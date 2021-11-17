@@ -16,7 +16,7 @@ class PipelineStepSettingsView(QWidget):
         super(PipelineStepSettingsView, self).__init__(parent)
         self.ui = Ui_pipeline_step_settings_GUI()
         self.ui.setupUi(self)
-        self.ui.configs_combobox.currentTextChanged.connect(self.s_selected_config.emit)
+        self.ui.configs_combobox.currentTextChanged.connect(self.config_changed)
 
         self.program = "None"
         self.settings = {}
@@ -62,5 +62,11 @@ class PipelineStepSettingsView(QWidget):
         return self.update_ui()
 
     def config_changed(self, config: str) -> None:
-        if self.settings_active:
+        if self.settings_active and (not config == ""):
             self.s_selected_config.emit(config)
+
+    def current_config(self) -> str:
+        return self.ui.configs_combobox.currentText()
+
+    def config_available(self) -> bool:
+        return self.settings_active
