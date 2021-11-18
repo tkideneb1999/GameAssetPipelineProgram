@@ -1,6 +1,18 @@
 class PipelineSettingsCreator:
     def __init__(self):
-        self.settings: dict[str, dict[str, list[tuple[str, str]]]] = {}
+        self.configs: dict[str, dict[str, list[tuple[str, str]]]] = {}
+        # {configName
+        #   inputs
+        #       name, type
+        #   outputs
+        #       name, type
+        # }
+        self.settings: dict[str, dict] = {}
+        # {additional GUI Name
+        #   {"type": type
+        #    "data": data
+        #   }
+        # }
 
     # def add_output_config(self, name: str, outputs: list[tuple[str, str]]) -> None:
     #     """
@@ -26,4 +38,24 @@ class PipelineSettingsCreator:
         :param outputs: list of tuples containing name[0] of the output and type[1]
         """
         io_dict = {"inputs": inputs, "outputs": outputs}
-        self.settings[name] = io_dict
+        self.configs[name] = io_dict
+
+    def add_combobox_selection(self, name: str, entries: list[str]) -> None:
+        """
+        Adds an additional combobox to the pipeline step GUI
+        :param name: name of the combobox
+        :param entries: entries added to the combobox
+        """
+        combobox_dict = {"type": "combobox",
+                         "data": entries}
+        self.settings[name] = combobox_dict
+
+    def add_checkbox(self, name: str, default_value=False) -> None:
+        """
+        Adds an additional checkbox to the pipeline step GUI
+        :param name: name of the checkbox
+        :param default_value: default value of the combobox
+        """
+        checkbox_dict = {"type": "checkbox",
+                         "data": default_value}
+        self.settings[name] = checkbox_dict

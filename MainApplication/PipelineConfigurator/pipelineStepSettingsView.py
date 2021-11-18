@@ -1,14 +1,14 @@
 import importlib.util
 
-from PyQt5.QtWidgets import QWidget
+from PyQt5 import QtWidgets as qtw
 from PyQt5 import QtCore as qtc
 
 from MainApplication.settings import Settings
-from MainApplication.PipelineConfigurator.pipelineSettingsCreator import PipelineSettingsCreator
 from MainApplication.PipelineConfigurator.pipeline_step_settings_GUI import Ui_pipeline_step_settings_GUI
+from pipelineSettingsCreator import PipelineSettingsCreator
 
 
-class PipelineStepSettingsView(QWidget):
+class PipelineStepSettingsView(qtw.QWidget):
 
     s_selected_config = qtc.pyqtSignal(str)
 
@@ -19,8 +19,9 @@ class PipelineStepSettingsView(QWidget):
         self.ui.configs_combobox.currentTextChanged.connect(self.config_changed)
 
         self.program = "None"
-        self.settings = {}
+        self.settings: PipelineSettingsCreator = None
         self.settings_active = False
+        self.additional_GUI: dict[str, list[qtw.QWidget]] = {}
         self.pipelineSettings: PipelineSettingsCreator = PipelineSettingsCreator()
         self.update_ui()
 
@@ -54,8 +55,40 @@ class PipelineStepSettingsView(QWidget):
 
         self.settings_active = True
         # Add configs to combobox
-        self.ui.configs_combobox.addItems(self.settings.settings.keys())
+        self.ui.configs_combobox.addItems(self.settings.configs.keys())
+
+        if self.settings.settings is None or {}:
+            return True
+        for name in self.settings.settings:
+            if self.settings.settings[name]["type"] == "combobox":
+                self.add_combobox(name, self.settings.settings[name]["data"])
+            if self.settings.settings[name]["type"] == "checkbox":
+                self.add_checkbox(name, self.settings.settings[name]["data"])
         return True
+
+    def add_combobox(self, name: str, data: list[str]) -> None:
+        combobox = qtw.QComboBox(self)
+        combobox.addItems(data)
+        c_label = qtw.QLabel(self)
+        c_label.setText(name)
+        c_layout = qtw.QHBoxLayout(self)
+        c_layout.addWidget(c_label)
+        c_layout.addWidget(combobox)
+        self.additional_GUI[name] = [combobox, c_label, c_layout]
+        self.ui.verticalLayout.addLayout(c_layout)
+
+    def add_checkbox(self, name: str, data: bool) -> None:
+        checkbox = qtw.QCheckBox(self)
+        checkbox.setText(name)
+        checkbox.setChecked(data)
+        self.additional_GUI[name] = [checkbox]
+        self.ui.verticalLayout.addWidget(checkbox)
+
+    def clear_additional_GUI(self) -> None:
+        for name in self.additional_GUI:
+            for widget in self.additional_GUI[name]:
+                widget.deleteLater()
+        self.additional_GUI.clear()
 
     def program_changed(self, selected_program: str) -> bool:
         self.program = selected_program

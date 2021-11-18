@@ -14,13 +14,25 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_pipeline_step_settings_GUI(object):
     def setupUi(self, pipeline_step_settings_GUI):
         pipeline_step_settings_GUI.setObjectName("pipeline_step_settings_GUI")
-        pipeline_step_settings_GUI.resize(400, 20)
-        self.horizontalLayout = QtWidgets.QHBoxLayout(pipeline_step_settings_GUI)
-        self.horizontalLayout.setContentsMargins(0, 0, 0, 0)
-        self.horizontalLayout.setObjectName("horizontalLayout")
+        pipeline_step_settings_GUI.resize(400, 21)
+        self.verticalLayout = QtWidgets.QVBoxLayout(pipeline_step_settings_GUI)
+        self.verticalLayout.setContentsMargins(0, 0, 0, 0)
+        self.verticalLayout.setObjectName("verticalLayout")
+        self.configs_layout = QtWidgets.QHBoxLayout()
+        self.configs_layout.setContentsMargins(-1, 0, -1, -1)
+        self.configs_layout.setObjectName("configs_layout")
+        self.label = QtWidgets.QLabel(pipeline_step_settings_GUI)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Preferred)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.label.sizePolicy().hasHeightForWidth())
+        self.label.setSizePolicy(sizePolicy)
+        self.label.setObjectName("label")
+        self.configs_layout.addWidget(self.label)
         self.configs_combobox = QtWidgets.QComboBox(pipeline_step_settings_GUI)
         self.configs_combobox.setObjectName("configs_combobox")
-        self.horizontalLayout.addWidget(self.configs_combobox)
+        self.configs_layout.addWidget(self.configs_combobox)
+        self.verticalLayout.addLayout(self.configs_layout)
 
         self.retranslateUi(pipeline_step_settings_GUI)
         QtCore.QMetaObject.connectSlotsByName(pipeline_step_settings_GUI)
@@ -28,3 +40,4 @@ class Ui_pipeline_step_settings_GUI(object):
     def retranslateUi(self, pipeline_step_settings_GUI):
         _translate = QtCore.QCoreApplication.translate
         pipeline_step_settings_GUI.setWindowTitle(_translate("pipeline_step_settings_GUI", "Form"))
+        self.label.setText(_translate("pipeline_step_settings_GUI", "Config"))

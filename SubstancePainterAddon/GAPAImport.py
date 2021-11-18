@@ -1,56 +1,47 @@
+from pathlib import Path
+import importlib
+
 from PySide2 import QtWidgets as qtw
-import substance_painter.ui
+
+import substance_painter.logging as spLog
+
+from .GAPACore.UI import importWizardView
+
+importlib.reload(importWizardView)
 
 
 class GAPAImport:
-    def __init__(self):
-        self.log = qtw.QTextEdit()
-        self.log.setReadOnly(True)
-        self.log.setWindowTitle("GAPA Import")
-        substance_painter.ui.add_dock_widget(self.log)
-        self.testDialogAction = qtw.QAction("Lauch Test Dialog...")
-        self.testDialogAction.triggered.connect(self.launch_dialog)
-        substance_painter.ui.add_action(
-            substance_painter.ui.ApplicationMenu.File,
-            self.testDialogAction
-        )
+    def __init__(self, sp_main_window):
+        self.testDialogAction = qtw.QAction("GAPA Import")
+        self.testDialogAction.triggered.connect(self.launch_import_dialog)
+        self.project_info: Path = None
+        self.sp_main_window = sp_main_window
 
-    def launch_dialog(self):
-        dialog = TestDialog(substance_painter.ui.get_main_window())
-        if dialog.exec_():
-            self.log.append("Hello")
-        else:
-            self.log.append("Not Hello")
+    def import_files(self, filepaths) -> None:  # filepaths: list[Path]
+        spLog.info("[GAPA] Importing files and creating project")
+        pass
 
+    def save_workfile(self, filepath) -> None:  # filepath: Path
+        spLog.info("[GAPA] Saving workfile")
+        pass
 
-class TestDialog(qtw.QDialog):
-    def __init__(self, parent=None):
-        super(TestDialog, self).__init__(parent)
-        self.button = qtw.QPushButton(self)
-        self.button.setText("Much Wow")
+    def launch_import_dialog(self) -> None:
+        if self.project_info is None:
+            pass
+            if not self.launch_project_dialog():
+                spLog.warning("[GAPA] Project File has to be selected before importing")
+                return
+        # import_dialog = importWizardView.ImportWizardView(self.project_info, "Substance Painter", spUI.get_main_window())
+        # import_dialog.register_import_files_func(self.import_files)
+        # import_dialog.register_save_workfile_func(self.save_workfile)
 
-        self.button.clicked.connect(self.clicked)
-        self.layout = qtw.QVBoxLayout(self)
-        self.layout.addWidget(self.button)
-        self.setLayout(self.layout)
-
-    def clicked(self):
-        print("Clicked Button")
-        self.accept()
-
-
-GAPAIMPORT_PLUGIN = None
-
-
-def start_plugin():
-    global GAPAIMPORT_PLUGIN
-    GAPAIMPORT_PLUGIN = GAPAImport()
-
-
-def close_plugin():
-    global GAPAIMPORT_PLUGIN
-    del GAPAIMPORT_PLUGIN
-
-
-if __name__ == "__main__":
-    start_plugin()
+    def launch_project_dialog(self) -> bool:
+        dialog = qtw.QFileDialog(self.sp_main_window)
+        dialog.setWindowTitle("Select the project info file ...")
+        dialog.setFileMode(qtw.QFileDialog.ExistingFile)
+        dialog.setNameFilter("Project File (*.gapaproj)")
+        dialog.setViewMode(qtw.QFileDialog.Detail)
+        result = dialog.exec_()
+        if result == 0:
+            return False
+        self.project_info = Path(dialog.selectedFiles()[0])

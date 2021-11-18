@@ -1,0 +1,338 @@
+from pathlib import Path
+import json
+
+# TODO(Pipeline): Presets for programs
+
+
+class Pipeline:
+    def __init__(self):
+        # Data
+        self.name = "Pipeline_1"
+        self.pipeline_steps = []
+        self.io_connections = {}
+        self.step_id_counter = 0
+
+    # -------------
+    # Pipeline Step
+    # -------------
+    def add_step(self) -> tuple:
+        self.pipeline_steps.append(PipelineStep(f"s{self.step_id_counter}"))
+        self.step_id_counter += 1
+        if len(self.pipeline_steps) > 1:
+            if self.pipeline_steps[-2].next_step == "":
+                self.pipeline_steps[-2].set_next_step(self.pipeline_steps[-1].uid)
+        return self.pipeline_steps[-1].uid, self.pipeline_steps[-1].name
+
+    def remove_step(self, index) -> None:
+        # index: int
+        for i in self.pipeline_steps[index].inputs:
+            self.delete_io_connection_if_exists(i.uid)
+        deletion_output_uids = []
+        wrangled_outputs = list(self.io_connections.values())
+        for o in self.pipeline_steps[index].outputs:
+            if o.uid in wrangled_outputs:
+                deletion_output_uids.append(wrangled_outputs.index(o.uid))
+        wrangled_inputs = list(self.io_connections.keys())
+        for i in deletion_output_uids:
+            del self.io_connections[wrangled_inputs[i]]
+
+        del self.pipeline_steps[index]
+
+    def set_program(self, step_index, program_name) -> None:
+        # step_index: int, program_name: str
+        self.pipeline_steps[step_index].set_program(program_name)
+        print(
+            f"{self.pipeline_steps[step_index].program} is set as a program for step {self.pipeline_steps[step_index].uid}")
+
+    # --------------
+    # Inputs/Outputs
+    # --------------
+    def add_input(self, step) -> str:
+        # step: int
+        return self.pipeline_steps[step].add_input()
+
+    def remove_input(self, step, index) -> str:
+        # step: int, index: int
+        uid = self.pipeline_steps[step].remove_input(index)
+        self.delete_io_connection_if_exists(uid)
+        return uid
+
+    def add_output(self, step) -> str:
+        # step: int
+        return self.pipeline_steps[step].add_output()
+
+    def remove_output(self, step, index) -> str:
+        # step: int, index: int
+        uid = self.pipeline_steps[step].remove_output(index)
+        output_list = list(self.io_connections.values())
+
+        # Check if output is connected to any inputs
+        if uid not in output_list:
+            return uid
+
+        # Get indices of connections
+        indices = []
+        for i in range(len(output_list)):
+            if output_list[i] == uid:
+                indices.append(i)
+
+        # Delete connections
+        inputs = list(self.io_connections.keys())
+        for i in indices:
+            del self.io_connections[inputs[i]]
+        return uid
+
+    # ---------
+    # Handle IO
+    # ---------
+    def connect_io(self, input_uid, output_uid) -> None:
+        # input_uid: str, output_uid: str
+        self.io_connections[input_uid] = output_uid
+        print(self.io_connections)
+
+    # -------------
+    # Serialization
+    # -------------
+    def save(self, path) -> Path:
+        # path: Path
+        steps_data = []
+        for s in self.pipeline_steps:
+            steps_data.append(s.save())
+        data = {
+            "name": self.name,
+            "step_id_counter": self.step_id_counter,
+            "io_connections": self.io_connections,
+            "steps": steps_data
+        }
+        if not path.exists():
+            path.mkdir(parents=True)
+        path = path / f"{self.name}.json"
+        if not path.is_file():
+            path.touch()
+        with path.open("w", encoding="utf-8") as f:
+            f.write(json.dumps(data, indent=4))
+            f.close()
+        return path
+
+    def load(self, path) -> None:
+        # path: Path
+        with path.open("r", encoding="utf-8")as f:
+            data = json.loads(f.read())
+            self.name = data["name"]
+            self.step_id_counter = data["step_id_counter"]
+            self.io_connections = data["io_connections"]
+            steps = []
+            for s in data["steps"]:
+                steps.append(PipelineStep(""))
+                steps[len(steps) - 1].load(s)
+            self.pipeline_steps = steps
+            f.close()
+
+    # -------
+    # Helpers
+    # -------
+    def delete_io_connection_if_exists(self, input_id) -> None:
+        # input_id: str
+        if input_id in self.io_connections:
+            del self.io_connections[input_id]
+
+    def get_step_program(self, step_index) -> str:
+        # step_index: int
+        return self.pipeline_steps[step_index].program
+
+    def get_uid(self, step_index, is_input, io_index=-1) -> str:
+        # step_index: int, is_input: bool
+        """
+        :param step_index: pipeline step index
+        :param is_input: whether next index is an input (True) or an output (False)
+        :param io_index: index of the input/output
+        :returns: uid of the step(io_index=-1) or input/output
+        """
+        if io_index == -1:
+            return self.pipeline_steps[step_index].uid
+        else:
+            if is_input:
+                return self.pipeline_steps[step_index].inputs[io_index].uid
+            else:
+                return self.pipeline_steps[step_index].outputs[io_index].uid
+
+    def get_next_step_uid(self, current_step_uid) -> str:
+        # current_step_uid: str
+        for s in self.pipeline_steps:
+            if s.uid == current_step_uid:
+                return s.next_step
+        return ""
+
+    def get_step_index_by_uid(self, step_uid) -> int:
+        # step_uid: str
+        """
+        :param step_uid: unique identifier of step
+        :returns: corresponding index of pipeline step. If step uid is not found -1 is returned
+        """
+        for i in range(len(self.pipeline_steps)):
+            if self.pipeline_steps[i].uid == step_uid:
+                return i
+        return -1
+
+    def get_step_uid_from_io(self, io_uid) -> str:
+        # io_uid: str
+        """
+        :param io_uid: Input/Output unique id
+        :returns: step uid that Input/output is part of
+        """
+        uid_split = io_uid.split(".")
+        return uid_split[0]
+
+    def get_step_name(self, step_uid) -> str:
+        # step_uid: str
+        """
+        :param step_uid: unique id of step
+        :returns: name of the step
+        """
+        index = self.get_step_index_by_uid(step_uid)
+        return self.pipeline_steps[index].name
+
+    def get_output_name(self, output_uid) -> str:
+        # output_uid: str
+        """
+        :param output_uid: unique id of output
+        :returns: name of the output
+        """
+        step_uid = self.get_step_uid_from_io(output_uid)
+        step_index = self.get_step_index_by_uid(step_uid)
+        output_index = self.pipeline_steps[step_index].get_io_index_by_uid(output_uid)
+        return self.pipeline_steps[step_index].outputs[output_index].name
+
+
+class PipelineStep:
+    def __init__(self, uid):
+        # uid: str
+        self.name = f"step_{uid}"
+        self.next_step = ""
+        self.program = ""
+        self.inputs = []
+        self.outputs = []
+        self.uid = uid
+        self.input_id_counter = 0
+        self.output_id_counter = 0
+
+    def set_program(self, program_name) -> None:
+        # program_name: str
+        self.program = program_name
+
+    def set_next_step(self, next_step_uid) -> None:
+        # next_step_uid: str
+        self.next_step = next_step_uid
+
+    def add_input(self) -> str:
+        self.inputs.append(PipelineInput(f"{self.uid}.i{self.input_id_counter}"))
+        self.input_id_counter += 1
+        return self.inputs[len(self.inputs) - 1].uid
+
+    def remove_input(self, index) -> str:
+        # index: int
+        uid = self.inputs[index].uid
+        del self.inputs[index]
+        return uid
+
+    def add_output(self) -> tuple:
+        self.outputs.append(PipelineOutput(f"{self.uid}.o{self.output_id_counter}"))
+        self.output_id_counter += 1
+        return self.outputs[len(self.outputs) - 1].uid, self.outputs[len(self.outputs) - 1].name
+
+    def remove_output(self, index) -> str:
+        # index: int
+        uid = self.outputs[index].uid
+        del self.outputs[index]
+        return uid
+
+    def get_folder_name(self) -> str:
+        return f"{self.uid}_{self.name}"
+
+    def get_io_index_by_uid(self, io_uid, is_input=False) -> int:
+        # io_uid: str
+        """
+        :param io_uid: Unique identifier of Input/Output
+        :param is_input: Whether to return input or output index (default: output)
+        :returns: index of Input/Output in Pipeline step. Returns -1 if nothing found
+        """
+        if is_input:
+            for i in range(len(self.inputs)):
+                if self.inputs[i].uid == io_uid:
+                    return i
+        else:
+            for i in range(len(self.outputs)):
+                if self.outputs[i].uid == io_uid:
+                    return i
+        return -1
+
+    # -------------
+    # Serialization
+    # -------------
+    def save(self) -> dict:
+        input_data = []
+        for i in self.inputs:
+            input_data.append(i.save())
+        output_data = []
+        for o in self.outputs:
+            output_data.append(o.save())
+        data = {"name": self.name,
+                "uid": self.uid,
+                "next_step": self.next_step,
+                "program": self.program,
+                "input_id_counter": self.input_id_counter,
+                "output_id_counter": self.output_id_counter,
+                "inputs": input_data,
+                "outputs": output_data}
+        return data
+
+    def load(self, data) -> None:
+        # data: dict
+        self.name = data["name"]
+        self.uid = data["uid"]
+        self.next_step = data["next_step"]
+        self.program = data["program"]
+        self.input_id_counter = data["input_id_counter"]
+        self.output_id_counter = data["output_id_counter"]
+
+        inputs = []
+        for i in data["inputs"]:
+            inputs.append(PipelineInput(""))
+            inputs[len(inputs) - 1].load(i)
+        self.inputs = inputs
+
+        outputs = []
+        for o in data["outputs"]:
+            outputs.append(PipelineOutput(""))
+            outputs[len(outputs) - 1].load(o)
+        self.outputs = outputs
+
+
+class PipelineInput:
+    def __init__(self, uid: str):
+        self.uid = uid
+
+    def save(self) -> dict:
+        return {"uid": self.uid}
+
+    def load(self, data) -> None:
+        # data: dict
+        self.uid = data["uid"]
+
+
+class PipelineOutput:
+    def __init__(self, uid):
+        # uid: str
+        self.name = f"output_{uid}"
+        self.uid = uid
+
+    def get_file_name(self):
+        return f"{self.uid}_{self.name}"
+
+    def save(self) -> dict:
+        return {"uid": self.uid, "name": self.name}
+
+    def load(self, data) -> None:
+        # data: dict
+        self.name = data["name"]
+        self.uid = data["uid"]
