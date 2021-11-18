@@ -43,15 +43,7 @@ class ProgramRegistration:
         return self.registered_programs[name]["addonPath"]
 
     def get_program_addon_enabled(self, name: str) -> bool:
-        """
-        Returns whether Addon for specific program is enabled
-        :param name: registered name of the program (executable name)
-        :returns: True if addon is enabled, False if not or if the program does not exist
-        """
-        if self.registered_programs.get(name) is not None:
-            return self.registered_programs[name]["addonEnabled"]
-        else:
-            return False
+        return self.registered_programs[name]["addonEnabled"]
 
     def get_program_list(self) -> list:
         return list(self.registered_programs.keys())

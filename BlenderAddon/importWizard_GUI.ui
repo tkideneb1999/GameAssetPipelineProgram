@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>export_Wizard</class>
- <widget class="QDialog" name="export_Wizard">
+ <class>import_Wizard</class>
+ <widget class="QDialog" name="import_Wizard">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>758</width>
+    <width>756</width>
     <height>367</height>
    </rect>
   </property>
@@ -67,7 +67,7 @@
          <item>
           <widget class="PipelineViewerView" name="pipeline_viewer" native="true">
            <property name="sizePolicy">
-            <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
+            <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
@@ -80,14 +80,14 @@
             <number>0</number>
            </property>
            <item>
-            <widget class="QLabel" name="outputs_label">
+            <widget class="QLabel" name="inputs_label">
              <property name="text">
-              <string>Outputs</string>
+              <string>Inputs</string>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QListWidget" name="outputs_list">
+            <widget class="QListWidget" name="inputs_list">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
                <horstretch>0</horstretch>
@@ -100,24 +100,10 @@
                <height>16777215</height>
               </size>
              </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QCheckBox" name="export_selected_checkbox">
-             <property name="text">
-              <string>Export Selected</string>
+             <property name="selectionMode">
+              <enum>QAbstractItemView::NoSelection</enum>
              </property>
             </widget>
-           </item>
-           <item>
-            <widget class="QLabel" name="file_format_label">
-             <property name="text">
-              <string>File Format</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QComboBox" name="file_format_combobox"/>
            </item>
           </layout>
          </item>
@@ -146,9 +132,9 @@
       </spacer>
      </item>
      <item>
-      <widget class="QPushButton" name="publish_button">
+      <widget class="QPushButton" name="import_button">
        <property name="text">
-        <string>Publish</string>
+        <string>Import</string>
        </property>
       </widget>
      </item>
@@ -188,7 +174,7 @@
   <connection>
    <sender>cancel_Button</sender>
    <signal>clicked()</signal>
-   <receiver>export_Wizard</receiver>
+   <receiver>import_Wizard</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">

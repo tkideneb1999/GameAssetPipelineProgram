@@ -48,7 +48,7 @@
        <bool>false</bool>
       </property>
       <property name="currentIndex">
-       <number>2</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="assets_tab">
        <attribute name="title">
@@ -85,7 +85,7 @@
      <x>0</x>
      <y>0</y>
      <width>1041</width>
-     <height>22</height>
+     <height>21</height>
     </rect>
    </property>
   </widget>

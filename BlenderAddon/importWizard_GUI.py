@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'exportWizard_GUI.ui'
+# Form implementation generated from reading ui file 'importWizard_GUI.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.4
 #
@@ -11,16 +11,16 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 
-class Ui_export_Wizard(object):
-    def setupUi(self, export_Wizard):
-        export_Wizard.setObjectName("export_Wizard")
-        export_Wizard.resize(758, 367)
-        self.verticalLayout_2 = QtWidgets.QVBoxLayout(export_Wizard)
+class Ui_import_Wizard(object):
+    def setupUi(self, import_Wizard):
+        import_Wizard.setObjectName("import_Wizard")
+        import_Wizard.resize(756, 367)
+        self.verticalLayout_2 = QtWidgets.QVBoxLayout(import_Wizard)
         self.verticalLayout_2.setObjectName("verticalLayout_2")
         self.main_layout = QtWidgets.QHBoxLayout()
         self.main_layout.setContentsMargins(-1, 0, -1, -1)
         self.main_layout.setObjectName("main_layout")
-        self.asset_list = AssetListView(export_Wizard)
+        self.asset_list = AssetListView(import_Wizard)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -32,7 +32,7 @@ class Ui_export_Wizard(object):
         self.asset_details_pipeline_layout = QtWidgets.QVBoxLayout()
         self.asset_details_pipeline_layout.setContentsMargins(0, -1, -1, -1)
         self.asset_details_pipeline_layout.setObjectName("asset_details_pipeline_layout")
-        self.asset_details = AssetDetailsView(export_Wizard)
+        self.asset_details = AssetDetailsView(import_Wizard)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -44,8 +44,8 @@ class Ui_export_Wizard(object):
         self.pipeline_outputs_layout = QtWidgets.QHBoxLayout()
         self.pipeline_outputs_layout.setContentsMargins(-1, 0, 0, -1)
         self.pipeline_outputs_layout.setObjectName("pipeline_outputs_layout")
-        self.pipeline_viewer = PipelineViewerView(export_Wizard)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.Preferred)
+        self.pipeline_viewer = PipelineViewerView(import_Wizard)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.pipeline_viewer.sizePolicy().hasHeightForWidth())
@@ -55,27 +55,19 @@ class Ui_export_Wizard(object):
         self.verticalLayout = QtWidgets.QVBoxLayout()
         self.verticalLayout.setContentsMargins(0, -1, -1, -1)
         self.verticalLayout.setObjectName("verticalLayout")
-        self.outputs_label = QtWidgets.QLabel(export_Wizard)
-        self.outputs_label.setObjectName("outputs_label")
-        self.verticalLayout.addWidget(self.outputs_label)
-        self.outputs_list = QtWidgets.QListWidget(export_Wizard)
+        self.inputs_label = QtWidgets.QLabel(import_Wizard)
+        self.inputs_label.setObjectName("inputs_label")
+        self.verticalLayout.addWidget(self.inputs_label)
+        self.inputs_list = QtWidgets.QListWidget(import_Wizard)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.outputs_list.sizePolicy().hasHeightForWidth())
-        self.outputs_list.setSizePolicy(sizePolicy)
-        self.outputs_list.setMaximumSize(QtCore.QSize(100, 16777215))
-        self.outputs_list.setObjectName("outputs_list")
-        self.verticalLayout.addWidget(self.outputs_list)
-        self.export_selected_checkbox = QtWidgets.QCheckBox(export_Wizard)
-        self.export_selected_checkbox.setObjectName("export_selected_checkbox")
-        self.verticalLayout.addWidget(self.export_selected_checkbox)
-        self.file_format_label = QtWidgets.QLabel(export_Wizard)
-        self.file_format_label.setObjectName("file_format_label")
-        self.verticalLayout.addWidget(self.file_format_label)
-        self.file_format_combobox = QtWidgets.QComboBox(export_Wizard)
-        self.file_format_combobox.setObjectName("file_format_combobox")
-        self.verticalLayout.addWidget(self.file_format_combobox)
+        sizePolicy.setHeightForWidth(self.inputs_list.sizePolicy().hasHeightForWidth())
+        self.inputs_list.setSizePolicy(sizePolicy)
+        self.inputs_list.setMaximumSize(QtCore.QSize(100, 16777215))
+        self.inputs_list.setSelectionMode(QtWidgets.QAbstractItemView.NoSelection)
+        self.inputs_list.setObjectName("inputs_list")
+        self.verticalLayout.addWidget(self.inputs_list)
         self.pipeline_outputs_layout.addLayout(self.verticalLayout)
         self.asset_details_pipeline_layout.addLayout(self.pipeline_outputs_layout)
         self.main_layout.addLayout(self.asset_details_pipeline_layout)
@@ -85,26 +77,24 @@ class Ui_export_Wizard(object):
         self.horizontalLayout_4.setObjectName("horizontalLayout_4")
         spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.horizontalLayout_4.addItem(spacerItem)
-        self.publish_button = QtWidgets.QPushButton(export_Wizard)
-        self.publish_button.setObjectName("publish_button")
-        self.horizontalLayout_4.addWidget(self.publish_button)
-        self.cancel_Button = QtWidgets.QPushButton(export_Wizard)
+        self.import_button = QtWidgets.QPushButton(import_Wizard)
+        self.import_button.setObjectName("import_button")
+        self.horizontalLayout_4.addWidget(self.import_button)
+        self.cancel_Button = QtWidgets.QPushButton(import_Wizard)
         self.cancel_Button.setObjectName("cancel_Button")
         self.horizontalLayout_4.addWidget(self.cancel_Button)
         self.verticalLayout_2.addLayout(self.horizontalLayout_4)
 
-        self.retranslateUi(export_Wizard)
-        self.cancel_Button.clicked.connect(export_Wizard.reject)
-        QtCore.QMetaObject.connectSlotsByName(export_Wizard)
+        self.retranslateUi(import_Wizard)
+        self.cancel_Button.clicked.connect(import_Wizard.reject)
+        QtCore.QMetaObject.connectSlotsByName(import_Wizard)
 
-    def retranslateUi(self, export_Wizard):
+    def retranslateUi(self, import_Wizard):
         _translate = QtCore.QCoreApplication.translate
-        export_Wizard.setWindowTitle(_translate("export_Wizard", "Dialog"))
-        self.outputs_label.setText(_translate("export_Wizard", "Outputs"))
-        self.export_selected_checkbox.setText(_translate("export_Wizard", "Export Selected"))
-        self.file_format_label.setText(_translate("export_Wizard", "File Format"))
-        self.publish_button.setText(_translate("export_Wizard", "Publish"))
-        self.cancel_Button.setText(_translate("export_Wizard", "Cancel"))
+        import_Wizard.setWindowTitle(_translate("import_Wizard", "Dialog"))
+        self.inputs_label.setText(_translate("import_Wizard", "Inputs"))
+        self.import_button.setText(_translate("import_Wizard", "Import"))
+        self.cancel_Button.setText(_translate("import_Wizard", "Cancel"))
 from .AssetDetailsView.assetDetailsView import AssetDetailsView
 from .AssetListView.assetListView import AssetListView
 from .PipelineViewerView.pipelineViewerView import PipelineViewerView

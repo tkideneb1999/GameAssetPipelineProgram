@@ -1,21 +1,22 @@
 from pathlib import Path
 
-from program_registration import ProgramRegistration
+from .program_registration import ProgramRegistration
 
 
-class Settings(object):
+class Settings:
+    _instance = None
 
     def __new__(cls):
-        if not hasattr(cls, 'instance'):
+        if cls._instance is None:
             # Singleton
             print("Creating Settings")
-            cls.instance = super(Settings, cls).__new__(cls)
+            cls._instance = super(Settings, cls).__new__(cls)
 
             # Init
             cls.program_registration = ProgramRegistration()
             cls.save_path = Path.home() / "documents" / "GAPASettings"
 
-        return cls.instance
+        return cls._instance
 
     def register_program(self, name: str, path: Path, addon_enabled=False) -> None:
         self.program_registration.add_program(name, path)

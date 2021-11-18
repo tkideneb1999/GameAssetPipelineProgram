@@ -9,14 +9,13 @@ pyQt_path = Path(r"D:\Studium\7 Semester\Bachelor Project\GameAssetPipelineProgr
 sys.path.append(str(pyQt_path))
 
 from PyQt5 import QtWidgets as qtw
+from .importWizardView import ImportWizardView
 
-from .exportWizardView import ExportWizardView
 
-
-class GAPAExport(bpy.types.Operator):
-    """Game Asset Pipeline Automation Export"""
-    bl_idname = "wm.gapa_export"
-    bl_label = "GAPA Export"
+class GAPAImport(bpy.types.Operator):
+    """Game Asset Pipeline Automation Import"""
+    bl_idname = "wm.gapa_import"
+    bl_label = "GAPA Import"
     bl_options = {'REGISTER'}
 
     qt_app = None
@@ -48,22 +47,19 @@ class GAPAExport(bpy.types.Operator):
         return {"PASS_THROUGH"}
 
     def execute(self, context):
-        print("[GAPA] Starting Asset Exporter")
+        print("[GAPA] Starting Asset Importer")
         project_info = context.preferences.addons[__package__].preferences.project_dir
-        print(bpy.app.binary_path)
         if project_info == "":
             print("[GAPA] No valid Project Dir set")
             return {'FINISHED'}
 
-        self.qt_window = ExportWizardView(Path(project_info), "blender")
-        # Register Functions
-        self.qt_window.register_save_workfile_func(self.save_workfile)
-        self.qt_window.register_export_func(self.export_file)
-
-        ExportWizardView.qt_queue = self.qt_queue
-        ExportWizardView.bpy_queue = self.bpy_queue
+        self.qt_window = ImportWizardView(Path(project_info), "blender")
+        ImportWizardView.qt_queue = self.qt_queue
+        ImportWizardView.bpy_queue = self.bpy_queue
         self.qt_window.add_qt_timer()
         self.qt_window.show()
+        self.qt_window.register_save_workfile_func(self.save_workfile)
+        self.qt_window.register_import_files_func(self.import_files)
 
         wm = context.window_manager
         print("[GAPA][Bpy] Adding Timer")
@@ -76,12 +72,11 @@ class GAPAExport(bpy.types.Operator):
         wm = context.window_manager
         wm.event_timer_remove(self.bpy_timer)
 
-    def start_window(self) -> None:
-        pass
-
-    def export_file(self, filepath: Path, file_format: str, use_selection: bool) -> None:
-        if file_format == "fbx":
-            bpy.ops.export_scene.fbx(filepath=str(filepath), use_selection=use_selection)
+    def import_files(self, filepaths: list[Path]) -> None:
+        for filepath in filepaths:
+            file_suffix = filepath.suffix
+            if file_suffix == ".fbx":
+                bpy.ops.import_scene.fbx(filepath=str(filepath))
 
     def save_workfile(self, filepath: Path) -> None:
         bpy.ops.wm.save_as_mainfile(filepath=str(filepath))

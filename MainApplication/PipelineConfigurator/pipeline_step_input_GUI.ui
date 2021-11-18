@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>pipeline_step_output</class>
- <widget class="QWidget" name="pipeline_step_output">
+ <class>pipeline_step_input</class>
+ <widget class="QWidget" name="pipeline_step_input">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
     <width>200</width>
-    <height>50</height>
+    <height>77</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -18,21 +18,45 @@
     <number>4</number>
    </property>
    <property name="topMargin">
-    <number>2</number>
+    <number>4</number>
    </property>
    <property name="rightMargin">
     <number>4</number>
    </property>
    <property name="bottomMargin">
-    <number>2</number>
+    <number>4</number>
    </property>
    <item>
     <layout class="QVBoxLayout" name="verticalLayout">
-     <property name="leftMargin">
-      <number>0</number>
-     </property>
      <item>
-      <widget class="QComboBox" name="output_type_combobox">
+      <layout class="QHBoxLayout" name="horizontalLayout_2">
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <item>
+        <widget class="QLabel" name="id_d_label">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string>uid:</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="id_label">
+         <property name="text">
+          <string>id</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <widget class="QComboBox" name="input_type_combo_box">
        <property name="minimumSize">
         <size>
          <width>150</width>
@@ -42,13 +66,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="output_name_lineedit">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
+      <widget class="QComboBox" name="input_name_combobox">
        <property name="minimumSize">
         <size>
          <width>150</width>
@@ -60,7 +78,7 @@
     </layout>
    </item>
    <item>
-    <widget class="QPushButton" name="remove_output_button">
+    <widget class="QPushButton" name="remove_input_button">
      <property name="maximumSize">
       <size>
        <width>32</width>

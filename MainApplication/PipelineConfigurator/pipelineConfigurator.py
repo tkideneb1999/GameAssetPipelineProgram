@@ -4,11 +4,11 @@ from enum import Enum
 from PyQt5 import QtWidgets as qtw
 from PyQt5 import QtCore as qtc
 
-from pipeline import Pipeline
-from settings import Settings
-from pipeline_step_GUI import Ui_pipeline_step
-from pipeline_step_input_GUI import Ui_pipeline_step_input
-from pipeline_step_output_GUI import Ui_pipeline_step_output
+from MainApplication.pipeline import Pipeline
+from MainApplication.settings import Settings
+from MainApplication.PipelineConfigurator.pipeline_step_GUI import Ui_pipeline_step
+from MainApplication.PipelineConfigurator.pipeline_step_input_GUI import Ui_pipeline_step_input
+from MainApplication.PipelineConfigurator.pipeline_step_output_GUI import Ui_pipeline_step_output
 
 
 class IODataEnum(Enum):
@@ -25,8 +25,8 @@ class PipelineConfigurator(qtw.QWidget):
         super().__init__(parent)
 
         # Data
-        self.current_pipeline = Pipeline()
-        self.project_dir = Path()
+        self.current_pipeline: Pipeline = Pipeline()
+        self.project_dir: Path = Path()
 
         # <editor-fold desc="GUI">
         layout = qtw.QVBoxLayout()
@@ -52,7 +52,7 @@ class PipelineConfigurator(qtw.QWidget):
 
         layout_1.addWidget(self.scroll_bar)
 
-        self.step_widgets = []
+        self.step_widgets: list[PipelineStepGUI] = []
 
         # -Edit Pipeline Buttons
         button_layout = qtw.QVBoxLayout()
@@ -114,8 +114,10 @@ class PipelineConfigurator(qtw.QWidget):
 
     def add_step(self):
         name = self.current_pipeline.add_step()[1]
+        settings = Settings()
+        settings.load()
         self.current_pipeline.set_program(len(self.current_pipeline.pipeline_steps) - 1,
-                                          Settings().program_registration.get_program_list()[0])
+                                          settings.program_registration.get_program_list()[0])
         self.step_widgets.append(PipelineStepGUI(len(self.step_widgets), self.scrollable_widget))
         self.scrollbar_layout.insertWidget(self.scrollbar_layout.count() - 1, self.step_widgets[-1])
         self.step_widgets[-1].set_name(name)
@@ -130,6 +132,12 @@ class PipelineConfigurator(qtw.QWidget):
         self.step_widgets[-1].s_output_added.connect(self.output_added)
         self.step_widgets[-1].s_output_removed.connect(self.output_removed)
         self.step_widgets[-1].s_output_modified.connect(self.output_modified)
+        # Check if config is available
+        if self.step_widgets[-1].ui.program_settings.config_available():
+            # Get config name
+            config = self.step_widgets[-1].ui.program_settings.current_config()
+            # Select Config Function
+            self.step_widgets[-1].select_config(config)
 
     def remove_step(self, index: int):
         self.current_pipeline.remove_step(index)
@@ -150,8 +158,12 @@ class PipelineConfigurator(qtw.QWidget):
     # Input/Output Function Handlers
 
     def input_added(self, step_index: int):
-        self.current_pipeline.add_input(step_index)
+        uid = self.current_pipeline.add_input(step_index)
         self.update_possible_outputs(step_index - 1)
+        # Get InputGui
+        self.step_widgets[step_index].inputs[-1].set_uid_label(uid)
+        # Set uid label
+
 
     def input_removed(self, step_index: int, input_index: int):
         self.current_pipeline.remove_input(step_index, input_index)
@@ -159,11 +171,14 @@ class PipelineConfigurator(qtw.QWidget):
     def input_modified(self, step_index: int, input_index: int, data_field: IODataEnum, data: str):
         if data_field == IODataEnum.SelectedOutput:
             self.current_pipeline.connect_io(self.current_pipeline.get_uid(step_index, True, input_index), data)
+        if data_field == IODataEnum.Name:
+            self.current_pipeline.pipeline_steps[step_index].inputs[input_index].name = data
 
     def output_added(self, step_index: int):
-        name = self.current_pipeline.add_output(step_index)[1]
-        self.step_widgets[step_index].outputs[-1].set_name(name)
+        info = self.current_pipeline.add_output(step_index)
+        self.step_widgets[step_index].outputs[-1].set_name(info[1])
         self.update_possible_outputs(step_index)
+        self.step_widgets[step_index].outputs[-1].set_uid_label(info[0])
 
     def output_removed(self, step_index: int, output_index: int):
         self.current_pipeline.remove_output(step_index, output_index)
@@ -277,6 +292,11 @@ class PipelineStepGUI(qtw.QWidget):
         self.ui = Ui_pipeline_step()
         self.ui.setupUi(self)
 
+        # Data
+        self.index: int = index
+        self.inputs: list[PipelineInputGUI] = []
+        self.outputs: list[PipelineOutputGUI] = []
+
         # Add Input Button
         self.ui.add_input_button.clicked.connect(self.add_input)
 
@@ -291,14 +311,14 @@ class PipelineStepGUI(qtw.QWidget):
         self.ui.program_combobox.addItems(settings.program_registration.get_program_list())
         self.ui.program_combobox.currentTextChanged.connect(self.select_program)
 
+        # Program Settings
+        config_available = self.ui.program_settings.program_changed(self.ui.program_combobox.currentText())
+        self.set_io_button_interactivity(not config_available)
+        self.ui.program_settings.s_selected_config.connect(self.select_config)
+
         # Right-Click Menu
         self.setContextMenuPolicy(qtc.Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self.launch_context_menu)
-
-        # Data
-        self.index = index
-        self.inputs = []
-        self.outputs = []
 
     def launch_context_menu(self, pos) -> None:
         menu = qtw.QMenu(self)
@@ -329,7 +349,31 @@ class PipelineStepGUI(qtw.QWidget):
         self.ui.program_combobox.addItems(program_names)
 
     def select_program(self, new_program: str) -> None:
+        configs_available = self.ui.program_settings.program_changed(new_program)
+        self.set_io_button_interactivity(not configs_available)
         self.s_step_program_selected.emit(self.index, new_program)
+
+    def select_config(self, config_name: str) -> None:
+        # Delete all inputs/outputs
+        inputs_len = len(self.inputs)
+        for i in reversed(range(inputs_len)):
+            self.inputs[i].remove()
+        outputs_len = len(self.outputs)
+        for o in reversed(range(outputs_len)):
+            self.outputs[o].remove()
+
+        config = self.ui.program_settings.settings.settings[config_name]
+        for i in config["inputs"]:
+            # Add Input
+            self.add_input()
+            # Rename Input
+            self.inputs[-1].change_name(i[0])
+
+        for o in config["outputs"]:
+            # Add Output
+            self.add_output()
+            # Rename Output
+            self.outputs[-1].change_name(o[0])
 
     # --------------
     # Inputs/Outputs
@@ -370,6 +414,7 @@ class PipelineStepGUI(qtw.QWidget):
 
     # Serialization
     def load_input(self, asset_type):
+
         self.inputs.append(PipelineInputGUI(len(self.inputs), self))
         self.ui.inputs_layout.addWidget(self.inputs[-1])
         self.inputs[-1].s_remove.connect(self.remove_input)
@@ -380,6 +425,12 @@ class PipelineStepGUI(qtw.QWidget):
         self.ui.outputs_layout.addWidget(self.outputs[-1])
         self.outputs[-1].s_remove.connect(self.remove_output)
         self.outputs[-1].s_modified.connect(self.modified_output)
+
+    # Helpers
+    def set_io_button_interactivity(self, is_active: bool) -> None:
+        print(f"[GAPA] Setting add buttons enabled status to: {is_active}")
+        self.ui.add_input_button.setEnabled(is_active)
+        self.ui.add_output_button.setEnabled(is_active)
 
 
 class PipelineInputGUI(qtw.QWidget):
@@ -402,8 +453,14 @@ class PipelineInputGUI(qtw.QWidget):
         self.s_remove.emit(self.index)
         self.deleteLater()
 
+    def set_uid_label(self, uid: str) -> None:
+        self.ui.id_label.setText(uid)
+
     def selected_output(self):
         self.s_modified.emit(self.index, IODataEnum.SelectedOutput, self.ui.input_name_combobox.currentText())
+
+    def change_name(self, new_name: str):
+        self.s_modified.emit(self.index, IODataEnum.Name, new_name)
 
     def set_possible_outputs(self, outputs:list):
         self.ui.input_name_combobox.clear()
@@ -419,7 +476,7 @@ class PipelineInputGUI(qtw.QWidget):
 
 
 class PipelineOutputGUI(qtw.QWidget):
-    s_remove = qtc.pyqtSignal(int) # output index
+    s_remove = qtc.pyqtSignal(int)  # output index
     s_modified = qtc.pyqtSignal(int, IODataEnum, str)  # output index, data type, data
 
     def __init__(self, index, parent=None):
@@ -434,12 +491,19 @@ class PipelineOutputGUI(qtw.QWidget):
         # Data
         self.index = index
 
-    def remove(self):
+    def set_uid_label(self, uid: str) -> None:
+        self.ui.id_label.setText(uid)
+
+    def remove(self) -> None:
         self.s_remove.emit(self.index)
         self.deleteLater()
 
-    def changed_name(self):
+    def changed_name(self) -> None:
         self.s_modified.emit(self.index, IODataEnum.Name, self.ui.output_name_lineedit.text())
 
-    def set_name(self, new_name: str):
+    def set_name(self, new_name: str) -> None:
         self.ui.output_name_lineedit.setText(new_name)
+
+    def change_name(self, new_name: str) -> None:
+        self.ui.output_name_lineedit.setText(new_name)
+        self.changed_name()
