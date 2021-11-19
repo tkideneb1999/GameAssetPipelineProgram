@@ -41,6 +41,8 @@ class AssetListView(qtw.QWidget):
 
     def level_selection_changed(self, level) -> None:
         # level: str
+        if level == "":
+            return
         self.current_level = level
         self.ui.asset_list.clear()
         self.ui.asset_list.addItems(self.assets[level])

@@ -97,6 +97,8 @@ class AssetManager(qtw.QWidget):
         # TODO(Asset Manager): Remove Folder and files
 
     def display_selected_asset(self, level: str, index: int) -> None:
+        if index == -1:
+            return
         asset_name = self.assets[level][index]
         self.loaded_asset = Asset(asset_name, level, project_dir=self.project_dir)
 

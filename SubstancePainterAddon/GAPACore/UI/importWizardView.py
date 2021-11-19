@@ -80,6 +80,8 @@ class ImportWizardView(qtw.QDialog):
         for f in rel_filepaths:
             abs_filepaths.append(self.project_dir / f)
 
+        # TODO: Get Additional Pipeline Settings
+
         # import assets
         func = functools.partial(self.import_files_func, filepaths=abs_filepaths)
         func()

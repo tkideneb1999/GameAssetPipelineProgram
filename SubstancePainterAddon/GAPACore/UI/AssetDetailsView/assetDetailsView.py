@@ -21,7 +21,7 @@ class AssetDetailsView(qtw.QWidget):
         self.ui.level_label.setText(level)
         self.ui.pipeline_label.setText(pipeline_name)
         tags_string = ""
-        for t in range(10):
+        for t in range(len(tags)):
             tags_string = tags_string + tags[t]
             if t < len(tags) - 1:
                 tags_string = tags_string + ", "

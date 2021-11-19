@@ -4,6 +4,7 @@ import importlib
 from PySide2 import QtWidgets as qtw
 
 import substance_painter.logging as spLog
+import substance_painter.project as spProj
 
 from .GAPACore.UI import importWizardView
 
@@ -27,13 +28,13 @@ class GAPAImport:
 
     def launch_import_dialog(self) -> None:
         if self.project_info is None:
-            pass
             if not self.launch_project_dialog():
                 spLog.warning("[GAPA] Project File has to be selected before importing")
                 return
-        # import_dialog = importWizardView.ImportWizardView(self.project_info, "Substance Painter", spUI.get_main_window())
-        # import_dialog.register_import_files_func(self.import_files)
-        # import_dialog.register_save_workfile_func(self.save_workfile)
+        import_dialog = importWizardView.ImportWizardView(self.project_info, "Substance Painter", self.sp_main_window)
+        import_dialog.register_import_files_func(self.import_files)
+        import_dialog.register_save_workfile_func(self.save_workfile)
+        import_dialog.exec_()
 
     def launch_project_dialog(self) -> bool:
         dialog = qtw.QFileDialog(self.sp_main_window)
@@ -45,3 +46,4 @@ class GAPAImport:
         if result == 0:
             return False
         self.project_info = Path(dialog.selectedFiles()[0])
+        return True
