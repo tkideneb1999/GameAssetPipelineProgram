@@ -23,6 +23,7 @@ def start_plugin():
     # register Plugin
     spLog.info("[GAPA] registering Addon")
     settings = settingsModule.Settings()
+    settings.load()
     settings.enable_addon("Substance Painter", Path(pipelineSettingsModule.get_pipeline_settings_location()))
     spLog.info("[GAPA] starting Addon")
     global IMPORT_PLUGIN

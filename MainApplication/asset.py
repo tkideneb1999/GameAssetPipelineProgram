@@ -28,6 +28,7 @@ class Asset:
         self.workfile_paths = {}
 
     def set_initial_pipeline_progress(self) -> None:
+        self.pipeline_progress = {}
         for step in self.pipeline.pipeline_steps:
             outputs_info = {}
             for output in step.outputs:

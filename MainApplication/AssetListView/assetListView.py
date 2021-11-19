@@ -35,6 +35,8 @@ class AssetListView(qtw.QWidget):
         self.current_level = self.ui.levels_combobox.currentText()
 
     def level_selection_changed(self, level: str) -> None:
+        if level == "":
+            return
         self.current_level = level
         self.ui.asset_list.clear()
         self.ui.asset_list.addItems(self.assets[level])

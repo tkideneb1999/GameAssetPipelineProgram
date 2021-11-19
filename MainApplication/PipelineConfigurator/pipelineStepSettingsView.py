@@ -5,7 +5,7 @@ from PyQt5 import QtCore as qtc
 
 from MainApplication.settings import Settings
 from MainApplication.PipelineConfigurator.pipeline_step_settings_GUI import Ui_pipeline_step_settings_GUI
-from pipelineSettingsCreator import PipelineSettingsCreator
+from MainApplication.PipelineConfigurator.pipelineSettingsCreator import PipelineSettingsCreator
 
 
 class PipelineStepSettingsView(qtw.QWidget):
@@ -26,6 +26,7 @@ class PipelineStepSettingsView(qtw.QWidget):
         self.update_ui()
 
     def update_ui(self) -> bool:
+        self.clear_additional_GUI()
         settings = Settings()
         self.ui.configs_combobox.clear()
         print("[GAPA] setting up UI for step program settings")

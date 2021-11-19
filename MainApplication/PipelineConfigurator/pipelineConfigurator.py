@@ -362,7 +362,7 @@ class PipelineStepGUI(qtw.QWidget):
         for o in reversed(range(outputs_len)):
             self.outputs[o].remove()
 
-        config = self.ui.program_settings.settings.settings[config_name]
+        config = self.ui.program_settings.settings.configs[config_name]
         for i in config["inputs"]:
             # Add Input
             self.add_input()

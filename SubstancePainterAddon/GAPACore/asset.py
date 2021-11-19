@@ -19,7 +19,7 @@ class Asset:
         self.tags = tags
         self.asset_type = asset_type
         self.pipeline_dir = pipeline_dir
-        self.pipeline = None  # pipelineModule.Pipeline()
+        self.pipeline = pipelineModule.Pipeline()
         if pipeline_dir is None:
             if project_dir is None:
                 raise Exception("If pipeline dir is None, expected project Dir to load Asset")
@@ -56,8 +56,8 @@ class Asset:
             #       }
             # }
 
-    def publish_step_file(self, step_uid, output_uid, export_suffix) -> Path:
-        # self, step_uid: str, output_uid: str, export_suffix: str
+    def publish_step_file(self, step_uid, output_uid, export_suffix):
+        # self, step_uid: str, output_uid: str, export_suffix: str -> Path
         """
         Updates the pipeline progress and returns the
         export directory for the file to be published.
@@ -139,8 +139,8 @@ class Asset:
         save_dir = Path() / self.level / self.name / step_folder_name / "export" / f"{file_name}.{output_version}.{export_suffix}"
         return save_dir
 
-    def import_assets(self, step_index) -> list[Path]:
-        # step_index: int
+    def import_assets(self, step_index):
+        # step_index: int -> list[Path]
         """
         :param step_index: index of the pipeline step
         :returns: list of filepaths for assets to import

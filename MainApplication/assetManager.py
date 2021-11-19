@@ -77,7 +77,7 @@ class AssetManager(qtw.QWidget):
             asset_type="Model",
             comment=asset_comment)
 
-        self.assets[asset_level] = asset_name
+        self.assets[asset_level].append(asset_name)
         self.ui.asset_list.update_asset_list(self.assets)
 
         # Serialize Asset
@@ -110,6 +110,7 @@ class AssetManager(qtw.QWidget):
     def add_levels(self, levels):
         for lvl in levels:
             self.levels.append(lvl)
+            self.assets[lvl] = []
         print("Viable Levels: ", self.levels)
 
     def update_pipelines(self, pipelines):
