@@ -11,6 +11,8 @@ from MainApplication.PipelineConfigurator.pipelineSettingsCreator import Pipelin
 class PipelineStepSettingsView(qtw.QWidget):
 
     s_selected_config = qtc.pyqtSignal(str)
+    s_settings_added = qtc.pyqtSignal(dict)
+    s_settings_changed = qtc.pyqtSignal(str, str)
 
     def __init__(self, parent=None):
         super(PipelineStepSettingsView, self).__init__(parent)
@@ -63,12 +65,14 @@ class PipelineStepSettingsView(qtw.QWidget):
         for name in self.settings.settings:
             if self.settings.settings[name]["type"] == "combobox":
                 self.add_combobox(name, self.settings.settings[name]["data"])
+
             if self.settings.settings[name]["type"] == "checkbox":
                 self.add_checkbox(name, self.settings.settings[name]["data"])
         return True
 
     def add_combobox(self, name: str, data: list[str]) -> None:
         combobox = qtw.QComboBox(self)
+        combobox.setObjectName(name)
         combobox.addItems(data)
         c_label = qtw.QLabel(self)
         c_label.setText(name)
@@ -80,6 +84,7 @@ class PipelineStepSettingsView(qtw.QWidget):
 
     def add_checkbox(self, name: str, data: bool) -> None:
         checkbox = qtw.QCheckBox(self)
+        checkbox.setObjectName(name)
         checkbox.setText(name)
         checkbox.setChecked(data)
         self.additional_GUI[name] = [checkbox]
@@ -90,6 +95,22 @@ class PipelineStepSettingsView(qtw.QWidget):
             for widget in self.additional_GUI[name]:
                 widget.deleteLater()
         self.additional_GUI.clear()
+
+    def get_additional_settings(self) -> dict:
+        data = {}
+        for name in self.additional_GUI:
+            if type(self.additional_GUI[name][0]) is qtw.QComboBox:
+                data[name] = self.additional_GUI[name][0].currentText()
+            if type(self.additional_GUI[name][0]) is qtw.QCheckBox:
+                data[name] = self.additional_GUI[name][0].isChecked()
+        return data
+
+    def set_additional_settings(self, data: dict) -> None:
+        for name in self.additional_GUI:
+            if self.additional_GUI[name] is qtw.QComboBox:
+                data[name] = self.additional_GUI[name].setCurrentText(data[name])
+            if self.additional_GUI[name] is qtw.QCheckBox:
+                data[name] = self.additional_GUI[name].setChecked(data[name])
 
     def program_changed(self, selected_program: str) -> bool:
         self.program = selected_program

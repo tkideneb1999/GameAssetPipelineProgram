@@ -30,11 +30,12 @@ def start_plugin():
     IMPORT_PLUGIN = GAPAImport.GAPAImport(spUI.get_main_window())
     spUI.add_action(
         spUI.ApplicationMenu.File,
-        IMPORT_PLUGIN.testDialogAction
+        IMPORT_PLUGIN.import_dialog_action
     )
     # Export Plugin
 
 
 def close_plugin():
     global IMPORT_PLUGIN
+    spUI.delete_ui_element(IMPORT_PLUGIN.import_dialog_action)
     del IMPORT_PLUGIN

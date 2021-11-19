@@ -8,14 +8,14 @@ class Pipeline:
     def __init__(self):
         # Data
         self.name = "Pipeline_1"
-        self.pipeline_steps = []
-        self.io_connections = {}
+        self.pipeline_steps: list[PipelineStep] = []
+        self.io_connections: dict[str, str] = {}
         self.step_id_counter = 0
 
     # -------------
     # Pipeline Step
     # -------------
-    def add_step(self) -> tuple:
+    def add_step(self) -> tuple[str, str]:
         self.pipeline_steps.append(PipelineStep(f"s{self.step_id_counter}"))
         self.step_id_counter += 1
         if len(self.pipeline_steps) > 1:
@@ -53,7 +53,7 @@ class Pipeline:
         self.delete_io_connection_if_exists(uid)
         return uid
 
-    def add_output(self, step: int) -> str:
+    def add_output(self, step: int) -> tuple[str, str]:
         return self.pipeline_steps[step].add_output()
 
     def remove_output(self, step: int, index: int) -> str:
@@ -192,14 +192,18 @@ class PipelineStep:
         self.name = f"step_{uid}"
         self.next_step = ""
         self.program = ""
-        self.inputs = []
-        self.outputs = []
-        self.uid = uid
-        self.input_id_counter = 0
-        self.output_id_counter = 0
+        self.inputs: list[PipelineInput] = []
+        self.outputs: list[PipelineOutput] = []
+        self.uid: str = uid
+        self.input_id_counter: int = 0
+        self.output_id_counter: int = 0
+        self.additional_settings: dict = {}
 
     def set_program(self, program_name: str) -> None:
         self.program = program_name
+
+    def set_additional_settings(self, settings: dict) -> None:
+        self.additional_settings = settings
 
     def set_next_step(self, next_step_uid: str) -> None:
         self.next_step = next_step_uid
@@ -214,7 +218,7 @@ class PipelineStep:
         del self.inputs[index]
         return uid
 
-    def add_output(self) -> tuple:
+    def add_output(self) -> tuple[str, str]:
         self.outputs.append(PipelineOutput(f"{self.uid}.o{self.output_id_counter}"))
         self.output_id_counter += 1
         return self.outputs[len(self.outputs) - 1].uid, self.outputs[len(self.outputs) - 1].name
@@ -257,6 +261,7 @@ class PipelineStep:
                 "uid": self.uid,
                 "next_step": self.next_step,
                 "program": self.program,
+                "additional_settings": self.additional_settings,
                 "input_id_counter": self.input_id_counter,
                 "output_id_counter": self.output_id_counter,
                 "inputs": input_data,
@@ -267,6 +272,7 @@ class PipelineStep:
         self.name = data["name"]
         self.uid = data["uid"]
         self.next_step = data["next_step"]
+        self.additional_settings = data["additional_settings"]
         self.program = data["program"]
         self.input_id_counter = data["input_id_counter"]
         self.output_id_counter = data["output_id_counter"]
@@ -286,19 +292,21 @@ class PipelineStep:
 
 class PipelineInput:
     def __init__(self, uid: str):
-        self.uid = uid
+        self.uid: str = uid
+        self.name: str = f"input_{uid}"
 
     def save(self) -> dict:
-        return {"uid": self.uid}
+        return {"uid": self.uid, "name": self.name}
 
     def load(self, data: dict) -> None:
         self.uid = data["uid"]
+        self.name = data["name"]
 
 
 class PipelineOutput:
     def __init__(self, uid: str):
-        self.name = f"output_{uid}"
-        self.uid = uid
+        self.name: str = f"output_{uid}"
+        self.uid: str = uid
 
     def get_file_name(self):
         return f"{self.uid}_{self.name}"

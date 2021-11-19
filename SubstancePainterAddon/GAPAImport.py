@@ -13,8 +13,8 @@ importlib.reload(importWizardView)
 
 class GAPAImport:
     def __init__(self, sp_main_window):
-        self.testDialogAction = qtw.QAction("GAPA Import")
-        self.testDialogAction.triggered.connect(self.launch_import_dialog)
+        self.import_dialog_action = qtw.QAction("GAPA Import")
+        self.import_dialog_action.triggered.connect(self.launch_import_dialog)
         self.project_info: Path = None
         self.sp_main_window = sp_main_window
 

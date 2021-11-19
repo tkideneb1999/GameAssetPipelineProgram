@@ -27,6 +27,8 @@ class PipelineConfigurator(qtw.QWidget):
         # Data
         self.current_pipeline: Pipeline = Pipeline()
         self.project_dir: Path = Path()
+        self.settings = Settings()
+        self.settings.load()
 
         # <editor-fold desc="GUI">
         layout = qtw.QVBoxLayout()
@@ -114,10 +116,8 @@ class PipelineConfigurator(qtw.QWidget):
 
     def add_step(self):
         name = self.current_pipeline.add_step()[1]
-        settings = Settings()
-        settings.load()
         self.current_pipeline.set_program(len(self.current_pipeline.pipeline_steps) - 1,
-                                          settings.program_registration.get_program_list()[0])
+                                          self.settings.program_registration.get_program_list()[0])
         self.step_widgets.append(PipelineStepGUI(len(self.step_widgets), self.scrollable_widget))
         self.scrollbar_layout.insertWidget(self.scrollbar_layout.count() - 1, self.step_widgets[-1])
         self.step_widgets[-1].set_name(name)
@@ -208,6 +208,9 @@ class PipelineConfigurator(qtw.QWidget):
     # -----------------------------------
 
     def save(self):
+        for i in range(len(self.current_pipeline.pipeline_steps)):
+            settings = self.step_widgets[i].get_additional_settings()
+            self.current_pipeline.set_additional_settings(i, settings)
         path = self.project_dir / "pipelines"
         path = self.current_pipeline.save(path)
         self.pipeline_saved_signal.emit(path, self.current_pipeline.name)
@@ -221,6 +224,9 @@ class PipelineConfigurator(qtw.QWidget):
             self.step_widgets.append(PipelineStepGUI(k, self.scrollable_widget))
             self.scrollbar_layout.insertWidget(self.scrollbar_layout.count() - 1, self.step_widgets[-1])
             self.step_widgets[-1].set_name(self.current_pipeline.pipeline_steps[k].name)
+            self.step_widgets[-1].set_program_selection_by_name(self.current_pipeline.pipeline_steps[k].program)
+            # self.step_widgets[-1].set_additional_settings(self.current_pipeline.get_additional_settings(k))
+
             self.step_widgets[-1].s_step_deleted.connect(self.remove_step)
             self.step_widgets[-1].s_step_renamed.connect(self.rename_step)
             self.step_widgets[-1].s_step_program_selected.connect(self.set_program)
@@ -374,6 +380,12 @@ class PipelineStepGUI(qtw.QWidget):
             self.add_output()
             # Rename Output
             self.outputs[-1].change_name(o[0])
+
+    def get_additional_settings(self) -> dict:
+        return self.ui.program_settings.get_additional_settings()
+
+    def set_additional_settings(self, data: dict) -> None:
+        self.ui.program_settings.set_additional_settings(data)
 
     # --------------
     # Inputs/Outputs
