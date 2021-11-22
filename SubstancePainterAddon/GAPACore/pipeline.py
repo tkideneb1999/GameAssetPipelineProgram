@@ -8,8 +8,8 @@ class Pipeline:
     def __init__(self):
         # Data
         self.name = "Pipeline_1"
-        self.pipeline_steps = []
-        self.io_connections = {}
+        self.pipeline_steps: list[PipelineStep] = []
+        self.io_connections: dict[str, str] = {}
         self.step_id_counter = 0
 
     # -------------
@@ -41,6 +41,15 @@ class Pipeline:
         self.pipeline_steps[step_index].set_program(program_name)
         print(
             f"{self.pipeline_steps[step_index].program} is set as a program for step {self.pipeline_steps[step_index].uid}")
+
+    def set_additional_settings(self, step_index, additional_settings) -> None:
+        self.pipeline_steps[step_index].set_additional_settings(additional_settings)
+
+    def get_additional_settings(self, step_index) -> dict:
+        return self.pipeline_steps[step_index].additional_settings
+
+    def set_config(self, step_index: int, config: str) -> None:
+        self.pipeline_steps[step_index].set_config(config)
 
     # --------------
     # Inputs/Outputs
@@ -86,7 +95,7 @@ class Pipeline:
     # -------------
     # Serialization
     # -------------
-    def save(self, path):
+    def save(self, path) -> Path:
         steps_data = []
         for s in self.pipeline_steps:
             steps_data.append(s.save())
@@ -144,7 +153,7 @@ class Pipeline:
             else:
                 return self.pipeline_steps[step_index].outputs[io_index].uid
 
-    def get_next_step_uid(self, current_step_uid: str) -> str:
+    def get_next_step_uid(self, current_step_uid) -> str:
         for s in self.pipeline_steps:
             if s.uid == current_step_uid:
                 return s.next_step
@@ -192,12 +201,13 @@ class PipelineStep:
         self.name = f"step_{uid}"
         self.next_step = ""
         self.program = ""
-        self.inputs = []
-        self.outputs = []
-        self.uid = uid
-        self.input_id_counter = 0
-        self.output_id_counter = 0
-        self.additional_settings = {}
+        self.config = None
+        self.inputs: list[PipelineInput] = []
+        self.outputs: list[PipelineOutput] = []
+        self.uid: str = uid
+        self.input_id_counter: int = 0
+        self.output_id_counter: int = 0
+        self.additional_settings: dict = {}
 
     def set_program(self, program_name) -> None:
         self.program = program_name
@@ -207,6 +217,9 @@ class PipelineStep:
 
     def set_next_step(self, next_step_uid) -> None:
         self.next_step = next_step_uid
+
+    def set_config(self, config) -> None:
+        self.config = config
 
     def add_input(self) -> str:
         self.inputs.append(PipelineInput(f"{self.uid}.i{self.input_id_counter}"))
@@ -231,7 +244,7 @@ class PipelineStep:
     def get_folder_name(self) -> str:
         return f"{self.uid}_{self.name}"
 
-    def get_io_index_by_uid(self, io_uid: str, is_input=False) -> int:
+    def get_io_index_by_uid(self, io_uid, is_input=False) -> int:
         """
         :param io_uid: Unique identifier of Input/Output
         :param is_input: Whether to return input or output index (default: output)
@@ -262,17 +275,19 @@ class PipelineStep:
                 "next_step": self.next_step,
                 "program": self.program,
                 "additional_settings": self.additional_settings,
+                "config": self.config,
                 "input_id_counter": self.input_id_counter,
                 "output_id_counter": self.output_id_counter,
                 "inputs": input_data,
                 "outputs": output_data}
         return data
 
-    def load(self, data) -> None:
+    def load(self, data: dict) -> None:
         self.name = data["name"]
         self.uid = data["uid"]
         self.next_step = data["next_step"]
         self.additional_settings = data["additional_settings"]
+        self.config = data["config"]
         self.program = data["program"]
         self.input_id_counter = data["input_id_counter"]
         self.output_id_counter = data["output_id_counter"]
@@ -292,8 +307,8 @@ class PipelineStep:
 
 class PipelineInput:
     def __init__(self, uid):
-        self.uid = uid
-        self.name = f"input_{uid}"
+        self.uid: str = uid
+        self.name: str = f"input_{uid}"
 
     def save(self) -> dict:
         return {"uid": self.uid, "name": self.name}
@@ -305,8 +320,8 @@ class PipelineInput:
 
 class PipelineOutput:
     def __init__(self, uid):
-        self.name = f"output_{uid}"
-        self.uid = uid
+        self.name: str = f"output_{uid}"
+        self.uid: str = uid
 
     def get_file_name(self):
         return f"{self.uid}_{self.name}"

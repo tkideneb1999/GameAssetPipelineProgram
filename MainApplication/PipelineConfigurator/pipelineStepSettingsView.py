@@ -107,10 +107,10 @@ class PipelineStepSettingsView(qtw.QWidget):
 
     def set_additional_settings(self, data: dict) -> None:
         for name in self.additional_GUI:
-            if self.additional_GUI[name] is qtw.QComboBox:
-                data[name] = self.additional_GUI[name].setCurrentText(data[name])
-            if self.additional_GUI[name] is qtw.QCheckBox:
-                data[name] = self.additional_GUI[name].setChecked(data[name])
+            if type(self.additional_GUI[name][0]) is qtw.QComboBox:
+                data[name] = self.additional_GUI[name][0].setCurrentText(data[name])
+            if type(self.additional_GUI[name][0]) is qtw.QCheckBox:
+                data[name] = self.additional_GUI[name][0].setChecked(data[name])
 
     def program_changed(self, selected_program: str) -> bool:
         self.program = selected_program

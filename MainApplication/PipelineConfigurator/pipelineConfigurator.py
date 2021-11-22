@@ -124,6 +124,7 @@ class PipelineConfigurator(qtw.QWidget):
         self.step_widgets[-1].s_step_deleted.connect(self.remove_step)
         self.step_widgets[-1].s_step_renamed.connect(self.rename_step)
         self.step_widgets[-1].s_step_program_selected.connect(self.set_program)
+        self.step_widgets[-1].s_step_config_selected.connect(self.set_config)
 
         self.step_widgets[-1].s_input_added.connect(self.input_added)
         self.step_widgets[-1].s_input_removed.connect(self.input_removed)
@@ -150,6 +151,9 @@ class PipelineConfigurator(qtw.QWidget):
 
     def set_program(self, step_index: int, program_name: str):
         self.current_pipeline.set_program(step_index, program_name)
+
+    def set_config(self, step_index: int, config_name: str):
+        self.current_pipeline.set_config(step_index, config_name)
 
     # </editor-fold>
 
@@ -225,7 +229,7 @@ class PipelineConfigurator(qtw.QWidget):
             self.scrollbar_layout.insertWidget(self.scrollbar_layout.count() - 1, self.step_widgets[-1])
             self.step_widgets[-1].set_name(self.current_pipeline.pipeline_steps[k].name)
             self.step_widgets[-1].set_program_selection_by_name(self.current_pipeline.pipeline_steps[k].program)
-            # self.step_widgets[-1].set_additional_settings(self.current_pipeline.get_additional_settings(k))
+            self.step_widgets[-1].set_additional_settings(self.current_pipeline.get_additional_settings(k))
 
             self.step_widgets[-1].s_step_deleted.connect(self.remove_step)
             self.step_widgets[-1].s_step_renamed.connect(self.rename_step)
@@ -239,14 +243,23 @@ class PipelineConfigurator(qtw.QWidget):
             self.step_widgets[-1].s_output_removed.connect(self.output_removed)
             self.step_widgets[-1].s_output_modified.connect(self.output_modified)
 
-            # Create Inputs for Step
-            for i in range(len(self.current_pipeline.pipeline_steps[k].inputs)):
-                self.step_widgets[-1].load_input("")  # TODO(Pipeline): Implement asset Type
+            if self.current_pipeline.pipeline_steps[k].config is None:
+                # Create Inputs for Step
+                for i in range(len(self.current_pipeline.pipeline_steps[k].inputs)):
+                    self.step_widgets[-1].load_input("")  # TODO(Pipeline): Implement asset Type
 
-            # Create Outputs for Step
-            for o in range(len(self.current_pipeline.pipeline_steps[k].outputs)):
-                self.step_widgets[-1].load_output("")  # TODO(Pipeline): Implement asset Type
-                self.step_widgets[-1].outputs[-1].set_name(self.current_pipeline.pipeline_steps[k].outputs[o].name)
+                # Create Outputs for Step
+                for o in range(len(self.current_pipeline.pipeline_steps[k].outputs)):
+                    self.step_widgets[-1].load_output("")  # TODO(Pipeline): Implement asset Type
+                    self.step_widgets[-1].outputs[-1].set_name(self.current_pipeline.pipeline_steps[k].outputs[o].name)
+            else:
+                for i in range(len(self.step_widgets[-1].inputs)):
+                    self.step_widgets[-1].inputs[i].set_uid_label(self.current_pipeline.pipeline_steps[k].inputs[i].uid)
+
+                for o in range(len(self.step_widgets[-1].outputs)):
+                    self.step_widgets[-1].outputs[o].set_uid_label(self.current_pipeline.pipeline_steps[k].outputs[o].uid)
+                    self.step_widgets[-1].outputs[o].set_name(self.current_pipeline.pipeline_steps[k].outputs[o].name)
+
 
         # Update Input Selections
         self.update_possible_outputs(0, override_io=False)
@@ -279,6 +292,7 @@ class PipelineStepGUI(qtw.QWidget):
     # -Pipeline Step Signals
     s_step_renamed = qtc.pyqtSignal(int, str)
     s_step_program_selected = qtc.pyqtSignal(int, str)
+    s_step_config_selected = qtc.pyqtSignal(int, str)
     s_step_deleted = qtc.pyqtSignal(int)
 
     # -Pipeline Input Signals
@@ -380,6 +394,7 @@ class PipelineStepGUI(qtw.QWidget):
             self.add_output()
             # Rename Output
             self.outputs[-1].change_name(o[0])
+        self.s_step_config_selected.emit(self.index, config_name)
 
     def get_additional_settings(self) -> dict:
         return self.ui.program_settings.get_additional_settings()

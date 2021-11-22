@@ -48,6 +48,9 @@ class Pipeline:
     def get_additional_settings(self, step_index) -> dict:
         return self.pipeline_steps[step_index].additional_settings
 
+    def set_config(self, step_index: int, config: str) -> None:
+        self.pipeline_steps[step_index].set_config(config)
+
     # --------------
     # Inputs/Outputs
     # --------------
@@ -198,6 +201,7 @@ class PipelineStep:
         self.name = f"step_{uid}"
         self.next_step = ""
         self.program = ""
+        self.config = None
         self.inputs: list[PipelineInput] = []
         self.outputs: list[PipelineOutput] = []
         self.uid: str = uid
@@ -213,6 +217,9 @@ class PipelineStep:
 
     def set_next_step(self, next_step_uid: str) -> None:
         self.next_step = next_step_uid
+
+    def set_config(self, config) -> None:
+        self.config = config
 
     def add_input(self) -> str:
         self.inputs.append(PipelineInput(f"{self.uid}.i{self.input_id_counter}"))
@@ -268,6 +275,7 @@ class PipelineStep:
                 "next_step": self.next_step,
                 "program": self.program,
                 "additional_settings": self.additional_settings,
+                "config": self.config,
                 "input_id_counter": self.input_id_counter,
                 "output_id_counter": self.output_id_counter,
                 "inputs": input_data,
@@ -279,6 +287,7 @@ class PipelineStep:
         self.uid = data["uid"]
         self.next_step = data["next_step"]
         self.additional_settings = data["additional_settings"]
+        self.config = data["config"]
         self.program = data["program"]
         self.input_id_counter = data["input_id_counter"]
         self.output_id_counter = data["output_id_counter"]

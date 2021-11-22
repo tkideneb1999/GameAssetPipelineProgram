@@ -140,10 +140,10 @@ class Asset:
         return save_dir
 
     def import_assets(self, step_index):
-        # step_index: int -> list[Path]
+        # step_index: int -> tuple[list[str, Path], str]
         """
         :param step_index: index of the pipeline step
-        :returns: list of filepaths for assets to import
+        :returns: list of filepaths, corresponding input names and config for assets to import
         """
         rel_asset_dir = Path() / self.level / self.name
         file_format = "fbx"  # TODO(Blender Addon): implement file type
@@ -160,8 +160,8 @@ class Asset:
             output_index = self.pipeline.pipeline_steps[output_step_index].get_io_index_by_uid(output_uid)
             file_name = self.pipeline.pipeline_steps[output_step_index].outputs[output_index].get_file_name()
             version = self.pipeline_progress[output_step_uid]["output_info"][output_uid]["version"]
-            filepaths.append(rel_asset_dir / folder_name / "export" / f"{file_name}.{version}.{file_format}")
-        return filepaths
+            filepaths.append((i.name, rel_asset_dir / folder_name / "export" / f"{file_name}.{version}.{file_format}"))
+        return filepaths, self.pipeline.pipeline_steps[step_index].config, self.pipeline.pipeline_steps[step_index].additional_settings
 
     def save_work_file(self, step_uid, workfile_path) -> None:
         # step_uid: str, workfile_path: str

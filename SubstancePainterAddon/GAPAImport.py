@@ -18,13 +18,67 @@ class GAPAImport:
         self.project_info: Path = None
         self.sp_main_window = sp_main_window
 
-    def import_files(self, filepaths) -> None:  # filepaths: list[Path]
+    def import_files(self, filepaths_data, config, additional_settings) -> None:
+        # filepaths: list[tuple[str,Path]], config: str, additional_settings: dict
         spLog.info("[GAPA] Importing files and creating project")
-        pass
 
-    def save_workfile(self, filepath) -> None:  # filepath: Path
+        # Settings
+        # Normal Map Format
+        normal_map_format = None
+        if additional_settings["Normal Map"] == "OpenGL":
+            normal_map_format = spProj.NormalMapFormat.OpenGL
+        else:
+            normal_map_format = spProj.NormalMapFormat.DirectX
+
+        # Use UDIM
+        uv_workflow = None
+        if additional_settings["UDIM Workflow"] == "No UDIM":
+            uv_workflow = spProj.ProjectWorkflow.Default
+        elif additional_settings["UDIM Workflow"] == "Texture Set per UV Tile":
+            uv_workflow = spProj.ProjectWorkflow.TextureSetPerUVTile
+        else:
+            uv_workflow = spProj.ProjectWorkflow.UVTile
+
+        # Import Cameras
+        import_cameras = additional_settings["Import Cameras"]
+
+        # Tangent per Fragment
+        tangent_per_frag = additional_settings["Fragment Tangent"]
+
+        # Create Settings
+        settings = spProj.Settings(normal_map_format=normal_map_format,
+                                   tangent_space_mode=tangent_per_frag,
+                                   project_workflow=uv_workflow,
+                                   import_cameras=import_cameras)
+
+        mesh_path = None
+        for f in filepaths_data:
+            if config == "UE4":
+                if f[0] == "lowpoly":
+                    mesh_path = f[1]
+        # check if project is open
+        if spProj.is_open():
+            # if project is open
+            spLog.warning("Project is already opened")
+        #   is it from the same asset
+        # if not
+        #   create new project with assets
+        else:
+            spProj.create(mesh_file_path=mesh_path,
+                          settings=settings)
+
+    def save_workfile(self, filepath, overwrite=True) -> None:  # filepath: Path
         spLog.info("[GAPA] Saving workfile")
-        pass
+        if not spProj.is_open():
+            spLog.warning("[GAPA] No Project opened!")
+            return
+
+        if not spProj.needs_saving():
+            spLog.warning("[GAPA] Nothing to save!")
+            return
+
+        spProj.save_as(str(filepath), spProj.ProjectSaveMode.Full)
+        spLog.info(f"[GAPA] Saved successfully at: {spProj.file_path()}")
 
     def launch_import_dialog(self) -> None:
         if self.project_info is None:

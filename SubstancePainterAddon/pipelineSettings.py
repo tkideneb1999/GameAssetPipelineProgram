@@ -23,6 +23,10 @@ def create_pipeline_settings() -> pipelineSettingsCreator.PipelineSettingsCreato
     # Add additional settings
     #   Normal Map type (OpenGL/DirectX)
     pipeline_settings.add_combobox_selection("Normal Map", ["Direct X", "OpenGL"])
+    #   UDIM Workflow
+    pipeline_settings.add_combobox_selection("UDIM Workflow", ["No UDIM", "Texture Set per UV Tile", "UV Tile"])
     #   Import Cameras
     pipeline_settings.add_checkbox("Import Cameras", False)
+    #   Tangent per Fragment
+    pipeline_settings.add_checkbox("Fragment Tangent", True)
     return pipeline_settings

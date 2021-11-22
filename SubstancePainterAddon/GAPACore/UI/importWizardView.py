@@ -33,7 +33,7 @@ class ImportWizardView(qtw.QDialog):
         self.program = program
 
         # Functions to register
-        self.import_files_func = None  # Callable[list[Path]]
+        self.import_files_func = None  # Callable[list[tuple[str, Path]]]
         self.save_workfile_func = None  # Callable[Path]
 
         self.load_project_info(project_info)
@@ -57,7 +57,7 @@ class ImportWizardView(qtw.QDialog):
         """
         self.save_workfile_func = func
 
-    def register_import_files_func(self, func) -> None:  # func: Callable[list[Path]]
+    def register_import_files_func(self, func) -> None:  # func: Callable[list[tuple[str, Path]]]
         """
         Registers the function that will import files from steps that have outputs connected to the inputs of the selected step.
         :param func: Function object that takes a list of paths. The paths contain the location of the exported files of the outputs
@@ -75,22 +75,26 @@ class ImportWizardView(qtw.QDialog):
 
         # Get selected step
         step_index = self.ui.pipeline_viewer.get_selected_index()
-        rel_filepaths = self.loaded_asset.import_assets(step_index)  # TODO(Blender Addon): Handle different file types
+        import_data = self.loaded_asset.import_assets(step_index)  # TODO(Blender Addon): Handle different file types
+        rel_filepaths = import_data[0]
         abs_filepaths = []
         for f in rel_filepaths:
-            abs_filepaths.append(self.project_dir / f)
+            abs_filepaths.append((f[0], self.project_dir / f[1]))
 
         # TODO: Get Additional Pipeline Settings
 
         # import assets
-        func = functools.partial(self.import_files_func, filepaths=abs_filepaths)
+        func = functools.partial(self.import_files_func,
+                                 filepaths=abs_filepaths,
+                                 config=import_data[1],
+                                 additional_settings=import_data[2])
         func()
 
         # save workfile
         multi_asset_workfile = False  # TODO(Blender Addon): Multi Asset Workfiles
         if multi_asset_workfile is False:
             selected_step = self.loaded_asset.pipeline.pipeline_steps[step_index]
-            rel_wf_path = Path() / self.loaded_asset.level / self.loaded_asset.name / selected_step.get_folder_name() / "workfiles" / f"{self.loaded_asset.name}.blend"
+            rel_wf_path = Path() / self.loaded_asset.level / self.loaded_asset.name / selected_step.get_folder_name() / "workfiles" / f"{self.loaded_asset.name}.spp"  # TODO: Move file ending generation to program specific code
             abs_wf_path = self.project_dir / rel_wf_path
             self.loaded_asset.save_work_file(selected_step.uid, str(rel_wf_path))
             self.save_workfile(abs_wf_path)
