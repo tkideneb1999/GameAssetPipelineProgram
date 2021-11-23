@@ -85,7 +85,7 @@ class ImportWizardView(qtw.QDialog):
 
         # import assets
         func = functools.partial(self.import_files_func,
-                                 filepaths=abs_filepaths,
+                                 filepaths_data=abs_filepaths,
                                  config=import_data[1],
                                  additional_settings=import_data[2])
         func()
@@ -94,8 +94,16 @@ class ImportWizardView(qtw.QDialog):
         multi_asset_workfile = False  # TODO(Blender Addon): Multi Asset Workfiles
         if multi_asset_workfile is False:
             selected_step = self.loaded_asset.pipeline.pipeline_steps[step_index]
-            rel_wf_path = Path() / self.loaded_asset.level / self.loaded_asset.name / selected_step.get_folder_name() / "workfiles" / f"{self.loaded_asset.name}.spp"  # TODO: Move file ending generation to program specific code
+            rel_wf_path = Path() / self.loaded_asset.level / self.loaded_asset.name / selected_step.get_folder_name() / "workfiles" / f"{self.loaded_asset.name}.0.spp"  # TODO: Move file ending generation to program specific code
             abs_wf_path = self.project_dir / rel_wf_path
+            if abs_wf_path.exists():
+                print("[GAPA] A Workfile already exists for this Asset at this step, saving as a new one")
+                file_dir = abs_wf_path.parent
+                version = 0
+                while abs_wf_path.exists():
+                    version += 1
+                    abs_wf_path = file_dir / f"{self.loaded_asset.name}.{version}.spp"
+                print(f"[GAPA] Saving workfile as: {abs_wf_path.name}")
             self.loaded_asset.save_work_file(selected_step.uid, str(rel_wf_path))
             self.save_workfile(abs_wf_path)
 

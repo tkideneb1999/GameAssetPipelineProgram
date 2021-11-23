@@ -76,13 +76,17 @@ class ImportWizardView(qtw.QDialog):
 
         # Get selected step
         step_index = self.ui.pipeline_viewer.get_selected_index()
-        rel_filepaths = self.loaded_asset.import_assets(step_index)  # TODO(Blender Addon): Handle different file types
+        import_data = self.loaded_asset.import_assets(step_index)  # TODO(Blender Addon): Handle different file types
+        rel_filepaths = import_data[0]
         abs_filepaths = []
         for f in rel_filepaths:
-            abs_filepaths.append(self.project_dir / f)
+            abs_filepaths.append((f[0], self.project_dir / f[1]))
 
         # import assets
-        func = functools.partial(self.import_files_func, filepaths=abs_filepaths)
+        func = functools.partial(self.import_files_func,
+                                 filepaths=abs_filepaths,
+                                 config=import_data[1],
+                                 additional_settings=import_data[2])
         self.bpy_queue.put(func)
 
         # save workfile

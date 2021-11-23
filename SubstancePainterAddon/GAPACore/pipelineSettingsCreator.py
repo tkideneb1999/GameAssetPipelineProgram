@@ -1,3 +1,15 @@
+from enum import Enum
+
+
+class IOType(Enum):
+    Mesh = 0
+    Texture = 1
+    Animation = 2
+
+
+IOType_string_list = ["Mesh", "Texture", "Animation"]
+
+
 class PipelineSettingsCreator:
     def __init__(self):
         self.configs = {}  # dict[str, dict[str, list[tuple[str, str]]]]
@@ -32,13 +44,19 @@ class PipelineSettingsCreator:
     #     self.settings["inputConfigs"][name] = inputs
 
     def add_configuration(self, name, inputs, outputs) -> None:
-        # name: str, inputs: list[tuple[str, str]], outputs: list[tuple[str, str]]
+        # name: str, inputs: list[tuple[str, IOType]], outputs: list[tuple[str, IOType]]
         """
         Adds a configuration to the settings
         :param name: name of the configuration
         :param inputs: list of tuples containing name[0] of the input and type[1]
         :param outputs: list of tuples containing name[0] of the output and type[1]
         """
+        for i in range(len(inputs)):
+            inputs[i] = (inputs[i][0], inputs[i][1].name)
+            print(f"[GAPA] Added Input {inputs[i][0]} with type {inputs[i][1]} to config")
+        for o in range(len(outputs)):
+            outputs[o] = (outputs[o][0], outputs[o][1].name)
+            print(f"[GAPA] Added Input {outputs[o][0]} with type {outputs[o][1]} to config")
         io_dict = {"inputs": inputs, "outputs": outputs}
         self.configs[name] = io_dict
 

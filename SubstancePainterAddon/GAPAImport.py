@@ -43,29 +43,38 @@ class GAPAImport:
         import_cameras = additional_settings["Import Cameras"]
 
         # Tangent per Fragment
-        tangent_per_frag = additional_settings["Fragment Tangent"]
+        tangent_per_frag = spProj.TangentSpace.PerVertex
+        if additional_settings["Fragment Tangent"]:
+            tangent_per_frag = spProj.TangentSpace.PerFragment
 
         # Create Settings
         settings = spProj.Settings(normal_map_format=normal_map_format,
                                    tangent_space_mode=tangent_per_frag,
                                    project_workflow=uv_workflow,
                                    import_cameras=import_cameras)
-
+        spLog.info(f"[GAPA] creating project with config: {config}")
         mesh_path = None
+        mesh_maps = []
         for f in filepaths_data:
             if config == "UE4":
                 if f[0] == "lowpoly":
-                    mesh_path = f[1]
+                    mesh_path = str(f[1])
+                else:
+                    mesh_maps.append(str(f[1]))
+            if config == "NoMaps":
+                if f[0] == "lowpoly":
+                    mesh_path = str(f[1])
         # check if project is open
         if spProj.is_open():
             # if project is open
-            spLog.warning("Project is already opened")
-        #   is it from the same asset
-        # if not
-        #   create new project with assets
-        else:
-            spProj.create(mesh_file_path=mesh_path,
-                          settings=settings)
+            spLog.warnig("[GAPA] A Project is already opened")
+            spLog.info("[GAPA] Saving opened project and closing it")
+            if spProj.needs_saving():
+                spProj.save(spProj.ProjectSaveMode.Full)
+            spProj.close()
+        spProj.create(mesh_file_path=mesh_path,
+                      mesh_map_file_paths=mesh_maps,
+                      settings=settings)
 
     def save_workfile(self, filepath, overwrite=True) -> None:  # filepath: Path
         spLog.info("[GAPA] Saving workfile")
@@ -76,11 +85,17 @@ class GAPAImport:
         if not spProj.needs_saving():
             spLog.warning("[GAPA] Nothing to save!")
             return
-
+        metadata = spProj.Metadata("GAPA")
+        metadata.set("project_info", str(self.project_info))
         spProj.save_as(str(filepath), spProj.ProjectSaveMode.Full)
         spLog.info(f"[GAPA] Saved successfully at: {spProj.file_path()}")
 
     def launch_import_dialog(self) -> None:
+        if spProj.is_open() and (self.project_info is None):
+            metadata = spProj.Metadata("GAPA")
+            key_list = metadata.list()
+            if "project_info" in key_list:
+                self.project_info = Path(metadata.get("project_info"))
         if self.project_info is None:
             if not self.launch_project_dialog():
                 spLog.warning("[GAPA] Project File has to be selected before importing")

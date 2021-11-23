@@ -72,9 +72,9 @@ class GAPAImport(bpy.types.Operator):
         wm = context.window_manager
         wm.event_timer_remove(self.bpy_timer)
 
-    def import_files(self, filepaths: list[Path]) -> None:
-        for filepath in filepaths:
-            file_suffix = filepath.suffix
+    def import_files(self, filepaths_data: list[tuple[str, Path]], config: str, additional_settings: dict) -> None:
+        for filepath in filepaths_data:
+            file_suffix = filepath[1].suffix
             if file_suffix == ".fbx":
                 bpy.ops.import_scene.fbx(filepath=str(filepath))
 
