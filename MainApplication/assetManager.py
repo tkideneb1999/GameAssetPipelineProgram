@@ -131,7 +131,10 @@ class AssetManager(qtw.QWidget):
             if not path.is_file():
                 path.touch()
         with path.open("w", encoding="utf-8") as f:
-            f.write(f"assets {len(self.assets)}\n")
+            num_assets = 0
+            for level in self.assets:
+                num_assets += len(self.assets[level])
+            f.write(f"assets {num_assets}\n")
             for level in self.assets:
                 for asset in self.assets[level]:
                     data = f"{asset},{level}\n"

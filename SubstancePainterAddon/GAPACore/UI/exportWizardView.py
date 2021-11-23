@@ -34,7 +34,7 @@ class ExportWizardView(qtw.QDialog):
         self.program = program  # str
 
         # Functions to register
-        self.export_file_func = None  # Callable[Path, str, bool]
+        self.export_file_func = None  # Callable[Path, str, dict]
         self.save_workfile_func = None  # Callable[Path]
 
         self.load_project_info(project_info)
@@ -56,7 +56,7 @@ class ExportWizardView(qtw.QDialog):
         self.save_workfile_func = func
 
     def register_export_func(self, func) -> None:
-        # func: Callable[Path, str, bool]
+        # func: Callable[Path, str, dict]
         self.export_file_func = func
 
     def publish_asset(self):
@@ -188,8 +188,11 @@ class ExportWizardView(qtw.QDialog):
         func = functools.partial(self.save_workfile_func, filepath=str(save_dir))
         self.bpy_queue.put(func)
 
-    def export_file(self, path, file_format, use_selection) -> None:
+    def export_file(self, path, config_name, export_settings) -> None:
         # path: Path, file_format: str, use_selection: bool
         # bpy.ops.export_scene.fbx(str(path), use_selection=use_selection)
-        func = functools.partial(self.export_file_func, str(path), file_format, use_selection)
+        func = functools.partial(self.export_file_func,
+                                 filepath=str(path),
+                                 config_name=config_name,
+                                 export_settings=export_settings)
         self.bpy_queue.put(func)

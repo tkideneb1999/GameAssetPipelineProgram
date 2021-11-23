@@ -52,10 +52,10 @@ class PipelineSettingsCreator:
         :param outputs: list of tuples containing name[0] of the output and type[1]
         """
         for i in range(len(inputs)):
-            inputs[i] = (inputs[i][0], inputs[i][1].name)
+            inputs[i] = (inputs[i][0], inputs[i][1])
             print(f"[GAPA] Added Input {inputs[i][0]} with type {inputs[i][1]} to config")
         for o in range(len(outputs)):
-            outputs[o] = (outputs[o][0], outputs[o][1].name)
+            outputs[o] = (outputs[o][0], outputs[o][1])
             print(f"[GAPA] Added Input {outputs[o][0]} with type {outputs[o][1]} to config")
         io_dict = {"inputs": inputs, "outputs": outputs}
         self.configs[name] = io_dict

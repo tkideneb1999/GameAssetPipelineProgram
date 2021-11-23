@@ -212,9 +212,24 @@ class PipelineConfigurator(qtw.QWidget):
     # -----------------------------------
 
     def save(self):
+        # Check if all inputs are connected
+        inputs_list = []
+        for s in self.current_pipeline.pipeline_steps:
+            for i in s.inputs:
+                inputs_list.append(i.uid)
+        for connected_input in list(self.current_pipeline.io_connections.keys()):
+            if connected_input in inputs_list:
+                inputs_list.remove(connected_input)
+        if not len(inputs_list) == 0:
+            print("[GAPA] Not all inputs are connected to outputs, aborting saving")
+            return
+
+        # Write Additional Settings to Pipeline object
         for i in range(len(self.current_pipeline.pipeline_steps)):
             settings = self.step_widgets[i].get_additional_settings()
             self.current_pipeline.set_additional_settings(i, settings)
+
+        # Save Pipeline
         path = self.project_dir / "pipelines"
         path = self.current_pipeline.save(path)
         self.pipeline_saved_signal.emit(path, self.current_pipeline.name)

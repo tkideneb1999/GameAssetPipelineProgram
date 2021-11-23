@@ -1,0 +1,149 @@
+{
+  "name" : "UE4",
+  "input": {
+    "options" : {},
+    "inputs" : [
+      {
+        "inputName": "lowpoly",
+        "type" : "mesh"
+      },
+      {
+        "inputName" : "normal_base",
+        "type" : "texture"
+      },
+      {
+        "inputName" : "ambient_occlusion",
+        "type" : "texture"
+      },
+      {
+        "inputName" : "id",
+        "type" : "texture"
+      },
+      {
+        "inputName" : "position",
+        "type" : "texture"
+      },
+      {
+        "inputName" : "thickness",
+        "type" : "texture"
+      },
+      {
+        "inputName" : "world_space_normals",
+        "type" : "texture"
+      },
+      {
+        "inputName" : "curvature",
+        "type" : "texture"
+      }
+  ]},
+  "output" :
+  {
+    "options" : {
+      "exportShaderParams": false
+    },
+    "outputs": [
+      {
+        "outputName": "DA",
+        "type" : "texture",
+        "fileName": "$textureSet_DA",
+        "channels": [
+          {
+            "destChannel": "R",
+            "srcChannel": "R",
+            "srcMapType": "documentMap",
+            "srcMapName": "basecolor"
+          },
+          {
+            "destChannel": "G",
+            "srcChannel": "G",
+            "srcMapType": "documentMap",
+            "srcMapName": "basecolor"
+          },
+          {
+            "destChannel": "B",
+            "srcChannel": "B",
+            "srcMapType": "documentMap",
+            "srcMapName": "basecolor"
+          },
+          {
+            "destChannel": "A",
+            "srcChannel": "L",
+            "srcMapType": "documentMap",
+            "srcMapName": "opacity"
+          }],
+        "parameters":
+        {
+          "fileFormat": "png",
+          "bitDepth": "16",
+          "dithering": false,
+          "sizeLog2": 10,
+          "paddingAlgorithm": "infinite"
+        }
+      },
+      {
+        "outputName": "N",
+        "type" : "texture",
+        "fileName": "$textureSet_N",
+        "channels": [
+          {
+            "destChannel": "R",
+            "srcChannel": "R",
+            "srcMapType": "virtualMap",
+            "srcMapName": "Normal_DirectX"
+          },
+          {
+            "destChannel": "G",
+            "srcChannel": "G",
+            "srcMapType": "virtualMap",
+            "srcMapName": "Normal_DirectX"
+          },
+          {
+            "destChannel": "B",
+            "srcChannel": "B",
+            "srcMapType": "virtualMap",
+            "srcMapName": "Normal_DirectX"
+          }
+        ],
+        "parameters": {
+          "fileFormat": "png",
+          "bitDepth": "16",
+          "dithering": false,
+          "sizeLog2": 10,
+          "paddingAlgorithm": "infinite"
+        }
+      },
+      {
+        "outputName": "ORM",
+        "type" : "texture",
+        "fileName": "$textureSet_ORM",
+        "channels": [
+          {
+            "destChannel": "R",
+            "srcChannel": "L",
+            "srcMapType": "virtualMap",
+            "srcMapName": "AO_Mixed"
+          },
+          {
+            "destChannel": "G",
+            "srcChannel": "L",
+            "srcMapType": "documentMap",
+            "srcMapName": "roughness"
+          },
+          {
+            "destChannel": "B",
+            "srcChannel": "L",
+            "srcMapType": "documentMap",
+            "srcMapName": "metallic"
+          }
+        ],
+        "parameters": {
+          "fileFormat": "png",
+          "bitDepth": "16",
+          "dithering": false,
+          "sizeLog2": 10,
+          "paddingAlgorithm": "infinite"
+        }
+      }
+        ]
+  }
+}

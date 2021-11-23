@@ -5,10 +5,12 @@ import substance_painter.logging as spLog
 import substance_painter.ui as spUI
 
 from . import GAPAImport
+from . import GAPAExport
 from .GAPACore import settings as settingsModule
 from . import pipelineSettings as pipelineSettingsModule
 
 importlib.reload(GAPAImport)
+importlib.reload(GAPAExport)
 importlib.reload(settingsModule)
 importlib.reload(pipelineSettingsModule)
 
@@ -32,10 +34,20 @@ def start_plugin():
         spUI.ApplicationMenu.File,
         IMPORT_PLUGIN.import_dialog_action
     )
-    # Export Plugin
+
+    global EXPORT_PLUGIN
+    EXPORT_PLUGIN = GAPAExport.GAPAExport(spUI.get_main_window())
+    spUI.add_action(
+        spUI.ApplicationMenu.File,
+        EXPORT_PLUGIN.export_dialog_action
+    )
 
 
 def close_plugin():
     global IMPORT_PLUGIN
     spUI.delete_ui_element(IMPORT_PLUGIN.import_dialog_action)
     del IMPORT_PLUGIN
+
+    global EXPORT_PLUGIN
+    spUI.delete_ui_element(EXPORT_PLUGIN.export_dialog_action)
+    del EXPORT_PLUGIN

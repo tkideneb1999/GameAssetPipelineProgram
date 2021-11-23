@@ -1,4 +1,6 @@
 import os
+from pathlib import Path
+import json
 import importlib
 
 if __package__ == "":
@@ -12,28 +14,35 @@ def get_pipeline_settings_location() -> str:
     return os.path.abspath(__file__)
 
 
+def load_config(file_path) -> dict:
+    """
+    :param file_path: Path object to config file
+    :return: data read from config file
+    """
+    data = {}
+    with file_path.open("r", encoding="utf-8") as f:
+        data = json.loads(f.read())
+    return data
+
+
 def create_pipeline_settings() -> pSC.PipelineSettingsCreator:
     pipeline_settings = pSC.PipelineSettingsCreator()
-    # Read Substance Painter Export Presets
+    # Add Configurations from json files in Config Directory
+    configs_dir = Path(get_pipeline_settings_location()).parent / "Configs"
+    print(f"[GAPA] searching for configs at: {str(configs_dir)}")
+    config_paths = list(configs_dir.glob("*.json"))
+    for config_path in config_paths:
+        data = load_config(config_path)
+        inputs = []
+        for i in data["input"]["inputs"]:
+            inputs.append((i["inputName"], i["type"]))
+        outputs = []
+        for o in data["output"]["outputs"]:
+            outputs.append((o["outputName"], o["type"]))
+        print(f"[GAPA] Inputs: {inputs}")
+        print(f"[GAPA] Outputs: {outputs}")
+        pipeline_settings.add_configuration(data["name"], inputs, outputs)
 
-    # Add Presets as Configuration
-    pipeline_settings.add_configuration("UE4",
-                                        [("lowpoly", pSC.IOType.Mesh),
-                                         ("normal_base", pSC.IOType.Texture),
-                                         ("ambient_occlusion", pSC.IOType.Texture),
-                                         ("id", pSC.IOType.Texture),
-                                         ("position", pSC.IOType.Texture),
-                                         ("thickness", pSC.IOType.Texture),
-                                         ("world_space_normals", pSC.IOType.Texture),
-                                         ("curvature", pSC.IOType.Texture)],
-                                        [("DA", pSC.IOType.Texture),
-                                         ("N", pSC.IOType.Texture),
-                                         ("ORM", pSC.IOType.Texture)])
-    pipeline_settings.add_configuration("NoMaps",
-                                        [("lowpoly", pSC.IOType.Mesh)],
-                                        [("DA", pSC.IOType.Texture),
-                                         ("N", pSC.IOType.Texture),
-                                         ("ORM", pSC.IOType.Texture)])
     # Add additional settings
     #   Normal Map type (OpenGL/DirectX)
     pipeline_settings.add_combobox_selection("Normal Map", ["Direct X", "OpenGL"])
