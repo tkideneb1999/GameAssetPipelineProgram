@@ -21,6 +21,7 @@ class PipelineStepSettingsView(qtw.QWidget):
         self.ui.configs_combobox.currentTextChanged.connect(self.config_changed)
 
         self.program = "None"
+        self.has_multi_outputs = False
         self.settings: PipelineSettingsCreator = None
         self.settings_active = False
         self.additional_GUI: dict[str, list[qtw.QWidget]] = {}
@@ -57,6 +58,7 @@ class PipelineStepSettingsView(qtw.QWidget):
             return False
 
         self.settings_active = True
+        self.has_multi_outputs = self.settings.has_multi_outputs
         # Add configs to combobox
         self.ui.configs_combobox.addItems(self.settings.configs.keys())
 

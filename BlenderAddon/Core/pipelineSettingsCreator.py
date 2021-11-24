@@ -25,6 +25,7 @@ class PipelineSettingsCreator:
         #    "data": data
         #   }
         # }
+        self.has_multi_outputs = False
 
 
     # def add_output_config(self, name: str, outputs: list[tuple[str, str]]) -> None:
@@ -51,6 +52,7 @@ class PipelineSettingsCreator:
         :param inputs: list of tuples containing name[0] of the input and type[1]
         :param outputs: list of tuples containing name[0] of the output and type[1]
         """
+
         for i in range(len(inputs)):
             inputs[i] = (inputs[i][0], inputs[i][1])
             print(f"[GAPA] Added Input {inputs[i][0]} with type {inputs[i][1]} to config")

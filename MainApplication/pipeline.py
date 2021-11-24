@@ -51,6 +51,9 @@ class Pipeline:
     def set_config(self, step_index: int, config: str) -> None:
         self.pipeline_steps[step_index].set_config(config)
 
+    def set_has_multi_outputs(self, step_index: int, has_multi_outputs: bool) -> None:
+        self.pipeline_steps[step_index].has_multi_outputs = has_multi_outputs
+
     # --------------
     # Inputs/Outputs
     # --------------
@@ -91,6 +94,18 @@ class Pipeline:
     def connect_io(self, input_uid: str, output_uid: str) -> None:
         self.io_connections[input_uid] = output_uid
         print(self.io_connections)
+
+    def get_connected_inputs(self, output_uids: list[str]) -> list[str]:
+        indices = []
+        connected_output_uids = list(self.io_connections.values())
+        for i in range(len(connected_output_uids)):
+            if connected_output_uids[i] in output_uids:
+                indices.append(i)
+        connected_input_uids = list(self.io_connections.keys())
+        affected_inputs = []
+        for i in range(len(indices)):
+            affected_inputs.append(connected_input_uids[i])
+        return affected_inputs
 
     # -------------
     # Serialization
@@ -204,6 +219,7 @@ class PipelineStep:
         self.config = None
         self.inputs: list[PipelineInput] = []
         self.outputs: list[PipelineOutput] = []
+        self.has_multi_outputs = False
         self.uid: str = uid
         self.input_id_counter: int = 0
         self.output_id_counter: int = 0
@@ -274,6 +290,7 @@ class PipelineStep:
                 "uid": self.uid,
                 "next_step": self.next_step,
                 "program": self.program,
+                "has_multi_outputs": self.has_multi_outputs,
                 "additional_settings": self.additional_settings,
                 "config": self.config,
                 "input_id_counter": self.input_id_counter,
@@ -289,6 +306,7 @@ class PipelineStep:
         self.additional_settings = data["additional_settings"]
         self.config = data["config"]
         self.program = data["program"]
+        self.has_multi_outputs = data["has_multi_outputs"]
         self.input_id_counter = data["input_id_counter"]
         self.output_id_counter = data["output_id_counter"]
 
