@@ -1,0 +1,44 @@
+{
+    "exportPath" : "C:/export",
+    "exportShaderParams" : true,
+    "defaultExportPreset" : "preset1",
+    "exportPresets" : [{
+      "name" : "preset1",
+      "maps" : [{
+        "fileName" : "$textureSet_color",
+        "channels" : [{
+          "destChannel" : "R",
+          "srcChannel" : "R",
+          "srcMapType" : "documentMap",
+          "srcMapName" : "baseColor"
+        }],
+        "parameters" : {
+          "fileFormat" : "png",
+          "bitDepth" : "16",
+          "dithering" : false,
+          "sizeLog2" : 10,
+          "paddingAlgorithm" : "diffusion",
+          "dilationDistance" : 16
+        }
+      }]
+    }],
+    "exportList" : [{
+      "rootPath" : "02_Body/Mask",
+      "filter" : {
+        "outputMaps" : ["$textureSet_color"],
+        "uvTiles" : [[1, 1]]
+
+      },
+      "exportPreset" : "preset1"
+    }],
+    "exportParameters" : [{
+      "filter" : {
+        "dataPaths": ["01_Head", "02_Body/Mask"],
+        "outputMaps": ["$textureSet_color"],
+         "uvTiles" : [[1, 1]]
+      },
+      "parameters" : {
+        "sizeLog2" :  11
+      }
+    }]
+}

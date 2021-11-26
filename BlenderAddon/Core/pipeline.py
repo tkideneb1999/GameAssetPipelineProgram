@@ -51,6 +51,10 @@ class Pipeline:
     def set_config(self, step_index: int, config: str) -> None:
         self.pipeline_steps[step_index].set_config(config)
 
+    def set_required_settings(self, step_index: int, required_settings: dict) -> None:
+        self.pipeline_steps[step_index].has_set_outputs = required_settings["has_set_outputs"]
+        self.pipeline_steps[step_index].export_all = required_settings["export_all"]
+
     # --------------
     # Inputs/Outputs
     # --------------
@@ -91,6 +95,18 @@ class Pipeline:
     def connect_io(self, input_uid: str, output_uid: str) -> None:
         self.io_connections[input_uid] = output_uid
         print(self.io_connections)
+
+    def get_connected_inputs(self, output_uids: list[str]) -> list[str]:
+        indices = []
+        connected_output_uids = list(self.io_connections.values())
+        for i in range(len(connected_output_uids)):
+            if connected_output_uids[i] in output_uids:
+                indices.append(i)
+        connected_input_uids = list(self.io_connections.keys())
+        affected_inputs = []
+        for i in range(len(indices)):
+            affected_inputs.append(connected_input_uids[i])
+        return affected_inputs
 
     # -------------
     # Serialization
@@ -204,6 +220,8 @@ class PipelineStep:
         self.config = None
         self.inputs: list[PipelineInput] = []
         self.outputs: list[PipelineOutput] = []
+        self.has_set_outputs = False
+        self.export_all = False
         self.uid: str = uid
         self.input_id_counter: int = 0
         self.output_id_counter: int = 0
@@ -274,6 +292,8 @@ class PipelineStep:
                 "uid": self.uid,
                 "next_step": self.next_step,
                 "program": self.program,
+                "has_set_outputs": self.has_set_outputs,
+                "export_all": self.export_all,
                 "additional_settings": self.additional_settings,
                 "config": self.config,
                 "input_id_counter": self.input_id_counter,
@@ -289,6 +309,8 @@ class PipelineStep:
         self.additional_settings = data["additional_settings"]
         self.config = data["config"]
         self.program = data["program"]
+        self.has_set_outputs = data["has_set_outputs"]
+        self.export_all = data["export_all"]
         self.input_id_counter = data["input_id_counter"]
         self.output_id_counter = data["output_id_counter"]
 

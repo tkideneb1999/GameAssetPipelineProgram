@@ -140,9 +140,9 @@ class PipelineConfigurator(qtw.QWidget):
     def rename_step(self, step_index: int, name: str):
         self.current_pipeline.pipeline_steps[step_index].name = name
 
-    def set_program(self, step_index: int, program_name: str, has_multi_outputs: bool):
+    def set_program(self, step_index: int, program_name: str, required_settings: dict):
         self.current_pipeline.set_program(step_index, program_name)
-        self.current_pipeline.set_has_multi_outputs(step_index, has_multi_outputs)
+        self.current_pipeline.set_required_settings(step_index, required_settings)
 
     def set_config(self, step_index: int, config_name: str):
         self.current_pipeline.set_config(step_index, config_name)
@@ -302,7 +302,7 @@ class PipelineStepGUI(qtw.QWidget):
     # Signals
     # -Pipeline Step Signals
     s_step_renamed = qtc.pyqtSignal(int, str)
-    s_step_program_selected = qtc.pyqtSignal(int, str, bool)  # step index, new_program, has_multi_outputs
+    s_step_program_selected = qtc.pyqtSignal(int, str, dict)  # step index, new_program, has_multi_outputs
     s_step_config_selected = qtc.pyqtSignal(int, str)
     s_step_deleted = qtc.pyqtSignal(int)
 
@@ -381,9 +381,8 @@ class PipelineStepGUI(qtw.QWidget):
 
     def select_program(self, new_program: str) -> None:
         configs_available = self.ui.program_settings.program_changed(new_program)
-        has_multi_outputs = self.ui.program_settings.has_multi_outputs
         self.set_io_button_interactivity(not configs_available)
-        self.s_step_program_selected.emit(self.index, new_program, has_multi_outputs)
+        self.s_step_program_selected.emit(self.index, new_program, self.ui.program_settings.get_required_settings())
 
     def select_config(self, config_name: str) -> None:
         # Delete all inputs/outputs

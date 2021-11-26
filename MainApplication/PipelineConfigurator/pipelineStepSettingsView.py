@@ -21,7 +21,8 @@ class PipelineStepSettingsView(qtw.QWidget):
         self.ui.configs_combobox.currentTextChanged.connect(self.config_changed)
 
         self.program = "None"
-        self.has_multi_outputs = False
+        self.has_set_outputs = False
+        self.export_all = False
         self.settings: PipelineSettingsCreator = None
         self.settings_active = False
         self.additional_GUI: dict[str, list[qtw.QWidget]] = {}
@@ -58,7 +59,8 @@ class PipelineStepSettingsView(qtw.QWidget):
             return False
 
         self.settings_active = True
-        self.has_multi_outputs = self.settings.has_multi_outputs
+        self.has_set_outputs = self.settings.has_set_outputs
+        self.export_all = self.settings.export_all
         # Add configs to combobox
         self.ui.configs_combobox.addItems(self.settings.configs.keys())
 
@@ -106,6 +108,9 @@ class PipelineStepSettingsView(qtw.QWidget):
             if type(self.additional_GUI[name][0]) is qtw.QCheckBox:
                 data[name] = self.additional_GUI[name][0].isChecked()
         return data
+
+    def get_required_settings(self) -> dict:
+        return {"has_set_outputs": self.has_set_outputs, "export_all": self.export_all}
 
     def set_additional_settings(self, data: dict) -> None:
         for name in self.additional_GUI:

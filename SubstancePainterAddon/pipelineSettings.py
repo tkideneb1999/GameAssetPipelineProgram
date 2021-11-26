@@ -27,7 +27,7 @@ def load_config(file_path) -> dict:
 
 def create_pipeline_settings() -> pSC.PipelineSettingsCreator:
     pipeline_settings = pSC.PipelineSettingsCreator()
-    pipeline_settings.has_multi_outputs = True
+    pipeline_settings.has_set_outputs = True
     # Add Configurations from json files in Config Directory
     configs_dir = Path(get_pipeline_settings_location()).parent / "Configs"
     print(f"[GAPA] searching for configs at: {str(configs_dir)}")

@@ -1,10 +1,13 @@
 from pathlib import Path
 import importlib
+import json
 
 from PySide2 import QtWidgets as qtw
 
 import substance_painter.logging as spLog
 import substance_painter.project as spProj
+import substance_painter.textureset as spTexSet
+import substance_painter.export as spExp
 
 from .GAPACore.UI import exportWizardView
 from . import pipelineSettings as pS
@@ -35,8 +38,11 @@ class GAPAExport:
         export_dialog.register_save_workfile_func(self.save_workfile)
         export_dialog.exec_()
 
-    def export_file(self, filepath, config_name, export_settings) -> None:
+    def export_file(self, file_paths, config_name, export_settings) -> None:
         config_path = Path(pS.get_pipeline_settings_location()).parent / "configs" / f"{config_name}.json"
+        config_data = {}
+        with config_path.open("r", encoding="utf-8") as c:
+            config_data = json.loads(c.read())
 
         pass
 
@@ -53,3 +59,10 @@ class GAPAExport:
         metadata.set("project_info", str(self.project_info))
         spProj.save_as(str(filepath), spProj.ProjectSaveMode.Full)
         spLog.info(f"[GAPA] Saved successfully at: {spProj.file_path()}")
+
+    def get_output_sets(self) -> list:
+        texture_sets = spTexSet.all_texture_sets()
+        texture_set_names = []
+        for tex_set in texture_sets:
+            texture_set_names.append(tex_set.name())
+        return texture_set_names

@@ -61,7 +61,7 @@ class GAPAImport:
                     mesh_path = str(f[1])
                 else:
                     mesh_maps.append(str(f[1]))
-            if config == "NoMaps":
+            if config == "NoMapsUE4":
                 if f[0] == "lowpoly":
                     mesh_path = str(f[1])
         # check if project is open

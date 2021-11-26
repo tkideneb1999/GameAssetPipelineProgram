@@ -1,12 +1,7 @@
 from pathlib import Path
 import functools
 import json
-import sys
 from collections.abc import Callable
-
-# Append Path to PyQt5
-pyQt_path = Path(r"F:\Studium\7 Semester\Bachelor Project\GameAssetPipelineProgram\venv\Lib\site-packages")
-sys.path.append(str(pyQt_path))
 
 from PyQt5 import QtWidgets as qtw
 from PyQt5 import QtCore as qtc
@@ -80,7 +75,9 @@ class ImportWizardView(qtw.QDialog):
         rel_filepaths = import_data[0]
         abs_filepaths = []
         for f in rel_filepaths:
-            abs_filepaths.append((f[0], self.project_dir / f[1]))
+            for output_set in rel_filepaths:
+                for output in rel_filepaths[output_set]:
+                    abs_filepaths.append((f[output_set][output][0], self.project_dir / f[output_set][output][1]))
 
         # import assets
         func = functools.partial(self.import_files_func,

@@ -4,10 +4,6 @@ import queue
 
 import bpy
 
-# Append Path to PyQt5
-pyQt_path = Path(r"D:\Studium\7 Semester\Bachelor Project\GameAssetPipelineProgram\venv\Lib\site-packages")
-sys.path.append(str(pyQt_path))
-
 from PyQt5 import QtWidgets as qtw
 
 from .exportWizardView import ExportWizardView
@@ -79,9 +75,10 @@ class GAPAExport(bpy.types.Operator):
     def start_window(self) -> None:
         pass
 
-    def export_file(self, filepath: Path, file_format: str, use_selection: bool) -> None:
-        if file_format == "fbx":
-            bpy.ops.export_scene.fbx(filepath=str(filepath), use_selection=use_selection)
+    def export_file(self, file_paths: list[Path], config_name: str, export_settings: dict) -> None:
+        if export_settings["output_format"] == "fbx":
+            for file_path in file_paths:
+                bpy.ops.export_scene.fbx(filepath=str(file_path), use_selection=export_settings["export_selected"])
 
-    def save_workfile(self, filepath: Path) -> None:
+    def save_workfile(self, filepath: list[Path]) -> None:
         bpy.ops.wm.save_as_mainfile(filepath=str(filepath))

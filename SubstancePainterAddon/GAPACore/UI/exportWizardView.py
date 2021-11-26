@@ -36,6 +36,7 @@ class ExportWizardView(qtw.QDialog):
         # Functions to register
         self.export_file_func = None  # Callable[Path, str, dict]
         self.save_workfile_func = None  # Callable[Path]
+        self.get_output_sets_func = None  # Callable[]
 
         self.load_project_info(project_info)
         self.load_asset_list()
@@ -63,12 +64,15 @@ class ExportWizardView(qtw.QDialog):
         if self.loaded_asset is None:
             print("[GAPA] No Asset selected")
             return
-        if self.ui.outputs_list.count() == 0:
+        selected_step_index = self.ui.pipeline_viewer.get_selected_index()
+        if selected_step_index == -1:
             print("[GAPA] No step selected or nothing to export in this step")
             return
-        if self.ui.outputs_list.currentRow() == -1:
-            print("[GAPA] No output selected")
-            return
+        export_all = self.loaded_asset.pipeline.pipeline_steps[selected_step_index].export_all
+        if not export_all:
+            if self.ui.outputs_list.currentRow() == -1:
+                print("[GAPA] No output selected")
+                return
 
         # Check if functions are registered
         if self.export_file_func is None:
@@ -77,35 +81,51 @@ class ExportWizardView(qtw.QDialog):
             raise Exception("[GAPA] 'save_workfile' function not registered")
 
         # Get selected step uid and output uid
-        selected_step_index = self.ui.pipeline_viewer.get_selected_index()
         selected_step = self.loaded_asset.pipeline.pipeline_steps[selected_step_index]
         selected_step_uid = selected_step.uid
         print(f"[GAPA] selected index: {selected_step_index}; uid: {selected_step_uid}")
 
         multi_asset_workfile = False  # TODO(Blender Addon): Multi Asset Workfiles
         if multi_asset_workfile is False:
-            path = self.project_dir / self.loaded_asset.level / self.loaded_asset.name / selected_step.get_folder_name() / f"{self.loaded_asset.name}.blend"
-            self.save_blend_file(path)
-
-        selected_output_index = self.ui.outputs_list.currentRow()
-        selected_output_uid = selected_step.outputs[selected_output_index].uid
+            path = self.project_dir / self.loaded_asset.level / self.loaded_asset.name / selected_step.get_folder_name() / f"{self.loaded_asset.name}.spp"
+            self.save_workfile(path)
+        if export_all:
+            output_uids = []
+            for o in selected_step.outputs:
+                output_uids.append(o.uid)
+        else:
+            selected_output_index = self.ui.outputs_list.currentRow()
+            output_uids = [selected_step.outputs[selected_output_index].uid]
 
         # TODO(Blender Addon):Select output format
-        output_format = "fbx"
+        output_format = "tga"
+
+        output_sets = None
+        if self.loaded_asset.pipeline.pipeline_steps[selected_step_index].has_set_outputs:
+            if self.get_output_sets_func is None:
+                raise Exception("[GAPA] get_output_sets function not registered!")
+            output_sets = self.get_output_sets_func()
 
         # Determine Absolute export path
-        rel_path = self.loaded_asset.publish_step_file(selected_step_uid, selected_output_uid, output_format)
-        absolute_path = self.project_dir / rel_path
+        publish_data = self.loaded_asset.publish_step_file(selected_step_uid,
+                                                           output_uids,
+                                                           output_format,
+                                                           output_sets=output_sets)
+        rel_paths = publish_data[0]
+        abs_paths = {}
+        for output_set in rel_paths:
+            for o in rel_paths[output_set]:
+                abs_paths[output_set][o] = self.project_dir / rel_paths[output_set][o]
 
         # update asset pipeline progress data & save changes
         self.loaded_asset.save(self.project_dir)
-        print(f"[GAPA] Exporting asset to {str(absolute_path)}")
 
-        # determine what to export
-        export_selected = self.ui.export_selected_checkbox.isChecked()
+        # get Config name
+        config_name = self.loaded_asset.pipeline[selected_step_index].config
+        export_settings = {"output_format": output_format}
 
         # send to blender Queue for export
-        self.export_file(absolute_path, output_format, export_selected)
+        self.export_file(abs_paths, config_name, export_settings)
 
         self.accept()
 
@@ -122,15 +142,17 @@ class ExportWizardView(qtw.QDialog):
         self.ui.pipeline_viewer.update_view(self.loaded_asset)
 
     def display_step_outputs(self, index):
-        # index: int
         # Show Outputs
         outputs = self.loaded_asset.pipeline.pipeline_steps[index].outputs
         outputs_names = []
         for o in outputs:
             outputs_names.append(o.name)
-        print(f"[GAPA] Outputs: {outputs_names}")
         self.ui.outputs_list.clear()
         self.ui.outputs_list.addItems(outputs_names)
+        if self.loaded_asset.pipeline.pipeline_steps[index].export_all:
+            self.ui.outputs_list.setSelectionMode(qtw.QAbstractItemView.NoSelection)
+        else:
+            self.ui.outputs_list.setSelectionMode(qtw.QAbstractItemView.SingleSelection)
 
     def process_qt_queue(self):
         while not self.qt_queue.empty():
@@ -181,18 +203,15 @@ class ExportWizardView(qtw.QDialog):
             for name in pipeline_data:
                 self.pipelines[name] = Path(pipeline_data[name])
 
-    def save_blend_file(self, save_dir):
+    def save_workfile(self, save_dir):
         # save_dir: Path
-        # TODO(Blender Addon): Determine actual location (make dependent on user whether multi asset file or not)
-        print("[GAPA][Qt] Issued Save Command")
         func = functools.partial(self.save_workfile_func, filepath=str(save_dir))
-        self.bpy_queue.put(func)
+        func()
 
-    def export_file(self, path, config_name, export_settings) -> None:
+    def export_file(self, paths, config_name, export_settings) -> None:
         # path: Path, file_format: str, use_selection: bool
-        # bpy.ops.export_scene.fbx(str(path), use_selection=use_selection)
         func = functools.partial(self.export_file_func,
-                                 filepath=str(path),
+                                 file_paths=paths,
                                  config_name=config_name,
                                  export_settings=export_settings)
-        self.bpy_queue.put(func)
+        func()

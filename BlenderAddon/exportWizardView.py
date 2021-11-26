@@ -1,12 +1,7 @@
 from pathlib import Path
 import functools
 import json
-import sys
 from collections.abc import Callable
-
-# Append Path to PyQt5
-pyQt_path = Path(r"F:\Studium\7 Semester\Bachelor Project\GameAssetPipelineProgram\venv\Lib\site-packages")
-sys.path.append(str(pyQt_path))
 
 from PyQt5 import QtWidgets as qtw
 from PyQt5 import QtCore as qtc
@@ -61,12 +56,15 @@ class ExportWizardView(qtw.QDialog):
         if self.loaded_asset is None:
             print("[GAPA] No Asset selected")
             return
-        if self.ui.outputs_list.count() == 0:
+        selected_step_index = self.ui.pipeline_viewer.get_selected_index()
+        if selected_step_index == -1:
             print("[GAPA] No step selected or nothing to export in this step")
             return
-        if self.ui.outputs_list.currentRow() == -1:
-            print("[GAPA] No output selected")
-            return
+        export_all = self.loaded_asset.pipeline.pipeline_steps[selected_step_index].export_all
+        if not export_all:
+            if self.ui.outputs_list.currentRow() == -1:
+                print("[GAPA] No output selected")
+                return
 
         # Check if functions are registered
         if self.export_file_func is None:
@@ -75,35 +73,42 @@ class ExportWizardView(qtw.QDialog):
             raise Exception("[GAPA] 'save_workfile' function not registered")
 
         # Get selected step uid and output uid
-        selected_step_index = self.ui.pipeline_viewer.get_selected_index()
         selected_step = self.loaded_asset.pipeline.pipeline_steps[selected_step_index]
         selected_step_uid = selected_step.uid
-        print(f"[GAPA] selected index: {selected_step_index}; uid: {selected_step_uid}")
 
         multi_asset_workfile = False  # TODO(Blender Addon): Multi Asset Workfiles
         if multi_asset_workfile is False:
-            path = self.project_dir / self.loaded_asset.level / self.loaded_asset.name / selected_step.get_folder_name() / f"{self.loaded_asset.name}.blend"
+            path = self.project_dir / self.loaded_asset.level / self.loaded_asset.name / selected_step.get_folder_name() / f"{self.loaded_asset.name}.spp"
             self.save_blend_file(path)
-
-        selected_output_index = self.ui.outputs_list.currentRow()
-        selected_output_uid = selected_step.outputs[selected_output_index].uid
+        if not export_all:
+            selected_output_index = self.ui.outputs_list.currentRow()
+            output_uids = [selected_step.outputs[selected_output_index].uid]
+        else:
+            output_uids = []
+            for output in selected_step.outputs:
+                output_uids.append(output.uid)
 
         # TODO(Blender Addon):Select output format
         output_format = "fbx"
 
         # Determine Absolute export path
-        rel_path = self.loaded_asset.publish_step_file(selected_step_uid, selected_output_uid, output_format)
-        absolute_path = self.project_dir / rel_path
+        publish_data = self.loaded_asset.publish_step_file(selected_step_uid, output_uids, output_format)
+        abs_paths = []
+        for output_set in publish_data:
+            for o in publish_data[output_set]:
+                abs_paths.append(self.project_dir / publish_data[output_set][o])
 
         # update asset pipeline progress data & save changes
         self.loaded_asset.save(self.project_dir)
-        print(f"[GAPA] Exporting asset to {str(absolute_path)}")
+        print(f"[GAPA] Exporting assets to {abs_paths}")
 
         # determine what to export
-        export_selected = self.ui.export_selected_checkbox.isChecked()
+        export_settings = {"export_selected": self.ui.export_selected_checkbox.isChecked(),
+                           "output_format": output_format}
+        config_name = self.loaded_asset.pipeline.pipeline_steps[selected_step_index].config
 
         # send to blender Queue for export
-        self.export_file(absolute_path, output_format, export_selected)
+        self.export(abs_paths, config_name, export_settings)
 
         self.accept()
 
@@ -124,9 +129,12 @@ class ExportWizardView(qtw.QDialog):
         outputs_names = []
         for o in outputs:
             outputs_names.append(o.name)
-        print(f"[GAPA] Outputs: {outputs_names}")
         self.ui.outputs_list.clear()
         self.ui.outputs_list.addItems(outputs_names)
+        if self.loaded_asset.pipeline.pipeline_steps[index].export_all:
+            self.ui.outputs_list.setSelectionMode(qtw.QAbstractItemView.NoSelection)
+        else:
+            self.ui.outputs_list.setSelectionMode(qtw.QAbstractItemView.SingleSelection)
 
     def process_qt_queue(self):
         while not self.qt_queue.empty():
@@ -182,7 +190,10 @@ class ExportWizardView(qtw.QDialog):
         func = functools.partial(self.save_workfile_func, filepath=str(save_dir))
         self.bpy_queue.put(func)
 
-    def export_file(self, path: Path, file_format: str, use_selection: bool) -> None:
+    def export(self, file_paths, config_name, export_settings: dict) -> None:
         # bpy.ops.export_scene.fbx(str(path), use_selection=use_selection)
-        func = functools.partial(self.export_file_func, str(path), file_format, use_selection)
+        func = functools.partial(self.export_file_func,
+                                 file_paths=file_paths,
+                                 config_name=config_name,
+                                 export_settings=export_settings)
         self.bpy_queue.put(func)

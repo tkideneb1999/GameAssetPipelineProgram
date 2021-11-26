@@ -25,7 +25,8 @@ class PipelineSettingsCreator:
         #    "data": data
         #   }
         # }
-        self.has_multi_outputs = False
+        self.has_set_outputs = False
+        self.export_all = False
 
 
     # def add_output_config(self, name: str, outputs: list[tuple[str, str]]) -> None:

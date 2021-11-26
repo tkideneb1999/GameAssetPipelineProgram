@@ -39,7 +39,7 @@ class Asset:
             if len(step.inputs) == 0:
                 state = pipeline_states[1]
             step_asset_info = {"state": state,
-                               "has_multi_outputs": step.has_multi_outputs,
+                               "has_multi_outputs": step.has_set_outputs,
                                "output_info": outputs_info,
                                "old_version": False}
             self.pipeline_progress[step.uid] = step_asset_info
@@ -58,7 +58,20 @@ class Asset:
             #       }
             # }
 
-    def create_new_output_set(self, output_uids: list[str]) -> dict:
+    def init_output_sets(self, step_index: int, output_set_names: list) -> None:
+        step_uid = self.pipeline.pipeline_steps[step_index].uid
+        if not self.pipeline.pipeline_steps[step_index].has_set_outputs:
+            print(f"[GAPA] Trying to create output sets for step {step_uid} where there should be none")
+            return
+        output_info = {}
+        for output_set_name in output_set_names:
+            output_set = {}
+            for output in self.pipeline.pipeline_steps[step_index].outputs:
+                output_set[output.uid] = {"published": False, "version": 0}
+            output_info[output_set_name] = output_set
+        self.pipeline_progress[step_uid]["output_info"] = output_info
+
+    def create_new_output_set(self, output_uids: list) -> dict:
         output_set = {}
         for o in output_uids:
             output_set[o] = {"published": False,
@@ -76,25 +89,22 @@ class Asset:
         return all_exported
 
     def publish_step_file(self, step_uid: str,
-                          output_uids: list[str],
+                          output_uids: list,
                           export_suffix: str,
-                          output_sets=None,
-                          publish_all=False) -> dict[str, dict[str, Path]]:
+                          output_sets=None) -> dict:
         """
         Updates the pipeline progress and returns the
         export directory for the file to be published.
         :param step_uid: unique identifier of the pipeline step
-        :param output_uid: unique identifier of the output
+        :param output_uids: unique identifiers of the outputs
         :param export_suffix: export suffix without .
-        :param output_set: optional parameter to specify the output set names if step is has multi-outputs
-        :param publish_all: optional parameter to export all assets
         :returns: relative path to the project directory the file should be saved in
         """
 
         # Set new Update and Old Version
         self.pipeline_progress[step_uid]["old_version"] = False
         has_multi_outputs = self.pipeline_progress[step_uid]["has_multi_outputs"]
-        # Check if all Outputs are exported
+        # Check if all Outputs are exported and update output data
         if has_multi_outputs:
             # Multi outputs (Outputs sets)
             if output_sets is not None:
@@ -152,12 +162,17 @@ class Asset:
         for a_step_uid in affected_steps:
             # Check if affected step is missing files
             if self.pipeline_progress[a_step_uid]["state"] == pipeline_states[0]:
+                # Get step index
                 a_step_index = self.pipeline.get_step_index_by_uid(a_step_uid)
                 has_all_files = True
                 for i in self.pipeline.pipeline_steps[a_step_index].inputs:
+                    # Get output UID connected to input
                     connected_output_uid = self.pipeline.io_connections.get(i.uid)
+                    # Skip if no Output is connected
                     if connected_output_uid is None:
                         continue
+
+                    # Get Step UID of output
                     output_step_uid = self.pipeline.get_step_uid_from_io(connected_output_uid)
 
                     #   look up states of other inputs of step
@@ -169,7 +184,7 @@ class Asset:
                                 output_published = False
                                 break
                     else:
-                        output_published = self.pipeline_progress[output_step_uid]["output_info"][connected_output_uid]["None"]["published"]
+                        output_published = self.pipeline_progress[output_step_uid]["output_info"]["None"][connected_output_uid]["published"]
                     if not output_published:
                         has_all_files = False
 
@@ -192,7 +207,8 @@ class Asset:
                     if o == -1:
                         raise Exception("[GAPA] -1 is no Valid output index")
                     file_name = self.pipeline.pipeline_steps[step_index].outputs[output_index].get_file_name()
-                    output_set_data[o] = (Path() / self.level / self.name / step_folder_name / "export" / f"{file_name}.{output_version}.{export_suffix}")
+                    output_version = self.pipeline_progress[step_uid]["output_info"][output_set][o]["version"]
+                    output_set_data[o] = Path() / self.level / self.name / step_folder_name / "export" / output_set / f"{file_name}.{output_version}.{export_suffix}"
                 file_paths[output_set] = output_set_data
             return file_paths
         else:
@@ -203,17 +219,18 @@ class Asset:
                     raise Exception("[GAPA] -1 is no Valid output index")
 
                 file_name = self.pipeline.pipeline_steps[step_index].outputs[output_index].get_file_name()
+                output_version = self.pipeline_progress[step_uid]["output_info"]["None"][o]["version"]
                 file_paths[o] = (Path() / self.level / self.name / step_folder_name / "export" / f"{file_name}.{output_version}.{export_suffix}")
                 return {"None": file_paths}
 
-    def import_assets(self, step_index: int) -> list[Path]:
+    def import_assets(self, step_index: int) -> dict:
         """
         :param step_index: index of the pipeline step
         :returns: list of filepaths for assets to import
         """
         rel_asset_dir = Path() / self.level / self.name
         file_format = "fbx"  # TODO(Blender Addon): implement file type
-        filepaths = []
+        filepaths = {}
         for i in self.pipeline.pipeline_steps[step_index].inputs:
             # get connected output
             output_uid = self.pipeline.io_connections[i.uid]
@@ -225,8 +242,13 @@ class Asset:
             #   get file name of output
             output_index = self.pipeline.pipeline_steps[output_step_index].get_io_index_by_uid(output_uid)
             file_name = self.pipeline.pipeline_steps[output_step_index].outputs[output_index].get_file_name()
-            version = self.pipeline_progress[output_step_uid]["output_info"][output_uid]["version"]
-            filepaths.append(rel_asset_dir / folder_name / "export" / f"{file_name}.{version}.{file_format}")
+            if self.pipeline_progress[output_step_uid]["has_multi_outputs"]:
+                for output_set in self.pipeline_progress[output_step_uid]["output_info"]:
+                    version = self.pipeline_progress[output_step_uid]["output_info"][output_set][output_uid]["version"]
+                    filepaths[output_set][output_uid] = (i.name, rel_asset_dir / folder_name / "export" / output_set / f"{file_name}.{version}.{file_format}")
+            else:
+                version = self.pipeline_progress[output_step_uid]["output_info"]["None"][output_uid]["version"]
+                filepaths["None"] = {output_uid: (i.name, rel_asset_dir / folder_name / "export" / f"{file_name}.{version}.{file_format}")}
         return filepaths
 
     def save_work_file(self, step_uid: str, workfile_path: str) -> None:
