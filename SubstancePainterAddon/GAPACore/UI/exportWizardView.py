@@ -60,6 +60,9 @@ class ExportWizardView(qtw.QDialog):
         # func: Callable[Path, str, dict]
         self.export_file_func = func
 
+    def register_get_output_sets_func(self, func) -> None:
+        self.get_output_sets_func = func
+
     def publish_asset(self):
         if self.loaded_asset is None:
             print("[GAPA] No Asset selected")
@@ -105,23 +108,23 @@ class ExportWizardView(qtw.QDialog):
             if self.get_output_sets_func is None:
                 raise Exception("[GAPA] get_output_sets function not registered!")
             output_sets = self.get_output_sets_func()
+        print(f"[GAPA] Output sets: {output_sets}")
 
         # Determine Absolute export path
         publish_data = self.loaded_asset.publish_step_file(selected_step_uid,
                                                            output_uids,
                                                            output_format,
                                                            output_sets=output_sets)
-        rel_paths = publish_data[0]
-        abs_paths = {}
-        for output_set in rel_paths:
-            for o in rel_paths[output_set]:
-                abs_paths[output_set][o] = self.project_dir / rel_paths[output_set][o]
+        abs_paths = publish_data
+        for output_set in publish_data:
+            for o in publish_data[output_set]:
+                abs_paths[output_set][o] = self.project_dir / publish_data[output_set][o]
 
         # update asset pipeline progress data & save changes
         self.loaded_asset.save(self.project_dir)
 
         # get Config name
-        config_name = self.loaded_asset.pipeline[selected_step_index].config
+        config_name = self.loaded_asset.pipeline.pipeline_steps[selected_step_index].config
         export_settings = {"output_format": output_format}
 
         # send to blender Queue for export

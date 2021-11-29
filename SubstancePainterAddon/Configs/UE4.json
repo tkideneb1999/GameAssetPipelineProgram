@@ -45,7 +45,7 @@
       {
         "outputName": "DA",
         "type" : "texture",
-        "fileName": "$textureSet_DA",
+        "fileName": "T_$mesh_$textureSet_DA",
         "channels": [
           {
             "destChannel": "R",
@@ -73,17 +73,15 @@
           }],
         "parameters":
         {
-          "fileFormat": "png",
           "bitDepth": "16",
           "dithering": false,
-          "sizeLog2": 10,
           "paddingAlgorithm": "infinite"
         }
       },
       {
         "outputName": "N",
         "type" : "texture",
-        "fileName": "$textureSet_N",
+        "fileName": "T_$mesh_$textureSet_N",
         "channels": [
           {
             "destChannel": "R",
@@ -105,17 +103,15 @@
           }
         ],
         "parameters": {
-          "fileFormat": "png",
           "bitDepth": "16",
           "dithering": false,
-          "sizeLog2": 10,
           "paddingAlgorithm": "infinite"
         }
       },
       {
         "outputName": "ORM",
         "type" : "texture",
-        "fileName": "$textureSet_ORM",
+        "fileName": "T_$mesh_$textureSet_ORM",
         "channels": [
           {
             "destChannel": "R",
@@ -137,10 +133,8 @@
           }
         ],
         "parameters": {
-          "fileFormat": "png",
           "bitDepth": "16",
           "dithering": false,
-          "sizeLog2": 10,
           "paddingAlgorithm": "infinite"
         }
       }

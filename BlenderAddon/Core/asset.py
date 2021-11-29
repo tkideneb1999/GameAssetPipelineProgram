@@ -1,7 +1,10 @@
 import json
+import importlib
 from pathlib import Path
 
-from .pipeline import Pipeline
+from . import pipeline as pipelineModule
+
+importlib.reload(pipelineModule)
 
 pipeline_states = ["files missing", "not_started", "in_progress", "published"]
 
@@ -15,7 +18,7 @@ class Asset:
         self.tags = tags
         self.asset_type = asset_type
         self.pipeline_dir = pipeline_dir
-        self.pipeline = Pipeline()
+        self.pipeline = pipelineModule.Pipeline()
         if pipeline_dir is None:
             if project_dir is None:
                 raise Exception("If pipeline dir is None, expected project Dir to load Asset")
@@ -98,17 +101,29 @@ class Asset:
         :param step_uid: unique identifier of the pipeline step
         :param output_uids: unique identifiers of the outputs
         :param export_suffix: export suffix without .
+        :param output_sets: names of the sets that will be exported
         :returns: relative path to the project directory the file should be saved in
         """
 
         # Set new Update and Old Version
         self.pipeline_progress[step_uid]["old_version"] = False
-        has_multi_outputs = self.pipeline_progress[step_uid]["has_multi_outputs"]
+        step_index = self.pipeline.get_step_index_by_uid(step_uid)
+        has_set_outputs = self.pipeline.pipeline_steps[step_index].has_set_outputs
+
+        print(f"[GAPA] publishing with parameters:\n"
+              f"step_uid: {step_uid}\n"
+              f"output_uids: {output_uids}\n"
+              f"export_suffix: {export_suffix}\n"
+              f"output_sets: {output_sets}")
+
+        print(f"[GAPA] Step {step_uid} has set outputs: {has_set_outputs}")
         # Check if all Outputs are exported and update output data
-        if has_multi_outputs:
+        if has_set_outputs:
             # Multi outputs (Outputs sets)
             if output_sets is not None:
                 # TODO: Delete None Entry in PipelineProgress
+                if self.pipeline_progress[step_uid]["output_info"].get("None") is not None:
+                    del self.pipeline_progress[step_uid]["output_info"]["None"]
                 for output_set in output_sets:
                     output_set_data = {}
                     if output_set in self.pipeline_progress[step_uid]["output_info"]:
@@ -116,7 +131,6 @@ class Asset:
                         output_set_data = dict(self.pipeline_progress[step_uid]["output_info"][output_set])
                     else:
                         # Create new Set if nothing exists under that name
-                        step_index = self.pipeline.get_step_index_by_uid(step_uid)
                         all_output_uids = []
                         for o in self.pipeline.pipeline_steps[step_index].outputs:
                             all_output_uids.append(o.uid)
@@ -196,9 +210,8 @@ class Asset:
                 self.pipeline_progress[a_step_uid]["old_version"] = True
 
         # Generate File Path
-        step_index = self.pipeline.get_step_index_by_uid(step_uid)
         step_folder_name = self.pipeline.pipeline_steps[step_index].get_folder_name()
-        if has_multi_outputs:
+        if has_set_outputs:
             file_paths = {}
             for output_set in self.pipeline_progress[step_uid]["output_info"]:
                 output_set_data = {}

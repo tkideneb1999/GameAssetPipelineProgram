@@ -46,10 +46,8 @@
           }],
         "parameters":
         {
-          "fileFormat": "png",
           "bitDepth": "16",
           "dithering": false,
-          "sizeLog2": 10,
           "paddingAlgorithm": "infinite"
         }
       },
@@ -78,10 +76,8 @@
           }
         ],
         "parameters": {
-          "fileFormat": "png",
           "bitDepth": "16",
           "dithering": false,
-          "sizeLog2": 10,
           "paddingAlgorithm": "infinite"
         }
       },
@@ -110,10 +106,8 @@
           }
         ],
         "parameters": {
-          "fileFormat": "png",
           "bitDepth": "16",
           "dithering": false,
-          "sizeLog2": 10,
           "paddingAlgorithm": "infinite"
         }
       }
