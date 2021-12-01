@@ -1,5 +1,5 @@
 from PyQt5 import QtWidgets as qtw
-from newAssetWizard_GUI import Ui_new_asset_wizard
+from .newAssetWizard_GUI import Ui_new_asset_wizard
 
 
 class NewAssetWizard(qtw.QDialog):

@@ -3,7 +3,7 @@ import importlib.util
 from PyQt5 import QtWidgets as qtw
 from PyQt5 import QtCore as qtc
 
-from MainApplication.settings import Settings
+from MainApplication.Core.settings import Settings
 from MainApplication.PipelineConfigurator.pipeline_step_settings_GUI import Ui_pipeline_step_settings_GUI
 from MainApplication.PipelineConfigurator.pipelineSettingsCreator import PipelineSettingsCreator
 

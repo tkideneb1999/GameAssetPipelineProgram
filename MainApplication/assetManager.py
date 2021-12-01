@@ -3,9 +3,9 @@ from pathlib import Path
 from PyQt5 import QtWidgets as qtw
 from PyQt5 import QtCore as qtc
 
-from assetManager_GUI import Ui_asset_manager
-from asset import Asset
-from newAssetWizard import NewAssetWizard
+from .assetManager_GUI import Ui_asset_manager
+from MainApplication.Core.asset import Asset
+from .newAssetWizard import NewAssetWizard
 
 
 class AssetManager(qtw.QWidget):

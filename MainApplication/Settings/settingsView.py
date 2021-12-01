@@ -3,8 +3,8 @@ from pathlib import Path
 from PyQt5 import QtWidgets as qtw
 from PyQt5 import QtCore as qtc
 
-from settings_GUI import Ui_settings
-from settings import Settings
+from .settings_GUI import Ui_settings
+from MainApplication.Core.settings import Settings
 
 
 class SettingsView(qtw.QWidget):

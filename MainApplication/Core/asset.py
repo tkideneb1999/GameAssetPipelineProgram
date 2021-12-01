@@ -4,8 +4,6 @@ from pathlib import Path
 
 from . import pipeline as pipelineModule
 
-importlib.reload(pipelineModule)
-
 pipeline_states = ["files missing", "not_started", "in_progress", "published"]
 
 

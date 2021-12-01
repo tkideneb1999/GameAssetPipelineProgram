@@ -75,6 +75,6 @@ class Ui_asset_manager(object):
         self.add_asset_button.setText(_translate("asset_manager", "Add"))
         self.remove_asset_button.setText(_translate("asset_manager", "Remove"))
         self.asset_details_label.setText(_translate("asset_manager", "Details"))
-from MainApplication.AssetDetailsView.assetDetailsView import AssetDetailsView
-from AssetListView.assetListView import AssetListView
-from PipelineViewerView.pipelineViewerView import PipelineViewerView
+from .AssetDetailsView.assetDetailsView import AssetDetailsView
+from .AssetListView.assetListView import AssetListView
+from .PipelineViewerView.pipelineViewerView import PipelineViewerView

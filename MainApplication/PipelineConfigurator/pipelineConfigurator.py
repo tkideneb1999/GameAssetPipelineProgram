@@ -4,8 +4,8 @@ from enum import Enum
 from PyQt5 import QtWidgets as qtw
 from PyQt5 import QtCore as qtc
 
-from MainApplication.pipeline import Pipeline
-from MainApplication.settings import Settings
+from MainApplication.Core.pipeline import Pipeline
+from MainApplication.Core.settings import Settings
 from MainApplication.PipelineConfigurator.pipeline_step_GUI import Ui_pipeline_step
 from MainApplication.PipelineConfigurator.pipeline_step_input_GUI import Ui_pipeline_step_input
 from MainApplication.PipelineConfigurator.pipeline_step_output_GUI import Ui_pipeline_step_output

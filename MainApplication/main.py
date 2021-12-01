@@ -5,11 +5,11 @@ import json
 from PyQt5 import QtWidgets as qtw
 from PyQt5 import QtCore as qtc
 
-from MainApplication_GUI import Ui_MainWindow
-from MainApplication.PipelineConfigurator.pipelineConfigurator import PipelineConfigurator
-from settingsView import SettingsView
-from assetManager import AssetManager
-from projectWizard import ProjectWizard
+from .MainApplication_GUI import Ui_MainWindow
+from .PipelineConfigurator.pipelineConfigurator import PipelineConfigurator
+from MainApplication.Settings.settingsView import SettingsView
+from .assetManager import AssetManager
+from .projectWizard import ProjectWizard
 
 
 class MainWindow(qtw.QMainWindow):
@@ -150,7 +150,7 @@ class MainWindow(qtw.QMainWindow):
                 self.pipelines[name] = Path(pipeline_data[name])
 
 
-if __name__ == '__main__':
+def start_GAPA():
     app = qtw.QApplication(sys.argv)
     print(sys.argv)
 

@@ -1,5 +1,5 @@
 from PyQt5 import QtWidgets as qtw
-from projectWizard_GUI import Ui_project_wizard
+from .projectWizard_GUI import Ui_project_wizard
 
 
 class ProjectWizard(qtw.QDialog):
