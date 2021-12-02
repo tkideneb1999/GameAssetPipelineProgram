@@ -28,9 +28,7 @@ class ProgramRegistration:
         print(f"[GAPA] Loading registered programs from {path}")
         with path.open('r', encoding="utf-8") as f:
             data = json.loads(f.read())
-            print(data)
             for p in data:
-                print(p)
                 self.registered_programs[p] = {"path": Path(data[p]["path"]),
                                                "addonEnabled": data[p]["addonEnabled"],
                                                "addonPath": Path(data[p]["addonPath"])}
@@ -43,7 +41,15 @@ class ProgramRegistration:
         return self.registered_programs[name]["addonPath"]
 
     def get_program_addon_enabled(self, name: str) -> bool:
-        return self.registered_programs[name]["addonEnabled"]
+        """
+        Returns whether Addon for specific program is enabled
+        :param name: registered name of the program (executable name)
+        :returns: True if addon is enabled, False if not or if the program does not exist
+        """
+        if self.registered_programs.get(name) is not None:
+            return self.registered_programs[name]["addonEnabled"]
+        else:
+            return False
 
     def get_program_list(self) -> list:
         return list(self.registered_programs.keys())

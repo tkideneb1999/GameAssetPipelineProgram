@@ -28,9 +28,7 @@ class ProgramRegistration:
         print(f"[GAPA] Loading registered programs from {path}")
         with path.open('r', encoding="utf-8") as f:
             data = json.loads(f.read())
-            print(data)
             for p in data:
-                print(p)
                 self.registered_programs[p] = {"path": Path(data[p]["path"]),
                                                "addonEnabled": data[p]["addonEnabled"],
                                                "addonPath": Path(data[p]["addonPath"])}
