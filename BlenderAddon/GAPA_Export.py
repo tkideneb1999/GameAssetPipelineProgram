@@ -6,7 +6,8 @@ import bpy
 
 from PyQt5 import QtWidgets as qtw
 
-from .exportWizardView import ExportWizardView
+from .UI.exportWizardView import ExportWizardView
+from .Core.settings import Settings
 
 
 class GAPAExport(bpy.types.Operator):
@@ -21,6 +22,8 @@ class GAPAExport(bpy.types.Operator):
     qt_counter = 0
     bpy_queue = queue.Queue()
     qt_queue = queue.Queue()
+
+    project_path = None
 
     def __init__(self):
         super().__init__()
@@ -44,14 +47,16 @@ class GAPAExport(bpy.types.Operator):
         return {"PASS_THROUGH"}
 
     def execute(self, context):
+        if self.project_path is None:
+            settings = Settings()
+            settings.load()
+            if not settings.has_settings:
+                print("[GAPA] No Project dir set in GAPA Settings")
+                return {'FINISHED'}
+            self.project_path = settings.current_project_info_path
         print("[GAPA] Starting Asset Exporter")
-        project_info = context.preferences.addons[__package__].preferences.project_dir
-        print(bpy.app.binary_path)
-        if project_info == "":
-            print("[GAPA] No valid Project Dir set")
-            return {'FINISHED'}
 
-        self.qt_window = ExportWizardView(Path(project_info), "blender")
+        self.qt_window = ExportWizardView(self.project_path, "blender")
         # Register Functions
         self.qt_window.register_save_workfile_func(self.save_workfile)
         self.qt_window.register_export_func(self.export_file)

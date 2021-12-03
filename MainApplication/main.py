@@ -10,6 +10,7 @@ from .PipelineConfigurator.pipelineConfigurator import PipelineConfigurator
 from MainApplication.Settings.settingsView import SettingsView
 from .assetManager import AssetManager
 from .projectWizard import ProjectWizard
+from .LoadCurrentProjectWizard.loadCurrentProjectWizard import LoadCurrentProjectWizard
 
 
 class MainWindow(qtw.QMainWindow):
@@ -30,6 +31,8 @@ class MainWindow(qtw.QMainWindow):
 
         self.settingsWidget = SettingsView(self.ui.settings_tab)
         self.ui.settings_tab.layout().addWidget(self.settingsWidget)
+
+        self.ui.actionSet_as_current_project.triggered.connect(self.set_as_current_project)
 
         # Data
         self.project_name = ""
@@ -106,14 +109,31 @@ class MainWindow(qtw.QMainWindow):
         self.save_project_info()
         self.assetManager.save_asset_list()
 
+    def load_current_project(self) -> bool:
+        current_project_wizard = LoadCurrentProjectWizard(self)
+        current_project_wizard.setWindowModality(qtc.Qt.ApplicationModal)
+        result = current_project_wizard.exec_()
+        if result == 0:
+            return False
+        else:
+            current_project = self.settingsWidget.settings.current_project_info_path
+            self.project_dir = current_project.parent
+            self.load_project_info()
+            self.assetManager.add_levels(self.levels)
+            self.assetManager.set_project_dir(self.project_dir)
+            self.assetManager.update_pipelines(self.pipelines)
+            self.assetManager.load_asset_list()
+            self.pipeline_configurator.set_project_dir(self.project_dir)
+            return True
+
     def add_pipeline(self, path: Path, name: str):
         r_path = path.relative_to(self.project_dir)
         self.pipelines[name] = r_path
         self.save_project_info()
         self.assetManager.update_pipelines(self.pipelines)
 
-    def set_current_project(self):
-        pass
+    def set_as_current_project(self):
+        self.settingsWidget.settings.set_current_project(self.project_dir / "projectInfo.gapaproj")
 
     # -------------
     # SERIALIZATION
@@ -156,6 +176,7 @@ def start_GAPA():
 
     window = MainWindow()
     window.show()
-    window.launch_project_wizard()
+    if not window.load_current_project():
+        window.launch_project_wizard()
 
     app.exec_()

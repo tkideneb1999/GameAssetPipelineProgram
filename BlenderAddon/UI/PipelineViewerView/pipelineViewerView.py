@@ -5,7 +5,7 @@ from PyQt5 import QtCore as qtc
 from .pipelineViewer_GUI import Ui_pipeline_viewer
 from .pipelineStepViewer_GUI import Ui_pipeline_step_viewer
 
-from ..Core.asset import Asset
+from ...Core.asset import Asset
 
 
 class PipelineViewerView(QWidget):

@@ -23,6 +23,13 @@
       <number>9</number>
      </property>
      <item>
+      <widget class="QPushButton" name="remove_program_button">
+       <property name="text">
+        <string>Remove Program</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <spacer name="horizontalSpacer">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>

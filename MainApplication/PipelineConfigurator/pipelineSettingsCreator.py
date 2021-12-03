@@ -1,4 +1,5 @@
 from enum import Enum
+import json
 
 
 class IOType(Enum):
@@ -11,7 +12,7 @@ IOType_string_list = ["Mesh", "Texture", "Animation"]
 
 
 class PipelineSettingsCreator:
-    def __init__(self):
+    def __init__(self, configs_dir=None):
         self.configs = {}  # dict[str, dict[str, list[tuple[str, str]]]]
         # {configName
         #   inputs
@@ -19,6 +20,22 @@ class PipelineSettingsCreator:
         #   outputs
         #       name, type
         # }
+        if configs_dir is not None:
+            print(f"[GAPA] searching for configs at: {str(configs_dir)}")
+            config_paths = list(configs_dir.glob("*.json"))
+            for config_path in config_paths:
+                data = self.load_config(config_path)
+                inputs = []
+                for i in data["input"]["inputs"]:
+                    inputs.append((i["inputName"], i["type"]))
+                outputs = []
+                for o in data["output"]["outputs"]:
+                    outputs.append((o["outputName"], o["type"]))
+                print(f"[GAPA] Inputs: {inputs}")
+                print(f"[GAPA] Outputs: {outputs}")
+                self.add_configuration(data["name"], inputs, outputs)
+
+        # Additional settings to be processed by the DCC Application
         self.settings = {}  # dict[str, dict]
         # {additional GUI Name
         #   {"type": type
@@ -27,6 +44,16 @@ class PipelineSettingsCreator:
         # }
         self.has_set_outputs = False
         self.export_all = False
+
+    def load_config(self, file_path) -> dict:
+        """
+        :param file_path: Path object to config file
+        :return: data read from config file
+        """
+        data = {}
+        with file_path.open("r", encoding="utf-8") as f:
+            data = json.loads(f.read())
+        return data
 
 
     # def add_output_config(self, name: str, outputs: list[tuple[str, str]]) -> None:

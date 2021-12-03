@@ -6,7 +6,7 @@ import substance_painter.ui as spUI
 
 from . import GAPAImport
 from . import GAPAExport
-from .GAPACore import settings as settingsModule
+from .Core import settings as settingsModule
 from . import pipelineSettings as pipelineSettingsModule
 
 importlib.reload(GAPAImport)

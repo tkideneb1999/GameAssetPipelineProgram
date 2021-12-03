@@ -1,4 +1,6 @@
 from pathlib import Path
+import os
+import sys
 
 from PyQt5 import QtWidgets as qtw
 from PyQt5 import QtCore as qtc
@@ -18,6 +20,8 @@ class AssetManager(qtw.QWidget):
         self.ui.add_asset_button.clicked.connect(self.add_new_asset)
         self.ui.remove_asset_button.clicked.connect(self.remove_asset)
         self.ui.asset_list.s_asset_changed.connect(self.display_selected_asset)
+        self.ui.asset_list.s_open_file_explorer.connect(self.open_asset_in_explorer)
+        self.ui.pipeline_viewer.s_open_file_explorer.connect(self.open_step_in_explorer)
 
         # Data
         self.assets: dict[str, list[str]] = {}
@@ -72,6 +76,7 @@ class AssetManager(qtw.QWidget):
         new_asset = Asset(
             asset_name,
             pipeline_dir=asset_pipeline_dir,
+            project_dir=self.project_dir,
             level=asset_level,
             tags=asset_tags,
             asset_type="Model",
@@ -108,6 +113,19 @@ class AssetManager(qtw.QWidget):
                                                    self.loaded_asset.tags,
                                                    self.loaded_asset.comment)
         self.ui.pipeline_viewer.update_view(self.loaded_asset)
+
+    def open_asset_in_explorer(self, level: str, asset: str) -> None:
+        if sys.platform == "win32":
+            os.startfile(str(self.project_dir / level / asset))
+        else:
+            print("[GAPA] Opening file explorer only possible on Windows")
+
+    def open_step_in_explorer(self, step_index: int) -> None:
+        if sys.platform == "win32":
+            step_folder_name = self.loaded_asset.pipeline.pipeline_steps[step_index].get_folder_name()
+            os.startfile(str(self.project_dir / self.loaded_asset.level / self.loaded_asset.name / step_folder_name))
+        else:
+            print("[GAPA] Opening file explorer only possible on Windows")
 
     def add_levels(self, levels):
         for lvl in levels:

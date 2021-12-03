@@ -32,7 +32,6 @@ class ProgramRegistration:
                 self.registered_programs[p] = {"path": Path(data[p]["path"]),
                                                "addonEnabled": data[p]["addonEnabled"],
                                                "addonPath": Path(data[p]["addonPath"])}
-        print(self.registered_programs)
 
     def get_program_path(self, name: str) -> Path:
         return self.registered_programs[name]["path"]

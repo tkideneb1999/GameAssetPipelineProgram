@@ -1,0 +1,20 @@
+{
+  "name" : "HighAndLow",
+  "input" : {
+    "options" : {},
+    "inputs" : []
+  },
+  "output" : {
+    "options" : {},
+    "outputs" : [
+      {
+        "outputName" : "highpoly",
+        "type" : "mesh"
+      },
+      {
+        "outputName" : "lowpoly",
+        "type" : "mesh"
+      }
+    ]
+  }
+}

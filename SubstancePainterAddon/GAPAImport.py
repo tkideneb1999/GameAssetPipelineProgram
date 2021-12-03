@@ -6,9 +6,11 @@ from PySide2 import QtWidgets as qtw
 import substance_painter.logging as spLog
 import substance_painter.project as spProj
 
-from .GAPACore.UI import importWizardView
+from .UI import importWizardView
+from .Core import settings as settingsModule
 
 importlib.reload(importWizardView)
+importlib.reload(settingsModule)
 
 
 class GAPAImport:
@@ -97,9 +99,13 @@ class GAPAImport:
             if "project_info" in key_list:
                 self.project_info = Path(metadata.get("project_info"))
         if self.project_info is None:
-            if not self.launch_project_dialog():
-                spLog.warning("[GAPA] Project File has to be selected before importing")
+            spLog.info("Using current project from GAPA Settings")
+            settings = settingsModule.Settings()
+            settings.load()
+            if not settings.has_settings:
+                print("[GAPA] No Project dir set in GAPA Settings. Set a project with the Main Application")
                 return
+            self.project_info = settings.current_project_info_path
         import_dialog = importWizardView.ImportWizardView(self.project_info, "Substance Painter", self.sp_main_window)
         import_dialog.register_import_files_func(self.import_files)
         import_dialog.register_save_workfile_func(self.save_workfile)

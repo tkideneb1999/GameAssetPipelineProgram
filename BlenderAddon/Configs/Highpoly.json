@@ -1,0 +1,16 @@
+{
+  "name" : "Highpoly",
+  "input" : {
+    "options" : {},
+    "inputs" : []
+  },
+  "output" : {
+    "options" : {},
+    "outputs" : [
+      {
+        "outputName" : "highpoly",
+        "type" : "mesh"
+      }
+    ]
+  }
+}

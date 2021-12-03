@@ -7,7 +7,7 @@ from PySide2 import QtCore as qtc
 from . import pipelineViewer_GUI
 from . import pipelineStepViewer_GUI
 
-from ... import asset as assetModule
+from ...Core import asset as assetModule
 
 importlib.reload(pipelineViewer_GUI)
 importlib.reload(pipelineStepViewer_GUI)

@@ -16,6 +16,7 @@ class SettingsView(qtw.QWidget):
         self.ui.setupUi(self)
 
         self.ui.register_program_button.clicked.connect(self.register_program)
+        self.ui.remove_program_button.clicked.connect(self.remove_program)
 
         # Data
         self.settings = Settings()
@@ -42,6 +43,11 @@ class SettingsView(qtw.QWidget):
         self.update_programs_list()
 
         self.s_program_registered.emit()
+
+    def remove_program(self) -> None:
+        # get selected item name
+        item = self.ui.programs_list.currentItem()
+        # TODO!!!!!!
 
     def update_programs_list(self) -> None:
         self.ui.programs_list.clear()

@@ -15,7 +15,6 @@ import bpy
 
 from . import GAPA_Export
 from . import GAPA_Import
-from . import preferences
 from .Core.settings import Settings
 from .pipelineSettings import get_pipeline_settings_location
 
@@ -25,7 +24,7 @@ def menu_func(self, context):
     self.layout.operator(GAPA_Import.GAPAImport.bl_idname)
 
 
-classes = [GAPA_Export.GAPAExport, GAPA_Import.GAPAImport, preferences.GAPA_Preferences]
+classes = [GAPA_Export.GAPAExport, GAPA_Import.GAPAImport]
 
 
 def register():

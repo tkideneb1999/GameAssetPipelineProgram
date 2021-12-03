@@ -4,12 +4,10 @@ import queue
 
 import bpy
 
-# Append Path to PyQt5
-pyQt_path = Path(r"D:\Studium\7 Semester\Bachelor Project\GameAssetPipelineProgram\venv\Lib\site-packages")
-sys.path.append(str(pyQt_path))
-
 from PyQt5 import QtWidgets as qtw
-from .importWizardView import ImportWizardView
+
+from .UI.importWizardView import ImportWizardView
+from .Core.settings import Settings
 
 
 class GAPAImport(bpy.types.Operator):
@@ -24,6 +22,7 @@ class GAPAImport(bpy.types.Operator):
     qt_counter = 0
     bpy_queue = queue.Queue()
     qt_queue = queue.Queue()
+    project_path = None
 
     def __init__(self):
         super().__init__()
@@ -47,13 +46,16 @@ class GAPAImport(bpy.types.Operator):
         return {"PASS_THROUGH"}
 
     def execute(self, context):
+        if self.project_path is None:
+            settings = Settings()
+            settings.load()
+            if not settings.has_settings:
+                print("[GAPA] No Project dir set in GAPA Settings")
+                return {'FINISHED'}
+            self.project_path = settings.current_project_info_path
         print("[GAPA] Starting Asset Importer")
-        project_info = context.preferences.addons[__package__].preferences.project_dir
-        if project_info == "":
-            print("[GAPA] No valid Project Dir set")
-            return {'FINISHED'}
 
-        self.qt_window = ImportWizardView(Path(project_info), "blender")
+        self.qt_window = ImportWizardView(self.project_path, "blender")
         ImportWizardView.qt_queue = self.qt_queue
         ImportWizardView.bpy_queue = self.bpy_queue
         self.qt_window.add_qt_timer()

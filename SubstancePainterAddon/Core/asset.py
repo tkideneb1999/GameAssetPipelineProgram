@@ -1,10 +1,7 @@
 import json
-import importlib
 from pathlib import Path
 
 from . import pipeline as pipelineModule
-
-importlib.reload(pipelineModule)
 
 pipeline_states = ["files missing", "not_started", "in_progress", "published"]
 
@@ -24,7 +21,9 @@ class Asset:
                 raise Exception("If pipeline dir is None, expected project Dir to load Asset")
             self.load(project_dir)
         else:
-            self.pipeline.load(pipeline_dir)
+            if project_dir is None:
+                raise Exception("Expected Project Dir to not be None")
+            self.pipeline.load(project_dir / pipeline_dir)
             self.set_initial_pipeline_progress()
 
         self.comment = comment
@@ -321,7 +320,7 @@ class Asset:
             self.level = asset_data["level"]
             self.asset_type = asset_data["type"]
             self.pipeline_dir = Path(asset_data["pipeline_dir"])
-            self.pipeline.load(self.pipeline_dir)
+            self.pipeline.load(project_dir / self.pipeline_dir)
             self.pipeline_progress = asset_data["pipeline_progress"]
             self.tags = asset_data["tags"]
             self.comment = asset_data["comment"]

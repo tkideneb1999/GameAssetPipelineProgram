@@ -23,6 +23,9 @@ class Ui_settings(object):
         self.horizontalLayout = QtWidgets.QHBoxLayout()
         self.horizontalLayout.setContentsMargins(-1, 9, -1, -1)
         self.horizontalLayout.setObjectName("horizontalLayout")
+        self.remove_program_button = QtWidgets.QPushButton(settings)
+        self.remove_program_button.setObjectName("remove_program_button")
+        self.horizontalLayout.addWidget(self.remove_program_button)
         spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.horizontalLayout.addItem(spacerItem)
         self.register_program_button = QtWidgets.QPushButton(settings)
@@ -38,4 +41,5 @@ class Ui_settings(object):
     def retranslateUi(self, settings):
         _translate = QtCore.QCoreApplication.translate
         settings.setWindowTitle(_translate("settings", "Form"))
+        self.remove_program_button.setText(_translate("settings", "Remove Program"))
         self.register_program_button.setText(_translate("settings", "Register Program"))

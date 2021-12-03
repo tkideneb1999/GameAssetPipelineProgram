@@ -9,7 +9,7 @@ import substance_painter.project as spProj
 import substance_painter.textureset as spTexSet
 import substance_painter.export as spExp
 
-from .GAPACore.UI import exportWizardView
+from .UI import exportWizardView
 from . import pipelineSettings as pS
 
 importlib.reload(exportWizardView)

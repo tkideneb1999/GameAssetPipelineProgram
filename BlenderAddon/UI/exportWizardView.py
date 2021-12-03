@@ -6,14 +6,14 @@ from collections.abc import Callable
 from PyQt5 import QtWidgets as qtw
 from PyQt5 import QtCore as qtc
 
-from .Core.asset import Asset
-from .importWizard_GUI import Ui_import_Wizard
+from ..Core.asset import Asset
+from .exportWizard_GUI import Ui_export_Wizard
 
 
-class ImportWizardView(qtw.QDialog):
+class ExportWizardView(qtw.QDialog):
     def __init__(self, project_info: Path, program: str, parent=None):
         super().__init__(parent)
-        self.ui = Ui_import_Wizard()
+        self.ui = Ui_export_Wizard()
         self.ui.setupUi(self)
         self.ui.pipeline_viewer.set_current_program(program)
 
@@ -21,79 +21,94 @@ class ImportWizardView(qtw.QDialog):
 
         # Data
         self.project_name = ""
-        self.project_dir = project_info.parent
+        self.project_dir: Path = project_info.parent
         self.levels: list[str] = []
         self.pipelines: dict[str, Path] = {}
         self.assets: dict[str, list[str]] = {}
         self.loaded_asset: Asset = None
-        self.program = program
+        self.program: str = program
 
         # Functions to register
-        self.import_files_func: Callable[list[Path]] = None
+        self.export_file_func: Callable[Path, str, bool] = None
         self.save_workfile_func: Callable[Path] = None
 
         self.load_project_info(project_info)
         self.load_asset_list()
         # TODO(Blender Addon): Check if work file is already saved for a specific asset
+
         # TODO(Blender Addon): Actually filter asset list -> traffic light, name system
-
         self.ui.asset_list.s_asset_changed.connect(self.display_selected_asset)
-        self.ui.pipeline_viewer.s_step_selected.connect(self.display_step_inputs)
+        self.ui.publish_button.clicked.connect(self.publish_asset)
 
-        self.ui.import_button.clicked.connect(self.import_assets)
+        self.ui.pipeline_viewer.s_step_selected.connect(self.display_step_outputs)
 
     def close_dialog(self):
         print("Closing Window")
         self.accept()
 
     def register_save_workfile_func(self, func: Callable[Path]) -> None:
-        """
-        Registers the function that will save the workfile, to be executed when needed.
-        :param func: Function object that has a path as an input that contains the path for the work file to be saved to
-        """
         self.save_workfile_func = func
 
-    def register_import_files_func(self, func: Callable[list[Path]]) -> None:
-        """
-        Registers the function that will import files from steps that have outputs connected to the inputs of the selected step.
-        :param func: Function object that takes a list of paths. The paths contain the location of the exported files of the outputs
-        """
-        self.import_files_func = func
+    def register_export_func(self, func: Callable[Path, str, bool]) -> None:
+        self.export_file_func = func
 
-    def import_assets(self):
-        # TODO(Blender Addon): Implement Button
+    def publish_asset(self):
         if self.loaded_asset is None:
-            print("[GAPA] No Asset Selected")
+            print("[GAPA] No Asset selected")
             return
-        if self.ui.pipeline_viewer.get_selected_index() == -1:
-            print("[GAPA] No step to work on selected")
+        selected_step_index = self.ui.pipeline_viewer.get_selected_index()
+        if selected_step_index == -1:
+            print("[GAPA] No step selected or nothing to export in this step")
             return
+        export_all = self.loaded_asset.pipeline.pipeline_steps[selected_step_index].export_all
+        if not export_all:
+            if self.ui.outputs_list.currentRow() == -1:
+                print("[GAPA] No output selected")
+                return
 
-        # Get selected step
-        step_index = self.ui.pipeline_viewer.get_selected_index()
-        import_data = self.loaded_asset.import_assets(step_index)  # TODO(Blender Addon): Handle different file types
-        rel_filepaths = import_data[0]
-        abs_filepaths = []
-        for f in rel_filepaths:
-            for output_set in rel_filepaths:
-                for output in rel_filepaths[output_set]:
-                    abs_filepaths.append((f[output_set][output][0], self.project_dir / f[output_set][output][1]))
+        # Check if functions are registered
+        if self.export_file_func is None:
+            raise Exception("[GAPA] 'export' Function not registered")
+        if self.save_workfile_func is None:
+            raise Exception("[GAPA] 'save_workfile' function not registered")
 
-        # import assets
-        func = functools.partial(self.import_files_func,
-                                 filepaths=abs_filepaths,
-                                 config=import_data[1],
-                                 additional_settings=import_data[2])
-        self.bpy_queue.put(func)
+        # Get selected step uid and output uid
+        selected_step = self.loaded_asset.pipeline.pipeline_steps[selected_step_index]
+        selected_step_uid = selected_step.uid
 
-        # save workfile
         multi_asset_workfile = False  # TODO(Blender Addon): Multi Asset Workfiles
         if multi_asset_workfile is False:
-            selected_step = self.loaded_asset.pipeline.pipeline_steps[step_index]
-            rel_wf_path = Path() / self.loaded_asset.level / self.loaded_asset.name / selected_step.get_folder_name() / "workfiles" / f"{self.loaded_asset.name}.blend"
-            abs_wf_path = self.project_dir / rel_wf_path
-            self.loaded_asset.save_work_file(selected_step.uid, str(rel_wf_path))
-            self.save_blend_file(abs_wf_path)
+            path = self.project_dir / self.loaded_asset.level / self.loaded_asset.name / selected_step.get_folder_name() / f"{self.loaded_asset.name}.spp"
+            self.save_blend_file(path)
+        if not export_all:
+            selected_output_index = self.ui.outputs_list.currentRow()
+            output_uids = [selected_step.outputs[selected_output_index].uid]
+        else:
+            output_uids = []
+            for output in selected_step.outputs:
+                output_uids.append(output.uid)
+
+        # TODO(Blender Addon):Select output format
+        output_format = "fbx"
+
+        # Determine Absolute export path
+        publish_data = self.loaded_asset.publish_step_file(selected_step_uid, output_uids, output_format)
+        abs_paths = []
+        for output_set in publish_data:
+            for o in publish_data[output_set]:
+                abs_paths.append(self.project_dir / publish_data[output_set][o])
+
+        # update asset pipeline progress data & save changes
+        self.loaded_asset.save(self.project_dir)
+        print(f"[GAPA] Exporting assets to {abs_paths}")
+
+        # determine what to export
+        export_settings = {"export_selected": self.ui.export_selected_checkbox.isChecked(),
+                           "output_format": output_format}
+        config_name = self.loaded_asset.pipeline.pipeline_steps[selected_step_index].config
+
+        # send to blender Queue for export
+        self.export(abs_paths, config_name, export_settings)
 
         self.accept()
 
@@ -108,17 +123,18 @@ class ImportWizardView(qtw.QDialog):
                                                    self.loaded_asset.comment)
         self.ui.pipeline_viewer.update_view(self.loaded_asset)
 
-    def display_step_inputs(self):
-        # Show Inputs
-        index = self.ui.pipeline_viewer.get_selected_index()
-        inputs = self.loaded_asset.pipeline.pipeline_steps[index].inputs
-        inputs_names = []
-        for i in inputs:
-            output_uid = self.loaded_asset.pipeline.io_connections[i.uid]
-            output_name = self.loaded_asset.pipeline.get_output_name(output_uid)
-            inputs_names.append(output_name)
-        self.ui.inputs_list.clear()
-        self.ui.inputs_list.addItems(inputs_names)
+    def display_step_outputs(self, index):
+        # Show Outputs
+        outputs = self.loaded_asset.pipeline.pipeline_steps[index].outputs
+        outputs_names = []
+        for o in outputs:
+            outputs_names.append(o.name)
+        self.ui.outputs_list.clear()
+        self.ui.outputs_list.addItems(outputs_names)
+        if self.loaded_asset.pipeline.pipeline_steps[index].export_all:
+            self.ui.outputs_list.setSelectionMode(qtw.QAbstractItemView.NoSelection)
+        else:
+            self.ui.outputs_list.setSelectionMode(qtw.QAbstractItemView.SingleSelection)
 
     def process_qt_queue(self):
         while not self.qt_queue.empty():
@@ -153,7 +169,7 @@ class ImportWizardView(qtw.QDialog):
         if not path.exists():
             if not path.is_file():
                 if not path.suffix == "gapaproj":
-                    raise Exception("Not a valid project info file")
+                    raise Exception(f"{path} Not a valid project info file")
         with path.open("r", encoding="utf-8") as f:
             project_data = json.loads(f.read())
             self.project_name = project_data["name"]
@@ -168,12 +184,16 @@ class ImportWizardView(qtw.QDialog):
             for name in pipeline_data:
                 self.pipelines[name] = Path(pipeline_data[name])
 
-    def load_asset_details(self, name: str, level: str) -> Asset:
-        asset = Asset(name, level, self.project_dir)
-        return asset
-
     def save_blend_file(self, save_dir: Path):
         # TODO(Blender Addon): Determine actual location (make dependent on user whether multi asset file or not)
         print("[GAPA][Qt] Issued Save Command")
         func = functools.partial(self.save_workfile_func, filepath=str(save_dir))
+        self.bpy_queue.put(func)
+
+    def export(self, file_paths, config_name, export_settings: dict) -> None:
+        # bpy.ops.export_scene.fbx(str(path), use_selection=use_selection)
+        func = functools.partial(self.export_file_func,
+                                 file_paths=file_paths,
+                                 config_name=config_name,
+                                 export_settings=export_settings)
         self.bpy_queue.put(func)

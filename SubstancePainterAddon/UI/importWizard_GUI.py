@@ -9,7 +9,7 @@
 
 import importlib
 
-from PySide2 import QtCore, QtGui, QtWidgets
+from PySide2 import QtCore, QtWidgets
 
 from .AssetDetailsView import assetDetailsView
 from .AssetListView import assetListView

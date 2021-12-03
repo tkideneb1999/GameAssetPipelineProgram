@@ -10,6 +10,13 @@ class ProgramRegistration:
         self.registered_programs[name] = {"path": path, "addonEnabled": addon_enabled, "addonPath": None}
         print(f"Added Program: {name}\n    Location: {str(path)}")
 
+    def remove_program(self, name: str) -> bool:
+        if self.registered_programs.get(name) is None:
+            return False
+        else:
+            del self.registered_programs[name]
+            return True
+
     def save(self, directory: Path):
         path = directory / "registeredPrograms.json"
         with path.open('w', encoding="utf-8") as f:
@@ -32,7 +39,6 @@ class ProgramRegistration:
                 self.registered_programs[p] = {"path": Path(data[p]["path"]),
                                                "addonEnabled": data[p]["addonEnabled"],
                                                "addonPath": Path(data[p]["addonPath"])}
-        print(self.registered_programs)
 
     def get_program_path(self, name: str) -> Path:
         return self.registered_programs[name]["path"]

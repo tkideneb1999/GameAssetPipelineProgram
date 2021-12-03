@@ -2,22 +2,18 @@ from pathlib import Path
 import functools
 import json
 from collections.abc import Callable
-import importlib
 
-from PySide2 import QtWidgets as qtw
-from PySide2 import QtCore as qtc
+from PyQt5 import QtWidgets as qtw
+from PyQt5 import QtCore as qtc
 
-from .. import asset as assetModule
-from . import importWizard_GUI
-
-importlib.reload(assetModule)
-importlib.reload(importWizard_GUI)
+from ..Core.asset import Asset
+from .importWizard_GUI import Ui_import_Wizard
 
 
 class ImportWizardView(qtw.QDialog):
-    def __init__(self, project_info, program, parent=None):  # project_info: Path, program: str
+    def __init__(self, project_info: Path, program: str, parent=None):
         super().__init__(parent)
-        self.ui = importWizard_GUI.Ui_import_Wizard()
+        self.ui = Ui_import_Wizard()
         self.ui.setupUi(self)
         self.ui.pipeline_viewer.set_current_program(program)
 
@@ -26,15 +22,15 @@ class ImportWizardView(qtw.QDialog):
         # Data
         self.project_name = ""
         self.project_dir = project_info.parent
-        self.levels = []  # list[str]
-        self.pipelines = {}  # dict[str, Path]
-        self.assets = {}  # dict[str, list[str]]
-        self.loaded_asset = None  # assetModule.Asset
+        self.levels: list[str] = []
+        self.pipelines: dict[str, Path] = {}
+        self.assets: dict[str, list[str]] = {}
+        self.loaded_asset: Asset = None
         self.program = program
 
         # Functions to register
-        self.import_files_func = None  # Callable[list[tuple[str, Path]]]
-        self.save_workfile_func = None  # Callable[Path]
+        self.import_files_func: Callable[list[Path]] = None
+        self.save_workfile_func: Callable[Path] = None
 
         self.load_project_info(project_info)
         self.load_asset_list()
@@ -50,14 +46,14 @@ class ImportWizardView(qtw.QDialog):
         print("Closing Window")
         self.accept()
 
-    def register_save_workfile_func(self, func) -> None:  # func: Callable[Path]
+    def register_save_workfile_func(self, func: Callable[Path]) -> None:
         """
         Registers the function that will save the workfile, to be executed when needed.
         :param func: Function object that has a path as an input that contains the path for the work file to be saved to
         """
         self.save_workfile_func = func
 
-    def register_import_files_func(self, func) -> None:  # func: Callable[list[tuple[str, Path]]]
+    def register_import_files_func(self, func: Callable[list[Path]]) -> None:
         """
         Registers the function that will import files from steps that have outputs connected to the inputs of the selected step.
         :param func: Function object that takes a list of paths. The paths contain the location of the exported files of the outputs
@@ -81,40 +77,29 @@ class ImportWizardView(qtw.QDialog):
         for f in rel_filepaths:
             for output_set in rel_filepaths:
                 for output in rel_filepaths[output_set]:
-                    abs_filepaths.append((rel_filepaths[output_set][output][0],
-                                          self.project_dir / rel_filepaths[output_set][output][1]))
-
-        # TODO: Get Additional Pipeline Settings
+                    abs_filepaths.append((f[output_set][output][0], self.project_dir / f[output_set][output][1]))
 
         # import assets
         func = functools.partial(self.import_files_func,
-                                 filepaths_data=abs_filepaths,
+                                 filepaths=abs_filepaths,
                                  config=import_data[1],
                                  additional_settings=import_data[2])
-        func()
+        self.bpy_queue.put(func)
 
         # save workfile
         multi_asset_workfile = False  # TODO(Blender Addon): Multi Asset Workfiles
         if multi_asset_workfile is False:
             selected_step = self.loaded_asset.pipeline.pipeline_steps[step_index]
-            rel_wf_path = Path() / self.loaded_asset.level / self.loaded_asset.name / selected_step.get_folder_name() / "workfiles" / f"{self.loaded_asset.name}.0.spp"  # TODO: Move file ending generation to program specific code
+            rel_wf_path = Path() / self.loaded_asset.level / self.loaded_asset.name / selected_step.get_folder_name() / "workfiles" / f"{self.loaded_asset.name}.blend"
             abs_wf_path = self.project_dir / rel_wf_path
-            if abs_wf_path.exists():
-                print("[GAPA] A Workfile already exists for this Asset at this step, saving as a new one")
-                file_dir = abs_wf_path.parent
-                version = 0
-                while abs_wf_path.exists():
-                    version += 1
-                    abs_wf_path = file_dir / f"{self.loaded_asset.name}.{version}.spp"
-                print(f"[GAPA] Saving workfile as: {abs_wf_path.name}")
             self.loaded_asset.save_work_file(selected_step.uid, str(rel_wf_path))
-            self.save_workfile(abs_wf_path)
+            self.save_blend_file(abs_wf_path)
 
         self.accept()
 
-    def display_selected_asset(self, level, index) -> None:  # level: str, index: int
+    def display_selected_asset(self, level: str, index: int) -> None:
         asset_name = self.assets[level][index]
-        self.loaded_asset = assetModule.Asset(asset_name, level, project_dir=self.project_dir)
+        self.loaded_asset = Asset(asset_name, level, project_dir=self.project_dir)
 
         self.ui.asset_details.update_asset_details(self.loaded_asset.name,
                                                    self.loaded_asset.level,
@@ -164,7 +149,7 @@ class ImportWizardView(qtw.QDialog):
                     self.assets[asset_data[1]].append(asset_data[0])
         self.ui.asset_list.update_asset_list(self.assets)
 
-    def load_project_info(self, path):  # path: Path
+    def load_project_info(self, path: Path):
         if not path.exists():
             if not path.is_file():
                 if not path.suffix == "gapaproj":
@@ -183,12 +168,12 @@ class ImportWizardView(qtw.QDialog):
             for name in pipeline_data:
                 self.pipelines[name] = Path(pipeline_data[name])
 
-    def load_asset_details(self, name, level) -> assetModule.Asset:  # name: str, level: str
-        asset = assetModule.Asset(name, level, self.project_dir)
+    def load_asset_details(self, name: str, level: str) -> Asset:
+        asset = Asset(name, level, self.project_dir)
         return asset
 
-    def save_workfile(self, save_dir):  # save_dir: Path
+    def save_blend_file(self, save_dir: Path):
         # TODO(Blender Addon): Determine actual location (make dependent on user whether multi asset file or not)
         print("[GAPA][Qt] Issued Save Command")
         func = functools.partial(self.save_workfile_func, filepath=str(save_dir))
-        func()
+        self.bpy_queue.put(func)
