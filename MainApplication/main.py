@@ -1,6 +1,7 @@
 import sys
 from pathlib import Path
 import json
+import os
 
 from PyQt5 import QtWidgets as qtw
 from PyQt5 import QtCore as qtc
@@ -30,6 +31,10 @@ class MainWindow(qtw.QMainWindow):
         self.ui.assets_tab.layout().addWidget(self.assetManager)
 
         self.settingsWidget = SettingsView(self.ui.settings_tab)
+        file_location = Path(os.path.abspath(__file__))
+        print(file_location.parent)
+        plugin_dir = file_location.parent / "Plugins"
+        self.settingsWidget.settings.set_plugin_dir(plugin_dir)
         self.ui.settings_tab.layout().addWidget(self.settingsWidget)
 
         self.ui.actionSet_as_current_project.triggered.connect(self.set_as_current_project)

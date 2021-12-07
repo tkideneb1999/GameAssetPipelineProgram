@@ -1,0 +1,29 @@
+{
+  "name" : "DefaultBake",
+  "input" : {
+    "options" : {},
+    "inputs" : [
+      {
+        "inputName" : "lowpoly",
+        "type" : "mesh"
+      },
+      {
+        "inputName" : "highpoly",
+        "type" : "mesh"
+      }
+    ]
+  },
+  "output" : {
+    "options" : {},
+    "outputs" : [
+      {
+        "outputName" : "tangentSpaceNormal",
+        "type" : "texture"
+      },
+      {
+        "outputName" : "worldSpaceNormal",
+        "type" : "texture"
+      }
+    ]
+  }
+}

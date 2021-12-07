@@ -2,6 +2,7 @@ from pathlib import Path
 import json
 
 from .program_registration import ProgramRegistration
+from .plugin_registration import PluginRegistration
 
 
 class Settings(object):
@@ -14,6 +15,7 @@ class Settings(object):
 
             # Init
             cls.program_registration = ProgramRegistration()
+            cls.plugin_registration = PluginRegistration()
 
             cls.current_project_info_path = Path()
             cls.has_settings = False
@@ -32,6 +34,10 @@ class Settings(object):
             print(f"[GAPA] Removed {name} from registered programs")
             self.save()
 
+    def set_plugin_dir(self, plugin_dir: Path) -> None:
+        self.plugin_registration.set_plugin_dir(plugin_dir)
+        self.save()
+
     def set_current_project(self, project_info_path: Path) -> None:
         self.current_project_info_path = project_info_path
         self.save()
@@ -40,6 +46,7 @@ class Settings(object):
         if not self.save_path.exists():
             self.save_path.mkdir(parents=True)
         self.program_registration.save(self.save_path)
+        self.plugin_registration.save(self.save_path)
 
         settings_path = self.save_path / "settings.json"
         if not settings_path.exists():
@@ -54,7 +61,10 @@ class Settings(object):
             print("Settings Files do not exist")
             self.has_settings = False
             return
+
         self.program_registration.load(self.save_path)
+        self.plugin_registration.load(self.save_path)
+
         settings_path = self.save_path / "settings.json"
         if not settings_path.exists():
             print("[GAPA] No settings file detected")
