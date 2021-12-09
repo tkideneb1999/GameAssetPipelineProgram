@@ -76,7 +76,7 @@ class SettingsView(qtw.QWidget):
         for p in self.settings.plugin_registration.registered_plugins:
             plugin_item = PluginListViewItem(p)
             plugin_item.setObjectName(p)
-            self.plugin_list_layout.addWidget(plugin_item)
+            self.plugin_list_layout.insertWidget(self.plugin_list_layout.count() - 1, plugin_item)
             plugin_item.s_launch_settings.connect(self.launch_plugin_settings)
 
     def launch_plugin_settings(self, name: str) -> None:

@@ -8,6 +8,8 @@ from PyQt5 import QtCore as qtc
 from .assetManager_GUI import Ui_asset_manager
 from MainApplication.Core.asset import Asset
 from .newAssetWizard import NewAssetWizard
+from .Core.settings import Settings
+from .PluginAssetSettingsView.pluginAssetSettingsView import PluginAssetSettingsView
 
 
 class AssetManager(qtw.QWidget):
@@ -22,6 +24,7 @@ class AssetManager(qtw.QWidget):
         self.ui.asset_list.s_asset_changed.connect(self.display_selected_asset)
         self.ui.asset_list.s_open_file_explorer.connect(self.open_asset_in_explorer)
         self.ui.pipeline_viewer.s_open_file_explorer.connect(self.open_step_in_explorer)
+        self.ui.pipeline_viewer.s_run_plugin.connect(self.run_plugin)
 
         # Data
         self.assets: dict[str, list[str]] = {}
@@ -90,6 +93,8 @@ class AssetManager(qtw.QWidget):
         self.save_asset_list()
 
     def remove_asset(self) -> None:
+        print("[GAPA] Asset Removal not implemented")
+        """
         selected_assets = self.ui.asset_list.selectedIndexes()
         if not selected_assets:
             return
@@ -100,6 +105,7 @@ class AssetManager(qtw.QWidget):
                 # self.assets.remove(self.assets[i.row()])
 
         # TODO(Asset Manager): Remove Folder and files
+        """
 
     def display_selected_asset(self, level: str, index: int) -> None:
         if index == -1:
@@ -126,6 +132,30 @@ class AssetManager(qtw.QWidget):
             os.startfile(str(self.project_dir / self.loaded_asset.level / self.loaded_asset.name / step_folder_name))
         else:
             print("[GAPA] Opening file explorer only possible on Windows")
+
+    def run_plugin(self, step_index: int) -> None:
+        plugin_name = self.loaded_asset.pipeline.get_step_program(step_index)
+        settings = Settings()
+        plugin = settings.plugin_registration.get_plugin(plugin_name)
+        plugin_gui_settings = plugin.register_settings()
+        asset_gui_settings = plugin_gui_settings.asset_settings
+        # TODO: get Asset settings and set them in dialog
+        run_plugin_dialog = PluginAssetSettingsView(asset_gui_settings, enable_execute=True, parent=self)
+        result = run_plugin_dialog.exec_()
+        if result != 0:
+            if run_plugin_dialog.execute_clicked:
+                asset_settings = run_plugin_dialog.settings
+                # TODO: Save Asset Settings
+                # TODO: Collect Settings
+                global_settings = settings.plugin_registration.global_settings[plugin_name]
+                pipeline_settings = self.loaded_asset.pipeline.get_additional_settings(step_index)
+                plugin_settings = {"global_settings": global_settings,
+                                   "pipeline_settings": pipeline_settings,
+                                   "asset_settings": asset_settings}
+                plugin.run(plugin_settings)
+            else:
+                asset_settings = run_plugin_dialog.settings
+
 
     def add_levels(self, levels):
         for lvl in levels:

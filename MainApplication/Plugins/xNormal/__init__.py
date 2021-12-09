@@ -3,6 +3,7 @@ import pluginAPI
 
 
 def run(settings: dict) -> None:
+    print("[xNormal Plugin] Running xNormal")
     pass
 
 
@@ -13,5 +14,7 @@ def register_settings() -> pluginAPI.PluginSettings:
     settings.add_checkbox("woahCheckbox", pluginAPI.SettingsEnum.GLOBAL)
 
     settings.add_combobox("Wup", pluginAPI.SettingsEnum.PIPELINE, ["w", "a", "s", "d"])
+
+    settings.add_combobox("Wop", pluginAPI.SettingsEnum.ASSET, ["w", "o", "s"])
 
     return settings

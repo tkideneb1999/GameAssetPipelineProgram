@@ -28,7 +28,6 @@ class PipelineStepSettingsView(qtw.QWidget):
         self.settings: PipelineSettingsCreator = None
         self.settings_active = False
         self.additional_GUI: dict[str, list[qtw.QWidget]] = {}
-        self.pipelineSettings: PipelineSettingsCreator = PipelineSettingsCreator()
         self.update_ui()
 
     def update_ui(self) -> bool:
@@ -183,7 +182,9 @@ class PipelineStepSettingsView(qtw.QWidget):
         return data
 
     def get_required_settings(self) -> dict:
-        return {"has_set_outputs": self.has_set_outputs, "export_all": self.export_all}
+        return {"has_set_outputs": self.has_set_outputs,
+                "export_all": self.export_all,
+                "is_plugin": self.is_plugin}
 
     def set_additional_settings(self, data: dict) -> None:
         for name in self.additional_GUI:
