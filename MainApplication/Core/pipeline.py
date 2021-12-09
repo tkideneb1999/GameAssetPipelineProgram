@@ -42,6 +42,9 @@ class Pipeline:
         print(
             f"{self.pipeline_steps[step_index].program} is set as a program for step {self.pipeline_steps[step_index].uid}")
 
+    def set_is_plugin(self, step_index: int, is_plugin: bool) -> None:
+        self.pipeline_steps[step_index].is_plugin = is_plugin
+
     def set_additional_settings(self, step_index: int, additional_settings: dict) -> None:
         self.pipeline_steps[step_index].set_additional_settings(additional_settings)
 
@@ -222,6 +225,7 @@ class PipelineStep:
         self.outputs: list[PipelineOutput] = []
         self.has_set_outputs = False
         self.export_all = False
+        self.is_plugin = False
         self.uid: str = uid
         self.input_id_counter: int = 0
         self.output_id_counter: int = 0

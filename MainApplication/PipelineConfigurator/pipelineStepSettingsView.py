@@ -6,6 +6,7 @@ from PyQt5 import QtCore as qtc
 from MainApplication.Core.settings import Settings
 from MainApplication.PipelineConfigurator.pipeline_step_settings_GUI import Ui_pipeline_step_settings_GUI
 from MainApplication.PipelineConfigurator.pipelineSettingsCreator import PipelineSettingsCreator
+from MainApplication.Plugins.pluginAPI import PluginSettings
 
 
 class PipelineStepSettingsView(qtw.QWidget):
@@ -21,6 +22,7 @@ class PipelineStepSettingsView(qtw.QWidget):
         self.ui.configs_combobox.currentTextChanged.connect(self.config_changed)
 
         self.program = "None"
+        self.is_plugin = False
         self.has_set_outputs = False
         self.export_all = False
         self.settings: PipelineSettingsCreator = None
@@ -30,6 +32,17 @@ class PipelineStepSettingsView(qtw.QWidget):
         self.update_ui()
 
     def update_ui(self) -> bool:
+        settings = Settings()
+        program_list = settings.program_registration.get_program_list()
+        plugin_list = settings.plugin_registration.get_plugin_list()
+        if self.program in program_list:
+            self.is_plugin = False
+            return self.update_ui_with_program()
+        elif self.program in plugin_list:
+            self.is_plugin = True
+            return self.update_ui_with_plugin()
+
+    def update_ui_with_program(self) -> bool:
         self.clear_additional_GUI()
         settings = Settings()
         self.ui.configs_combobox.clear()
@@ -62,17 +75,57 @@ class PipelineStepSettingsView(qtw.QWidget):
         self.has_set_outputs = self.settings.has_set_outputs
         self.export_all = self.settings.export_all
         # Add configs to combobox
-        self.ui.configs_combobox.addItems(self.settings.configs.keys())
+        configs_available = (not self.settings.configs == {})
+        if configs_available:
+            self.ui.configs_combobox.addItems(self.settings.configs.keys())
 
         if self.settings.settings is None or {}:
-            return True
+            return configs_available
         for name in self.settings.settings:
             if self.settings.settings[name]["type"] == "combobox":
                 self.add_combobox(name, self.settings.settings[name]["data"])
 
             if self.settings.settings[name]["type"] == "checkbox":
                 self.add_checkbox(name, self.settings.settings[name]["data"])
-        return True
+        return configs_available
+
+    def update_ui_with_plugin(self) -> bool:
+        self.clear_additional_GUI()
+        self.ui.configs_combobox.clear()
+        settings = Settings()
+
+        # Get Plugin
+        plugin = settings.plugin_registration.get_plugin(self.program)
+        self.settings = plugin.register_settings()
+        if self.settings is None:
+            print("[GAPA] No settings set")
+            self.settings_active = False
+            return False
+
+        self.settings_active = True
+        self.has_set_outputs = self.settings.has_set_outputs
+        self.export_all = self.settings.export_all
+
+        configs_available = (not self.settings.configs == {})
+        if configs_available:
+            self.ui.configs_combobox.addItems(self.settings.configs.keys())
+
+        if self.settings.pipeline_settings is None or {}:
+            return configs_available
+        for name in self.settings.pipeline_settings:
+            if self.settings.pipeline_settings[name]["type"] == "combobox":
+                self.add_combobox(name, self.settings.pipeline_settings[name]["data"])
+
+            elif self.settings.pipeline_settings[name]["type"] == "checkbox":
+                self.add_checkbox(name, self.settings.pipeline_settings[name]["data"])
+
+            elif self.settings.pipeline_settings[name]["type"] == "lineedit":
+                self.add_lineedit(name, self.settings.pipeline_settings[name]["data"])
+        return configs_available
+
+    # -------------
+    # GUI Functions
+    # -------------
 
     def add_combobox(self, name: str, data: list[str]) -> None:
         combobox = qtw.QComboBox(self)
@@ -94,6 +147,22 @@ class PipelineStepSettingsView(qtw.QWidget):
         self.additional_GUI[name] = [checkbox]
         self.ui.verticalLayout.addWidget(checkbox)
 
+    def add_lineedit(self, name: str, default_value: str):
+        lineedit = qtw.QLineEdit(self)
+        lineedit.setObjectName(name)
+        if default_value is not None:
+            lineedit.setText(default_value)
+
+        label = qtw.QLabel(self)
+        label.setText(name)
+
+        layout = qtw.QHBoxLayout(self)
+        layout.addWidget(label)
+        layout.addWidget(lineedit)
+
+        self.settings_GUI[name] = [lineedit, label, layout]
+        self.dialog_layout.addLayout(layout)
+
     def clear_additional_GUI(self) -> None:
         for name in self.additional_GUI:
             for widget in self.additional_GUI[name]:
@@ -103,10 +172,14 @@ class PipelineStepSettingsView(qtw.QWidget):
     def get_additional_settings(self) -> dict:
         data = {}
         for name in self.additional_GUI:
-            if type(self.additional_GUI[name][0]) is qtw.QComboBox:
+            gui_type = type(self.additional_GUI[name][0])
+            if gui_type is qtw.QComboBox:
                 data[name] = self.additional_GUI[name][0].currentText()
-            if type(self.additional_GUI[name][0]) is qtw.QCheckBox:
+            elif gui_type is qtw.QCheckBox:
                 data[name] = self.additional_GUI[name][0].isChecked()
+            elif gui_type is qtw.QLineEdit:
+                data[name] = self.additional_GUI[name][0].text()
+
         return data
 
     def get_required_settings(self) -> dict:
@@ -114,10 +187,13 @@ class PipelineStepSettingsView(qtw.QWidget):
 
     def set_additional_settings(self, data: dict) -> None:
         for name in self.additional_GUI:
-            if type(self.additional_GUI[name][0]) is qtw.QComboBox:
+            gui_type = type(self.additional_GUI[name][0])
+            if gui_type is qtw.QComboBox:
                 data[name] = self.additional_GUI[name][0].setCurrentText(data[name])
-            if type(self.additional_GUI[name][0]) is qtw.QCheckBox:
+            elif gui_type is qtw.QCheckBox:
                 data[name] = self.additional_GUI[name][0].setChecked(data[name])
+            elif gui_type is qtw.QLineEdit:
+                data[name] = self.additional_GUI[name][0].setText(data[name])
 
     def program_changed(self, selected_program: str) -> bool:
         self.program = selected_program

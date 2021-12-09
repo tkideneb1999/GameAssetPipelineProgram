@@ -340,6 +340,7 @@ class PipelineStepGUI(qtw.QWidget):
         # Program Combobox
         settings = Settings()
         self.ui.program_combobox.addItems(settings.program_registration.get_program_list())
+        self.ui.program_combobox.addItems(settings.plugin_registration.get_plugin_list())
         self.ui.program_combobox.currentTextChanged.connect(self.select_program)
 
         # Program Settings

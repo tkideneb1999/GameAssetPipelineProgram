@@ -7,7 +7,7 @@ import importlib
 
 class PluginRegistration:
     def __init__(self):
-        self.registered_plugins = {}
+        self.registered_plugins: list = []
         self.plugin_dir: Path = None
 
     def set_plugin_dir(self, directory: Path) -> None:

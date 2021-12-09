@@ -41,10 +41,10 @@ class ProgramRegistration:
                                                "addonPath": Path(data[p]["addonPath"])}
 
     def get_program_path(self, name: str) -> Path:
-        return self.registered_programs[name]["path"]
+        return Path(self.registered_programs[name]["path"])
 
     def get_program_addon_path(self, name: str) -> Path:
-        return self.registered_programs[name]["addonPath"]
+        return Path(self.registered_programs[name]["addonPath"])
 
     def get_program_addon_enabled(self, name: str) -> bool:
         """
