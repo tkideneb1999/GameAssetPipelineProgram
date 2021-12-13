@@ -1,16 +1,22 @@
 from pathlib import Path
 import functools
 import json
+import sys
+import os
 import importlib
 
 from PySide2 import QtWidgets as qtw
 from PySide2 import QtCore as qtc
 
 from ..Core import asset as assetModule
+from ..Core import settings as settingsModule
 from . import importWizard_GUI
+from .PluginAssetSettingsView import pluginAssetSettingsView as pASV
 
 importlib.reload(assetModule)
+importlib.reload(settingsModule)
 importlib.reload(importWizard_GUI)
+importlib.reload(pASV)
 
 
 class ImportWizardView(qtw.QDialog):
@@ -42,6 +48,9 @@ class ImportWizardView(qtw.QDialog):
 
         self.ui.asset_list.s_asset_changed.connect(self.display_selected_asset)
         self.ui.pipeline_viewer.s_step_selected.connect(self.display_step_inputs)
+        self.ui.pipeline_viewer.s_open_file_explorer.connect(self.open_step_in_explorer)
+        self.ui.pipeline_viewer.s_run_plugin.connect(self.run_plugin)
+        self.ui.asset_list.s_open_file_explorer.connect(self.open_asset_in_explorer)
 
         self.ui.import_button.clicked.connect(self.import_assets)
 
@@ -191,3 +200,48 @@ class ImportWizardView(qtw.QDialog):
         print("[GAPA][Qt] Issued Save Command")
         func = functools.partial(self.save_workfile_func, filepath=str(save_dir))
         func()
+
+    def open_asset_in_explorer(self, level: str, asset: str) -> None:
+        if sys.platform == "win32":
+            os.startfile(str(self.project_dir / level / asset))
+        else:
+            print("[GAPA] Opening file explorer only possible on Windows")
+
+    def open_step_in_explorer(self, step_index: int) -> None:
+        if sys.platform == "win32":
+            step_folder_name = self.loaded_asset.pipeline.pipeline_steps[step_index].get_folder_name()
+            os.startfile(str(self.project_dir / self.loaded_asset.level / self.loaded_asset.name / step_folder_name))
+        else:
+            print("[GAPA] Opening file explorer only possible on Windows")
+
+    def run_plugin(self, step_index: int) -> None:
+        plugin_name = self.loaded_asset.pipeline.get_step_program(step_index)
+        settings = settingsModule.Settings()
+        plugin = settings.plugin_registration.get_plugin(plugin_name)
+        plugin_gui_settings = plugin.register_settings()
+        asset_gui_settings = plugin_gui_settings.asset_settings
+        # TODO: get Asset settings and set them in dialog
+        step_uid = self.loaded_asset.pipeline.pipeline_steps[step_index].uid
+        saved_asset_settings = self.loaded_asset.pipeline_progress[step_uid]["settings"]
+        if saved_asset_settings == {}:
+            run_plugin_dialog = pASV.PluginAssetSettingsView(asset_gui_settings, enable_execute=True, parent=self)
+        else:
+            run_plugin_dialog = pASV.PluginAssetSettingsView(asset_gui_settings,
+                                                        enable_execute=True,
+                                                        saved_settings=saved_asset_settings,
+                                                        parent=self)
+        result = run_plugin_dialog.exec_()
+        if result != 0:
+            if run_plugin_dialog.execute_clicked:
+                asset_settings = run_plugin_dialog.settings
+                global_settings = settings.plugin_registration.global_settings[plugin_name]
+                pipeline_settings = self.loaded_asset.pipeline.get_additional_settings(step_index)
+                plugin_settings = {"global_settings": global_settings,
+                                   "pipeline_settings": pipeline_settings,
+                                   "asset_settings": asset_settings}
+                config = self.loaded_asset.pipeline.pipeline_steps[step_index].config
+                plugin.run(plugin_settings, config)
+            else:
+                asset_settings = run_plugin_dialog.settings
+            self.loaded_asset.pipeline_progress[step_uid]["settings"] = asset_settings
+            self.loaded_asset.save(self.project_dir)

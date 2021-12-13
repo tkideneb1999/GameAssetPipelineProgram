@@ -7,8 +7,9 @@ import importlib
 
 class PluginRegistration:
     def __init__(self):
-        self.registered_plugins: list = []
+        self.registered_plugins = {}
         self.plugin_dir: Path = None
+        self.global_settings = {}
 
     def set_plugin_dir(self, directory: Path) -> None:
         self.plugin_dir = directory
@@ -18,13 +19,61 @@ class PluginRegistration:
             print("[GAPA] Plugin Dir not set")
             return
         filenames = os.listdir(self.plugin_dir)
-        print(sys.path)
         for filename in filenames:
+            if filename == "pluginAPI.py":
+                continue
             if not (self.plugin_dir / filename / "__init__.py").exists():
                 print(f"[GAPA] Plugin has no __init__ file: {filename}")
                 continue
             module = importlib.import_module(filename)
-            module.register()
+
+            # Check if necessary functions exist
+            try: 
+                module.register_settings
+            except NameError:
+                print(f"[GAPA] Plugin has no register_settings function: {filename}")
+                continue
+            try:
+                module.run
+            except NameError:
+                print(f"[GAPA] Plugin has no run function: {filename}")
+                continue
+            self.registered_plugins[filename] = module
+            settings = module.register_settings()
+            plugin_settings = {}
+            for param in settings.global_settings:
+                gui_type = settings.global_settings[param]["type"]
+                if gui_type == "combobox":
+                    plugin_settings[param] = settings.global_settings[param]["data"][0]
+                elif (gui_type == "lineedit") and (settings.global_settings[param]["data"] is None):
+                    plugin_settings[param] = ""
+                else:
+                    plugin_settings[param] = settings.global_settings[param]["data"]
+            self.global_settings[filename] = plugin_settings
+
+    def load_global_settings(self, directory: Path) -> None:
+        for plugin_name in self.global_settings:
+            path = directory / f"{plugin_name}.json"
+            if not path.exists():
+                print(f"[GAPA] Plugin has no Global Settings saved, using default settings: {plugin_name}")
+                continue
+            with path.open("r", encoding="utf-8") as f:
+                data = json.loads(f.read())
+                self.global_settings[plugin_name] = data
+
+    def get_plugin_list(self) -> list:
+        return list(self.registered_plugins.keys())
+
+    def get_plugin(self, name: str):
+        return self.registered_plugins[name]
+
+    def save_global_settings(self, directory: Path) -> None:
+        for plugin_name in self.global_settings:
+            path = directory / f"{plugin_name}.json"
+            if not path.exists():
+                path.touch()
+            with path.open("w", encoding="utf-8") as f:
+                f.write(json.dumps(self.global_settings[plugin_name], indent=4))
 
     def load(self, directory: Path) -> None:
         save_file = directory / "registeredPlugins.json"
@@ -43,6 +92,7 @@ class PluginRegistration:
         if not plugin_dir_registered:
             sys.path.append(str(self.plugin_dir))
         self.register_plugins()
+        self.load_global_settings(directory)
 
     def save(self, directory: Path) -> None:
         save_file = directory / "registeredPlugins.json"
@@ -53,3 +103,4 @@ class PluginRegistration:
                 "pluginDir": str(self.plugin_dir)
             }
             f.write(json.dumps(data, indent=4))
+        self.save_global_settings(directory)

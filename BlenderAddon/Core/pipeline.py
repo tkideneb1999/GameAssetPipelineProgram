@@ -54,6 +54,7 @@ class Pipeline:
     def set_required_settings(self, step_index: int, required_settings: dict) -> None:
         self.pipeline_steps[step_index].has_set_outputs = required_settings["has_set_outputs"]
         self.pipeline_steps[step_index].export_all = required_settings["export_all"]
+        self.pipeline_steps[step_index].is_plugin = required_settings["is_plugin"]
 
     # --------------
     # Inputs/Outputs
@@ -222,6 +223,7 @@ class PipelineStep:
         self.outputs: list[PipelineOutput] = []
         self.has_set_outputs = False
         self.export_all = False
+        self.is_plugin = False
         self.uid: str = uid
         self.input_id_counter: int = 0
         self.output_id_counter: int = 0
@@ -292,6 +294,7 @@ class PipelineStep:
                 "uid": self.uid,
                 "next_step": self.next_step,
                 "program": self.program,
+                "is_plugin": self.is_plugin,
                 "has_set_outputs": self.has_set_outputs,
                 "export_all": self.export_all,
                 "additional_settings": self.additional_settings,
@@ -309,6 +312,7 @@ class PipelineStep:
         self.additional_settings = data["additional_settings"]
         self.config = data["config"]
         self.program = data["program"]
+        self.is_plugin = data["is_plugin"]
         self.has_set_outputs = data["has_set_outputs"]
         self.export_all = data["export_all"]
         self.input_id_counter = data["input_id_counter"]

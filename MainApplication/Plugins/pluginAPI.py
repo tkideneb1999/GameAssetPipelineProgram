@@ -58,7 +58,7 @@ class PluginSettings:
 
     def load_configs(self, config_dir: Path):
         print(f"[GAPA] searching for configs at: {str(config_dir)}")
-        config_paths = list(config_dir.glob(".json"))
+        config_paths = list(config_dir.glob("*.json"))
         for config_path in config_paths:
             data = {}
             with config_path.open("r", encoding="utf-8") as f:

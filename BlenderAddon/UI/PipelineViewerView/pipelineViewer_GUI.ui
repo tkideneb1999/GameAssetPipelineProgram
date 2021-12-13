@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>400</width>
-    <height>211</height>
+    <height>212</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -46,25 +46,23 @@
     </widget>
    </item>
    <item>
-    <widget class="QListWidget" name="pipeline_list">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="minimumSize">
-      <size>
-       <width>190</width>
-       <height>0</height>
-      </size>
-     </property>
+    <widget class="QScrollArea" name="pipeline_scrollbar">
      <property name="horizontalScrollBarPolicy">
       <enum>Qt::ScrollBarAlwaysOn</enum>
      </property>
-     <property name="flow">
-      <enum>QListView::LeftToRight</enum>
+     <property name="widgetResizable">
+      <bool>true</bool>
      </property>
+     <widget class="QWidget" name="scrollAreaWidgetContents">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>398</width>
+        <height>177</height>
+       </rect>
+      </property>
+     </widget>
     </widget>
    </item>
   </layout>

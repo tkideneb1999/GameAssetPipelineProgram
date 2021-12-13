@@ -1,5 +1,5 @@
 from PyQt5 import QtWidgets as qtw
-import Plugins.pluginAPI as pluginAPI
+import MainApplication.Plugins.pluginAPI as pluginAPI
 
 
 class PluginSettingsView(qtw.QDialog):

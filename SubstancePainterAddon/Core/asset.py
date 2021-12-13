@@ -43,6 +43,7 @@ class Asset:
             step_asset_info = {"state": state,
                                "has_multi_outputs": step.has_set_outputs,
                                "output_info": outputs_info,
+                               "settings": {},
                                "old_version": False}
             self.pipeline_progress[step.uid] = step_asset_info
             # {step_uid: {
@@ -79,6 +80,9 @@ class Asset:
             output_set[o] = {"published": False,
                              "version": 0}
         return output_set
+
+    def set_step_asset_settings(self, step_uid: str, settings: dict) -> None:
+        self.pipeline_progress[step_uid]["settings"] = settings
 
     def check_all_exported(self, step_uid: str) -> bool:
         all_exported = True
