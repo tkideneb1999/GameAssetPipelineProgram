@@ -212,6 +212,9 @@ class Pipeline:
         output_index = self.pipeline_steps[step_index].get_io_index_by_uid(output_uid)
         return self.pipeline_steps[step_index].outputs[output_index].name
 
+    def set_output_data_type(self, step_index: int, output_index: int, data_type: str) -> None:
+        self.pipeline_steps[step_index].outputs[output_index].data_type = data_type
+
 
 class PipelineStep:
     def __init__(self, uid: str):
@@ -219,6 +222,7 @@ class PipelineStep:
         self.next_step = ""
         self.program = ""
         self.config = None
+        self.export_data_type = None
         self.inputs: list[PipelineInput] = []
         self.outputs: list[PipelineOutput] = []
         self.has_set_outputs = False
@@ -347,14 +351,23 @@ class PipelineInput:
 class PipelineOutput:
     def __init__(self, uid: str):
         self.name: str = f"output_{uid}"
+        self.data_type = None
         self.uid: str = uid
 
     def get_file_name(self):
         return f"{self.uid}_{self.name}"
 
     def save(self) -> dict:
-        return {"uid": self.uid, "name": self.name}
+        if self.data_type is None:
+            data_type = ""
+        else:
+            data_type = self.data_type
+        return {"uid": self.uid, "name": self.name, "data_type":data_type}
 
     def load(self, data: dict) -> None:
         self.name = data["name"]
         self.uid = data["uid"]
+        if data["data_type"] == "":
+            self.data_type = None
+        else:
+            self.data_type = data["data_type"]

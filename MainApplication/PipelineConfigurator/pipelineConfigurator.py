@@ -13,7 +13,7 @@ from MainApplication.PipelineConfigurator.pipeline_step_output_GUI import Ui_pip
 
 class IODataEnum(Enum):
     Name = 0
-    AssetType = 1
+    DataType = 1
     SelectedOutput = 2
 
 
@@ -175,6 +175,12 @@ class PipelineConfigurator(qtw.QWidget):
         self.step_widgets[step_index].outputs[-1].set_name(info[1])
         self.update_possible_outputs(step_index)
         self.step_widgets[step_index].outputs[-1].set_uid_label(info[0])
+        # Get data types for Program through settings
+        data_types = self.step_widgets[step_index].ui.program_settings.settings.export_data_types
+        if data_types == [] or data_types is None:
+            data_types = [""]
+        # set possible data types
+        self.step_widgets[step_index].outputs[-1].set_data_type_combobox(data_types, data_types[0])
 
     def output_removed(self, step_index: int, output_index: int):
         self.current_pipeline.remove_output(step_index, output_index)
@@ -183,6 +189,8 @@ class PipelineConfigurator(qtw.QWidget):
     def output_modified(self, step_index: int, output_index: int, data_field: IODataEnum, data: str):
         if data_field == IODataEnum.Name:
             self.current_pipeline.pipeline_steps[step_index].outputs[output_index].name = data
+        if data_field == IODataEnum.DataType:
+            self.current_pipeline.set_output_data_type(step_index, output_index, data)
 
     def update_possible_outputs(self, step_index: int, override_io=True):
         pipeline_outputs = []
@@ -501,7 +509,7 @@ class PipelineInputGUI(qtw.QWidget):
     def change_name(self, new_name: str):
         self.s_modified.emit(self.index, IODataEnum.Name, new_name)
 
-    def set_possible_outputs(self, outputs:list):
+    def set_possible_outputs(self, outputs: list):
         self.ui.input_name_combobox.clear()
         self.ui.input_name_combobox.addItem("----")
         self.ui.input_name_combobox.model().item(0).setEnabled(False)
@@ -526,6 +534,7 @@ class PipelineOutputGUI(qtw.QWidget):
         self.ui.setupUi(self)
         self.ui.remove_output_button.clicked.connect(self.remove)
         self.ui.output_name_lineedit.editingFinished.connect(self.changed_name)
+        self.ui.output_type_combobox.currentTextChanged.connect(self.set_data_type_internal)
 
         # Data
         self.index = index
@@ -546,3 +555,11 @@ class PipelineOutputGUI(qtw.QWidget):
     def change_name(self, new_name: str) -> None:
         self.ui.output_name_lineedit.setText(new_name)
         self.changed_name()
+
+    def set_data_type_internal(self, data_type: str) -> None:
+        self.s_modified.emit(self.index, IODataEnum.DataType, data_type)
+
+    def set_data_type_combobox(self, data_types: list[str], current_data_type: str) -> None:
+        self.ui.output_type_combobox.clear()
+        self.ui.output_type_combobox.addItems(data_types)
+        self.ui.output_type_combobox.setCurrentText(current_data_type)

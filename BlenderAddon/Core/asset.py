@@ -96,14 +96,14 @@ class Asset:
 
     def publish_step_file(self, step_uid: str,
                           output_uids: list,
-                          export_suffix: str,
+                          export_suffixes: list,
                           output_sets=None) -> dict:
         """
         Updates the pipeline progress and returns the
         export directory for the file to be published.
         :param step_uid: unique identifier of the pipeline step
         :param output_uids: unique identifiers of the outputs
-        :param export_suffix: export suffix without .
+        :param export_suffixes: export suffix without .
         :param output_sets: names of the sets that will be exported
         :returns: relative path to the project directory the file should be saved in
         """
@@ -116,7 +116,7 @@ class Asset:
         print(f"[GAPA] publishing with parameters:\n"
               f"step_uid: {step_uid}\n"
               f"output_uids: {output_uids}\n"
-              f"export_suffix: {export_suffix}\n"
+              f"export_suffix: {export_suffixes}\n"
               f"output_sets: {output_sets}")
 
         print(f"[GAPA] Step {step_uid} has set outputs: {has_set_outputs}")
@@ -218,25 +218,27 @@ class Asset:
             file_paths = {}
             for output_set in self.pipeline_progress[step_uid]["output_info"]:
                 output_set_data = {}
-                for o in output_uids:
+                for i in range(len(output_uids)):
+                    o = output_uids[i]
                     output_index = self.pipeline.pipeline_steps[step_index].get_io_index_by_uid(o)
                     if o == -1:
                         raise Exception("[GAPA] -1 is no Valid output index")
                     file_name = self.pipeline.pipeline_steps[step_index].outputs[output_index].get_file_name()
                     output_version = self.pipeline_progress[step_uid]["output_info"][output_set][o]["version"]
-                    output_set_data[o] = Path() / self.level / self.name / step_folder_name / "export" / output_set / f"{file_name}.{output_version}.{export_suffix}"
+                    output_set_data[o] = Path() / self.level / self.name / step_folder_name / "export" / output_set / f"{file_name}.{output_version}.{export_suffixes[i]}"
                 file_paths[output_set] = output_set_data
             return file_paths
         else:
             file_paths = {}
-            for o in output_uids:
+            for i in range(len(output_uids)):
+                o = output_uids[i]
                 output_index = self.pipeline.pipeline_steps[step_index].get_io_index_by_uid(o)
                 if o == -1:
                     raise Exception("[GAPA] -1 is no Valid output index")
 
                 file_name = self.pipeline.pipeline_steps[step_index].outputs[output_index].get_file_name()
                 output_version = self.pipeline_progress[step_uid]["output_info"]["None"][o]["version"]
-                file_paths[o] = (Path() / self.level / self.name / step_folder_name / "export" / f"{file_name}.{output_version}.{export_suffix}")
+                file_paths[o] = (Path() / self.level / self.name / step_folder_name / "export" / f"{file_name}.{output_version}.{export_suffixes[i]}")
                 return {"None": file_paths}
 
     def import_assets(self, step_index: int) -> tuple:

@@ -202,18 +202,33 @@ class ImportWizardView(qtw.QDialog):
         plugin_gui_settings = plugin.register_settings()
         asset_gui_settings = plugin_gui_settings.asset_settings
         # TODO: get Asset settings and set them in dialog
-        step_uid = self.loaded_asset.pipeline.pipeline_steps[step_index].uid
-        saved_asset_settings = self.loaded_asset.pipeline_progress[step_uid]["settings"]
+        step = self.loaded_asset.pipeline.pipeline_steps[step_index]
+        saved_asset_settings = self.loaded_asset.pipeline_progress[step.uid]["settings"]
+        if step.export_all:
+            outputs = None
+        else:
+            outputs = [(o.uid, o.name) for o in step.outputs]
         if saved_asset_settings == {}:
-            run_plugin_dialog = PluginAssetSettingsView(asset_gui_settings, enable_execute=True, parent=self)
+            run_plugin_dialog = PluginAssetSettingsView(asset_gui_settings, enable_execute=True, outputs=outputs,
+                                                        parent=self)
         else:
             run_plugin_dialog = PluginAssetSettingsView(asset_gui_settings,
                                                         enable_execute=True,
                                                         saved_settings=saved_asset_settings,
+                                                        outputs=outputs,
                                                         parent=self)
         result = run_plugin_dialog.exec_()
         if result != 0:
             if run_plugin_dialog.execute_clicked:
+                if step.export_all:
+                    output_uids = [o.uid for o in step.outputs]
+                    export_suffixes = [o.data_type for o in step.outputs]
+                else:
+                    output_uids = [run_plugin_dialog.current_output[0]]
+                    output_index = step.get_io_index_by_uid(output_uids[0])
+                    export_suffixes = [step.outputs[output_index].data_type]
+
+                paths = self.loaded_asset.publish_step_file(step.uid, output_uids, export_suffixes)
                 asset_settings = run_plugin_dialog.settings
                 global_settings = settings.plugin_registration.global_settings[plugin_name]
                 pipeline_settings = self.loaded_asset.pipeline.get_additional_settings(step_index)
@@ -221,8 +236,8 @@ class ImportWizardView(qtw.QDialog):
                                    "pipeline_settings": pipeline_settings,
                                    "asset_settings": asset_settings}
                 config = self.loaded_asset.pipeline.pipeline_steps[step_index].config
-                plugin.run(plugin_settings, config)
+                plugin.run(paths, plugin_settings, config)
             else:
                 asset_settings = run_plugin_dialog.settings
-            self.loaded_asset.pipeline_progress[step_uid]["settings"] = asset_settings
+            self.loaded_asset.pipeline_progress[step.uid]["settings"] = asset_settings
             self.loaded_asset.save(self.project_dir)

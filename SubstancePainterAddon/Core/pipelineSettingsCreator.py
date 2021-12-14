@@ -20,6 +20,7 @@ class PipelineSettingsCreator:
         #   outputs
         #       name, type
         # }
+        self.export_data_types = []
         if configs_dir is not None:
             print(f"[GAPA] searching for configs at: {str(configs_dir)}")
             config_paths = list(configs_dir.glob("*.json"))

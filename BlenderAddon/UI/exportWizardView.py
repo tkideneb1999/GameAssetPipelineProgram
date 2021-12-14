@@ -89,16 +89,19 @@ class ExportWizardView(qtw.QDialog):
         if not export_all:
             selected_output_index = self.ui.outputs_list.currentRow()
             output_uids = [selected_step.outputs[selected_output_index].uid]
+            output_data_types = [selected_step.outputs[selected_output_index].data_type]
         else:
             output_uids = []
+            output_data_types = []
             for output in selected_step.outputs:
                 output_uids.append(output.uid)
+                output_data_types.append(output.data_type)
 
         # TODO(Blender Addon):Select output format
-        output_format = "fbx"
+
 
         # Determine Absolute export path
-        publish_data = self.loaded_asset.publish_step_file(selected_step_uid, output_uids, output_format)
+        publish_data = self.loaded_asset.publish_step_file(selected_step_uid, output_uids, output_data_types)
         abs_paths = []
         for output_set in publish_data:
             for o in publish_data[output_set]:
@@ -110,7 +113,7 @@ class ExportWizardView(qtw.QDialog):
 
         # determine what to export
         export_settings = {"export_selected": self.ui.export_selected_checkbox.isChecked(),
-                           "output_format": output_format}
+                           "output_format": output_data_types}
         config_name = self.loaded_asset.pipeline.pipeline_steps[selected_step_index].config
 
         # send to blender Queue for export

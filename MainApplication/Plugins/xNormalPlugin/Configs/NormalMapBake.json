@@ -1,0 +1,25 @@
+{
+  "name": "NormalMapBake",
+  "input": {
+    "options" : {},
+    "inputs": [
+      {
+        "inputName": "lowpoly",
+        "type": "mesh"
+      },
+      {
+        "inputName": "highpoly",
+        "type": "mesh"
+      }
+    ]
+  },
+  "output": {
+    "options": {},
+    "outputs": [
+      {
+        "outputName": "normal",
+        "type": "texture"
+      }
+    ]
+  }
+}

@@ -12,6 +12,7 @@ class SettingsEnum(Enum):
 class PluginSettings:
     def __init__(self, config_dir=None):
         self.configs = {}
+        self.export_data_types = []
         if config_dir is not None:
             self.load_configs(config_dir)
         self.global_settings = {}
@@ -97,3 +98,11 @@ class PluginSettings:
             self.pipeline_settings[name] = settings_data
         elif space == SettingsEnum.ASSET:
             self.asset_settings[name] = settings_data
+
+    def set_export_data_types(self, data_types: list) -> None:
+        """
+        Sets the data types the Plugin can export.
+        :param data_types: list of strings containing the file suffixes that the plugin can export
+        :return: Nothing
+        """
+        self.export_data_types = data_types

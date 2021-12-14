@@ -1,9 +1,9 @@
-from PySide2 import QtWidgets as qtw
+from PyQt5 import QtWidgets as qtw
 import functools
 
 
 class PluginAssetSettingsView(qtw.QDialog):
-    def __init__(self, settings: dict, enable_execute=False, saved_settings=None, parent=None):
+    def __init__(self, settings: dict, enable_execute=False, saved_settings=None, outputs=None, parent=None):
         super(PluginAssetSettingsView, self).__init__(parent)
 
         # GUI Types
@@ -13,6 +13,7 @@ class PluginAssetSettingsView(qtw.QDialog):
         self.execute_clicked = False
         self.gui_elements = {}
         self.settings = {}
+        self.current_output = None
         self.dialog_layout = qtw.QVBoxLayout(self)
         self.setLayout(self.dialog_layout)
         for name in settings:
@@ -25,6 +26,13 @@ class PluginAssetSettingsView(qtw.QDialog):
 
         if saved_settings is not None:
             self.set_all_settings(saved_settings)
+
+        self.outputs = outputs
+        if outputs is not None:
+            self.output_list = qtw.QListWidget(self)
+            output_strings = [f"{o[0]}, {o[1]}" for o in self.outputs]
+            self.output_list.addItems(output_strings)
+            self.output_list.currentRowChanged.connect(self.selected_output)
 
         self.button_layout = qtw.QHBoxLayout(self)
 
@@ -126,4 +134,7 @@ class PluginAssetSettingsView(qtw.QDialog):
                 self.gui_elements[gui_name][0].setText(data)
             elif gui_type == qtw.QComboBox:
                 self.gui_elements[gui_name][0].setCurrentText(data)
+
+    def selected_output(self, index: int):
+        self.current_output = self.outputs[index]
 
