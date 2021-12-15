@@ -49,6 +49,8 @@ class PluginRegistration:
                     plugin_settings[param] = ""
                 else:
                     plugin_settings[param] = settings.global_settings[param]["data"]
+            plugin_settings["has_set_outputs"] = settings.has_set_outputs
+            plugin_settings["export_all"] = settings.export_all
             self.global_settings[filename] = plugin_settings
 
     def load_global_settings(self, directory: Path) -> None:

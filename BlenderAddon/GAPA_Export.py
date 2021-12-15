@@ -80,11 +80,14 @@ class GAPAExport(bpy.types.Operator):
     def start_window(self) -> None:
         pass
 
-    def export_file(self, file_paths: list[Path], config_name: str, export_settings: dict) -> None:
-            for i in range(len(file_paths)):
-                if export_settings["output_format"][i] == "fbx":
-
-                    bpy.ops.export_scene.fbx(filepath=str(file_paths[i]), use_selection=export_settings["export_selected"])
+    def export_file(self, file_paths: dict[str, dict[str, tuple[str, Path]]],
+                    config_name: str,
+                    export_settings: dict) -> None:
+        for output_set in file_paths:
+            for o in file_paths[output_set]:
+                data = file_paths[output_set][o]
+                if data[1].suffix == ".fbx":
+                    bpy.ops.export_scene.fbx(filepath=str(data[1]), use_selection=export_settings["export_selected"])
 
     def save_workfile(self, filepath: list[Path]) -> None:
         bpy.ops.wm.save_as_mainfile(filepath=str(filepath))

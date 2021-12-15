@@ -183,9 +183,9 @@ class AssetManager(qtw.QWidget):
                 asset_settings = run_plugin_dialog.settings
                 global_settings = settings.plugin_registration.global_settings[plugin_name]
                 pipeline_settings = self.loaded_asset.pipeline.get_additional_settings(step_index)
-                plugin_settings = {"global_settings": global_settings,
-                                   "pipeline_settings": pipeline_settings,
-                                   "asset_settings": asset_settings}
+                plugin_settings = {"global": global_settings,
+                                   "pipeline": pipeline_settings,
+                                   "asset": asset_settings}
                 config = self.loaded_asset.pipeline.pipeline_steps[step_index].config
                 plugin.run(abs_import_paths, abs_export_paths, plugin_settings, config)
             else:

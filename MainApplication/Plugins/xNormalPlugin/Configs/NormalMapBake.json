@@ -5,11 +5,13 @@
     "inputs": [
       {
         "inputName": "lowpoly",
-        "type": "mesh"
+        "type": "mesh",
+        "average_normals": "UseExportedNormals"
       },
       {
         "inputName": "highpoly",
-        "type": "mesh"
+        "type": "mesh",
+        "average_normals": "UseExportedNormals"
       }
     ]
   },
@@ -18,7 +20,8 @@
     "outputs": [
       {
         "outputName": "normal",
-        "type": "texture"
+        "type": "texture",
+        "genName": "gen_normals"
       }
     ]
   }

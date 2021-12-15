@@ -97,15 +97,12 @@ class ExportWizardView(qtw.QDialog):
                 output_uids.append(output.uid)
                 output_data_types.append(output.data_type)
 
-        # TODO(Blender Addon):Select output format
-
-
         # Determine Absolute export path
         publish_data = self.loaded_asset.publish_step_file(selected_step_uid, output_uids, output_data_types)
-        abs_paths = []
+        abs_paths = publish_data
         for output_set in publish_data:
             for o in publish_data[output_set]:
-                abs_paths.append(self.project_dir / publish_data[output_set][o])
+                abs_paths[output_set][o][1] = self.project_dir / publish_data[output_set][o]
 
         # update asset pipeline progress data & save changes
         self.loaded_asset.save(self.project_dir)
@@ -227,27 +224,57 @@ class ExportWizardView(qtw.QDialog):
         plugin_gui_settings = plugin.register_settings()
         asset_gui_settings = plugin_gui_settings.asset_settings
         # TODO: get Asset settings and set them in dialog
-        step_uid = self.loaded_asset.pipeline.pipeline_steps[step_index].uid
-        saved_asset_settings = self.loaded_asset.pipeline_progress[step_uid]["settings"]
+        step = self.loaded_asset.pipeline.pipeline_steps[step_index]
+        saved_asset_settings = self.loaded_asset.pipeline_progress[step.uid]["settings"]
+        if step.export_all:
+            outputs = None
+        else:
+            outputs = [(o.uid, o.name) for o in step.outputs]
         if saved_asset_settings == {}:
-            run_plugin_dialog = PluginAssetSettingsView(asset_gui_settings, enable_execute=True, parent=self)
+            run_plugin_dialog = PluginAssetSettingsView(asset_gui_settings, enable_execute=True, outputs=outputs,
+                                                        parent=self)
         else:
             run_plugin_dialog = PluginAssetSettingsView(asset_gui_settings,
                                                         enable_execute=True,
                                                         saved_settings=saved_asset_settings,
+                                                        outputs=outputs,
                                                         parent=self)
         result = run_plugin_dialog.exec_()
         if result != 0:
             if run_plugin_dialog.execute_clicked:
+                import_data = self.loaded_asset.import_assets(step_index)
+                abs_import_paths = import_data[0]
+                for output_set in abs_import_paths:
+                    for output in abs_import_paths[output_set]:
+                        abs_import_paths[output_set][output][1] = self.project_dir / import_data[0][output_set][output][
+                            1]
+
+                if step.export_all:
+                    output_uids = [o.uid for o in step.outputs]
+                    export_suffixes = [o.data_type for o in step.outputs]
+                else:
+                    output_uids = [run_plugin_dialog.current_output[0]]
+                    output_index = step.get_io_index_by_uid(output_uids[0])
+                    export_suffixes = [step.outputs[output_index].data_type]
+
+                publish_data = self.loaded_asset.publish_step_file(step.uid, output_uids, export_suffixes)
+
+                # Convert relative paths to absolute paths
+                abs_export_paths = publish_data
+                for output_set in publish_data:
+                    for o in publish_data[output_set]:
+                        abs_export_paths[output_set][o][1] = self.project_dir / publish_data[output_set][o][1]
+
+                # Collect settings
                 asset_settings = run_plugin_dialog.settings
                 global_settings = settings.plugin_registration.global_settings[plugin_name]
                 pipeline_settings = self.loaded_asset.pipeline.get_additional_settings(step_index)
-                plugin_settings = {"global_settings": global_settings,
-                                   "pipeline_settings": pipeline_settings,
-                                   "asset_settings": asset_settings}
+                plugin_settings = {"global": global_settings,
+                                   "pipeline": pipeline_settings,
+                                   "asset": asset_settings}
                 config = self.loaded_asset.pipeline.pipeline_steps[step_index].config
-                plugin.run(plugin_settings, config)
+                plugin.run(abs_import_paths, abs_export_paths, plugin_settings, config)
             else:
                 asset_settings = run_plugin_dialog.settings
-            self.loaded_asset.pipeline_progress[step_uid]["settings"] = asset_settings
+            self.loaded_asset.pipeline_progress[step.uid]["settings"] = asset_settings
             self.loaded_asset.save(self.project_dir)

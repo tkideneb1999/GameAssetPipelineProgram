@@ -1,7 +1,10 @@
 import json
+import importlib
 from pathlib import Path
 
 from . import pipeline as pipelineModule
+
+importlib.reload(pipelineModule)
 
 pipeline_states = ["files missing", "not_started", "in_progress", "published"]
 
@@ -221,11 +224,11 @@ class Asset:
                 for i in range(len(output_uids)):
                     o = output_uids[i]
                     output_index = self.pipeline.pipeline_steps[step_index].get_io_index_by_uid(o)
-                    if o == -1:
+                    if output_index == -1:
                         raise Exception("[GAPA] -1 is no Valid output index")
                     file_name = self.pipeline.pipeline_steps[step_index].outputs[output_index].get_file_name()
                     output_version = self.pipeline_progress[step_uid]["output_info"][output_set][o]["version"]
-                    output_set_data[o] = Path() / self.level / self.name / step_folder_name / "export" / output_set / f"{file_name}.{output_version}.{export_suffixes[i]}"
+                    output_set_data[o] = (self.pipeline.get_output_name(output_uids[i]), Path() / self.level / self.name / step_folder_name / "export" / output_set / f"{file_name}.{output_version}.{export_suffixes[i]}")
                 file_paths[output_set] = output_set_data
             return file_paths
         else:
@@ -233,13 +236,20 @@ class Asset:
             for i in range(len(output_uids)):
                 o = output_uids[i]
                 output_index = self.pipeline.pipeline_steps[step_index].get_io_index_by_uid(o)
-                if o == -1:
+                if output_index == -1:
                     raise Exception("[GAPA] -1 is no Valid output index")
 
                 file_name = self.pipeline.pipeline_steps[step_index].outputs[output_index].get_file_name()
                 output_version = self.pipeline_progress[step_uid]["output_info"]["None"][o]["version"]
-                file_paths[o] = (Path() / self.level / self.name / step_folder_name / "export" / f"{file_name}.{output_version}.{export_suffixes[i]}")
+                file_paths[o] = (self.pipeline.get_output_name(output_uids[i]), Path() / self.level / self.name / step_folder_name / "export" / f"{file_name}.{output_version}.{export_suffixes[i]}")
                 return {"None": file_paths}
+        # Return:
+        # {outputSetName:
+        #  { output_uid:
+        #    { (outputName, Path)
+        #    }
+        #  }
+        # }
 
     def import_assets(self, step_index: int) -> tuple:
         """
