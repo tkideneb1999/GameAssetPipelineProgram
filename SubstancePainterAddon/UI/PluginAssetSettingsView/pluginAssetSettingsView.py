@@ -1,4 +1,4 @@
-from PyQt5 import QtWidgets as qtw
+from PySide2 import QtWidgets as qtw
 import functools
 
 

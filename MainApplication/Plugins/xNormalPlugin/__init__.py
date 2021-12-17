@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pluginAPI
 
-import xNormal
+from . import xNormal
 
 gen_name_suffix_map = {
     "gen_normals": "normals",

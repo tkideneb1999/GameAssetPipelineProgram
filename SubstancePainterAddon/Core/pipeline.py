@@ -222,6 +222,7 @@ class PipelineStep:
         self.next_step = ""
         self.program = ""
         self.config = None
+        self.export_data_type = None
         self.inputs: list = []
         self.outputs: list = []
         self.has_set_outputs = False
@@ -361,7 +362,7 @@ class PipelineOutput:
             data_type = ""
         else:
             data_type = self.data_type
-        return {"uid": self.uid, "name": self.name, "data_type": data_type}
+        return {"uid": self.uid, "name": self.name, "data_type":data_type}
 
     def load(self, data: dict) -> None:
         self.name = data["name"]

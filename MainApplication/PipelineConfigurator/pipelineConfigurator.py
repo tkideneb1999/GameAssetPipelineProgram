@@ -157,7 +157,9 @@ class PipelineConfigurator(qtw.QWidget):
         uid = self.current_pipeline.add_input(step_index)
         self.update_possible_outputs(step_index - 1)
         # Get InputGui
-        self.step_widgets[step_index].inputs[-1].set_uid_label(uid)
+        index = self.current_pipeline.pipeline_steps[step_index].get_io_index_by_uid(uid, is_input=True)
+        name = self.current_pipeline.pipeline_steps[step_index].inputs[index].name
+        self.step_widgets[step_index].inputs[-1].set_description_label(uid, name)
         # Set uid label
 
 
@@ -258,7 +260,9 @@ class PipelineConfigurator(qtw.QWidget):
             else:
                 self.step_widgets[-1].select_config(self.current_pipeline.pipeline_steps[k].config)
                 for i in range(len(self.step_widgets[-1].inputs)):
-                    self.step_widgets[-1].inputs[i].set_uid_label(self.current_pipeline.pipeline_steps[k].inputs[i].uid)
+                    input_uid = self.current_pipeline.pipeline_steps[k].inputs[i].uid
+                    input_name = self.current_pipeline.pipeline_steps[k].inputs[i].name
+                    self.step_widgets[-1].inputs[i].set_description_label(input_uid, input_name)
 
                 for o in range(len(self.step_widgets[-1].outputs)):
                     self.step_widgets[-1].outputs[o].set_uid_label(self.current_pipeline.pipeline_steps[k].outputs[o].uid)
@@ -500,8 +504,8 @@ class PipelineInputGUI(qtw.QWidget):
         self.s_remove.emit(self.index)
         self.deleteLater()
 
-    def set_uid_label(self, uid: str) -> None:
-        self.ui.id_label.setText(uid)
+    def set_description_label(self, uid: str, name: str) -> None:
+        self.ui.id_label.setText(f"{name} - {uid}")
 
     def selected_output(self):
         self.s_modified.emit(self.index, IODataEnum.SelectedOutput, self.ui.input_name_combobox.currentText())

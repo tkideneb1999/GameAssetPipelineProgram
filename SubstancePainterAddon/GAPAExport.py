@@ -64,7 +64,7 @@ class GAPAExport:
         export_config["exportParameters"] = export_parameters
         for output_set in file_paths:
             first_entry = list(file_paths[output_set].keys())[0]
-            path = file_paths[output_set][first_entry].parent
+            path = file_paths[output_set][first_entry][1].parent
             export_config["exportPath"] = str(path)
             export_list = [{
                 "rootPath": output_set,

@@ -9,14 +9,12 @@ from PySide2 import QtWidgets as qtw
 from PySide2 import QtCore as qtc
 
 from ..Core import asset
-from ..Core import settings as settingsModule
 from . import exportWizard_GUI
-from .PluginAssetSettingsView import pluginAssetSettingsView as pASV
+from . import pluginHandler
 
 importlib.reload(asset)
-importlib.reload(settingsModule)
 importlib.reload(exportWizard_GUI)
-importlib.reload(pASV)
+importlib.reload(pluginHandler)
 
 
 class ExportWizardView(qtw.QDialog):
@@ -56,6 +54,9 @@ class ExportWizardView(qtw.QDialog):
         self.ui.pipeline_viewer.s_open_file_explorer.connect(self.open_step_in_explorer)
         self.ui.asset_list.s_open_file_explorer.connect(self.open_asset_in_explorer)
 
+        # Plugins
+        self.plugin_handler = pluginHandler.PluginHandler(self.project_dir, self)
+
     def close_dialog(self):
         print("Closing Window")
         self.accept()
@@ -94,22 +95,22 @@ class ExportWizardView(qtw.QDialog):
         # Get selected step uid and output uid
         selected_step = self.loaded_asset.pipeline.pipeline_steps[selected_step_index]
         selected_step_uid = selected_step.uid
-        print(f"[GAPA] selected index: {selected_step_index}; uid: {selected_step_uid}")
 
         multi_asset_workfile = False  # TODO(Blender Addon): Multi Asset Workfiles
         if multi_asset_workfile is False:
             path = self.project_dir / self.loaded_asset.level / self.loaded_asset.name / selected_step.get_folder_name() / f"{self.loaded_asset.name}.spp"
             self.save_workfile(path)
-        if export_all:
-            output_uids = []
-            for o in selected_step.outputs:
-                output_uids.append(o.uid)
-        else:
+
+        if not export_all:
             selected_output_index = self.ui.outputs_list.currentRow()
             output_uids = [selected_step.outputs[selected_output_index].uid]
-
-        # TODO(Blender Addon):Select output format
-        output_format = "tga"
+            output_data_types = [selected_step.outputs[selected_output_index].data_type]
+        else:
+            output_uids = []
+            output_data_types = []
+            for output in selected_step.outputs:
+                output_uids.append(output.uid)
+                output_data_types.append(output.data_type)
 
         output_sets = None
         if self.loaded_asset.pipeline.pipeline_steps[selected_step_index].has_set_outputs:
@@ -121,19 +122,20 @@ class ExportWizardView(qtw.QDialog):
         # Determine Absolute export path
         publish_data = self.loaded_asset.publish_step_file(selected_step_uid,
                                                            output_uids,
-                                                           output_format,
+                                                           output_data_types,
                                                            output_sets=output_sets)
         abs_paths = publish_data
         for output_set in publish_data:
             for o in publish_data[output_set]:
-                abs_paths[output_set][o] = self.project_dir / publish_data[output_set][o]
+                abs_paths[output_set][o][1] = self.project_dir / publish_data[output_set][o][1]
 
         # update asset pipeline progress data & save changes
         self.loaded_asset.save(self.project_dir)
 
         # get Config name
+        export_settings = {"export_selected": self.ui.export_selected_checkbox.isChecked(),
+                           "output_format": output_data_types}
         config_name = self.loaded_asset.pipeline.pipeline_steps[selected_step_index].config
-        export_settings = {"output_format": output_format}
 
         # send to blender Queue for export
         self.export_file(abs_paths, config_name, export_settings)
@@ -241,63 +243,6 @@ class ExportWizardView(qtw.QDialog):
             print("[GAPA] Opening file explorer only possible on Windows")
 
     def run_plugin(self, step_index: int) -> None:
-        plugin_name = self.loaded_asset.pipeline.get_step_program(step_index)
-        settings = settingsModule.Settings()
-        plugin = settings.plugin_registration.get_plugin(plugin_name)
-        plugin_gui_settings = plugin.register_settings()
-        asset_gui_settings = plugin_gui_settings.asset_settings
-        # TODO: get Asset settings and set them in dialog
-        step = self.loaded_asset.pipeline.pipeline_steps[step_index]
-        saved_asset_settings = self.loaded_asset.pipeline_progress[step.uid]["settings"]
-        if step.export_all:
-            outputs = None
-        else:
-            outputs = [(o.uid, o.name) for o in step.outputs]
-        if saved_asset_settings == {}:
-            run_plugin_dialog = pASV.PluginAssetSettingsView(asset_gui_settings, enable_execute=True, outputs=outputs,
-                                                        parent=self)
-        else:
-            run_plugin_dialog = pASV.PluginAssetSettingsView(asset_gui_settings,
-                                                        enable_execute=True,
-                                                        saved_settings=saved_asset_settings,
-                                                        outputs=outputs,
-                                                        parent=self)
-        result = run_plugin_dialog.exec_()
-        if result != 0:
-            if run_plugin_dialog.execute_clicked:
-                import_data = self.loaded_asset.import_assets(step_index)
-                abs_import_paths = import_data[0]
-                for output_set in abs_import_paths:
-                    for output in abs_import_paths[output_set]:
-                        abs_import_paths[output_set][output][1] = self.project_dir / import_data[0][output_set][output][
-                            1]
-
-                if step.export_all:
-                    output_uids = [o.uid for o in step.outputs]
-                    export_suffixes = [o.data_type for o in step.outputs]
-                else:
-                    output_uids = [run_plugin_dialog.current_output[0]]
-                    output_index = step.get_io_index_by_uid(output_uids[0])
-                    export_suffixes = [step.outputs[output_index].data_type]
-
-                publish_data = self.loaded_asset.publish_step_file(step.uid, output_uids, export_suffixes)
-
-                # Convert relative paths to absolute paths
-                abs_export_paths = publish_data
-                for output_set in publish_data:
-                    for o in publish_data[output_set]:
-                        abs_export_paths[output_set][o][1] = self.project_dir / publish_data[output_set][o][1]
-
-                # Collect settings
-                asset_settings = run_plugin_dialog.settings
-                global_settings = settings.plugin_registration.global_settings[plugin_name]
-                pipeline_settings = self.loaded_asset.pipeline.get_additional_settings(step_index)
-                plugin_settings = {"global": global_settings,
-                                   "pipeline": pipeline_settings,
-                                   "asset": asset_settings}
-                config = self.loaded_asset.pipeline.pipeline_steps[step_index].config
-                plugin.run(abs_import_paths, abs_export_paths, plugin_settings, config)
-            else:
-                asset_settings = run_plugin_dialog.settings
-            self.loaded_asset.pipeline_progress[step.uid]["settings"] = asset_settings
-            self.loaded_asset.save(self.project_dir)
+        self.plugin_handler.run_plugin(self.loaded_asset, step_index)
+        self.loaded_asset.load(self.project_dir)
+        self.ui.pipeline_viewer.update_view(self.loaded_asset)
