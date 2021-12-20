@@ -23,7 +23,7 @@ class MainWindow(qtw.QMainWindow):
 
         # set up tabs
         self.pipeline_configurator = PipelineConfigurator(self.ui.pipelines_tab)
-        self.pipeline_configurator.pipeline_saved_signal.connect(self.add_pipeline)
+        self.pipeline_configurator.s_pipeline_saved.connect(self.add_pipeline)
 
         self.ui.pipelines_tab.layout().addWidget(self.pipeline_configurator)
 

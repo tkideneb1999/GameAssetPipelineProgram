@@ -1,0 +1,21 @@
+{
+  "name" : "Retopo",
+  "input" : {
+    "options" : {},
+    "inputs" : [
+      {
+        "inputName" : "highpoly",
+        "type" : "mesh"
+      }
+    ]
+  },
+  "output" : {
+    "options" : {},
+    "outputs" : [
+      {
+        "outputName" : "lowpoly",
+        "type" : "mesh"
+      }
+    ]
+  }
+}
