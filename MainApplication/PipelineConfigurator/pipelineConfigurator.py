@@ -153,9 +153,16 @@ class PipelineConfigurator(qtw.QWidget):
         pipeline.load(path)
         for step in pipeline.pipeline_steps:
             self.add_step(load=True)
-            self.step_widgets[-1].uid = step.uid
-            self.step_widgets[-1].set_name(step.name)
+            self.step_widgets[-1].set_data(step)
             self.step_widgets[-1].set_up_signals()
+
+        self.update_output_selection(0)
+
+        for i_uid in pipeline.io_connections:
+            step_uid = pipeline.get_step_uid_from_io(i_uid)
+            step_index = pipeline.get_step_index_by_uid(step_uid)
+            input_index = pipeline.pipeline_steps[step_index].get_io_index_by_uid(i_uid, is_input=True)
+            self.step_widgets[step_index].inputs[input_index].set_connected_output(pipeline.io_connections[i_uid])
 
 
 class PipelineStepView(qtw.QWidget):
@@ -329,7 +336,11 @@ class PipelineStepView(qtw.QWidget):
 
         for i in step.inputs:
             self.add_input()
+            self.inputs[-1].set_data(i)
 
+        for o in step.outputs:
+            self.add_output()
+            self.outputs[-1].set_data(o)
 
     # Helpers
     def set_io_button_interactivity(self, is_active: bool) -> None:
@@ -394,6 +405,14 @@ class PipelineInputView(qtw.QWidget):
 
         return current_output_exists
 
+    def set_connected_output(self, output_uid: str) -> bool:
+        for i in range(len(self.possible_outputs)):
+            if output_uid == self.possible_outputs[i][0]:
+                self.ui.input_name_combobox.setCurrentIndex(i+1)
+                return True
+        self.ui.input_name_combobox.setCurrentIndex(0)
+        return False
+
     def disable_customization(self, disabled: bool) -> None:
         self.ui.remove_input_button.setDisabled(disabled)
         self.ui.input_type_combo_box.setDisabled(disabled)
@@ -412,7 +431,7 @@ class PipelineInputView(qtw.QWidget):
     def set_data(self, pipeline_input: pipelineModule.PipelineInput) -> None:
         self.uid = pipeline_input.uid
         self.name = pipeline_input.name
-
+        self.set_name(self.name)
 
 
 class PipelineOutputView(qtw.QWidget):
@@ -464,9 +483,14 @@ class PipelineOutputView(qtw.QWidget):
         self.ui.output_type_combobox.setDisabled(disabled)
 
     def get_data(self) -> pipelineModule.PipelineOutput:
-        name = self.ui.output_name_lineedit.text()
-        output_type = self.ui.output_type_combobox.currentText()
         pipeline_output = pipelineModule.PipelineOutput(self.uid)
-        pipeline_output.name = self.name
-        pipeline_output.data_type = output_type
+        pipeline_output.name = self.ui.output_name_lineedit.text()
+        pipeline_output.data_type = self.ui.output_type_combobox.currentText()
         return pipeline_output
+
+    def set_data(self, pipeline_output: pipelineModule.PipelineOutput) -> None:
+        self.uid = pipeline_output.uid
+        self.name = pipeline_output.name
+        self.ui.id_label.setText(self.uid)
+        self.ui.output_type_combobox.setCurrentText(pipeline_output.data_type)
+        self.ui.output_name_lineedit.setText(pipeline_output.name)
