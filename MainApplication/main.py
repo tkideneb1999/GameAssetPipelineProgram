@@ -13,6 +13,8 @@ from .assetManager import AssetManager
 from .projectWizard import ProjectWizard
 from .LoadCurrentProjectWizard.loadCurrentProjectWizard import LoadCurrentProjectWizard
 
+from .PluginAssetSettingsView.collapsibleWidget import CollapsibleWidget
+
 
 class MainWindow(qtw.QMainWindow):
     def __init__(self):
@@ -38,6 +40,13 @@ class MainWindow(qtw.QMainWindow):
         self.ui.settings_tab.layout().addWidget(self.settingsWidget)
 
         self.ui.actionSet_as_current_project.triggered.connect(self.set_as_current_project)
+
+        # Testing Tab
+        self.collapsible_widget = CollapsibleWidget(label="One", parent=self.ui.testing_tab)
+        self.collapsible_widget_2 = CollapsibleWidget(label="Two", parent=self.ui.testing_tab)
+        self.ui.testing_tab.layout().setAlignment(qtc.Qt.AlignTop)
+        self.ui.testing_tab.layout().addWidget(self.collapsible_widget)
+        self.ui.testing_tab.layout().addWidget(self.collapsible_widget_2)
 
         # Data
         self.project_name = ""

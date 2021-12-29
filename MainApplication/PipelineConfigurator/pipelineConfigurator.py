@@ -146,7 +146,8 @@ class PipelineConfigurator(qtw.QWidget):
             pipeline.pipeline_steps.append(step_data[0])
         pipeline.io_connections = io_connections
 
-        pipeline.save(self.project_dir / "pipelines")
+        path = pipeline.save(self.project_dir / "pipelines")
+        self.s_pipeline_saved.emit(path, pipeline.name)
 
     def load(self, path: Path):
         pipeline = pipelineModule.Pipeline()

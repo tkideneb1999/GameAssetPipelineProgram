@@ -142,4 +142,6 @@ def register_settings() -> pluginAPI.PluginSettings:
     settings.add_lineedit("Max Ray Distance Back", pluginAPI.SettingsEnum.ASSET, "50")
     settings.add_checkbox("Bake sets separate", pluginAPI.SettingsEnum.ASSET)
 
+    settings.add_combobox("Heights Tonemap", pluginAPI.SettingsEnum.ASSET, ["Interactive", "Manual", "RawFPValues"], tab="Height Map")
+
     return settings

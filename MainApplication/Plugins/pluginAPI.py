@@ -21,7 +21,7 @@ class PluginSettings:
         self.has_set_outputs = False
         self.export_all = True
 
-    def add_lineedit(self, name: str, space: SettingsEnum, default_value=None):
+    def add_lineedit(self, name: str, space: SettingsEnum, default_value=None, tab="General"):
         """
         Adds a line edit field to the specified space
         :param name: name of the line edit field
@@ -29,11 +29,12 @@ class PluginSettings:
          available)
          will be either put in the settings tab, when configuring the pipeline or when the pipeline step is activated
         :param default_value: default value of the line edit
+        :param tab: tab in which to place the field
         """
-        settings_data = {"type": "lineedit", "data": default_value}
+        settings_data = {"type": "lineedit", "data": default_value, "tab": tab}
         self.add_settings(name, space, settings_data)
 
-    def add_combobox(self, name: str, space: SettingsEnum, data: list):
+    def add_combobox(self, name: str, space: SettingsEnum, data: list, tab="General"):
         """
         Adds a line edit field to the specified space
         :param name: name of the combobox field
@@ -41,11 +42,12 @@ class PluginSettings:
          available)
          will be either put in the settings tab, when configuring the pipeline or when the pipeline step is activated
         :param data: individual entries as a list first one will be the default
+        :param tab: tab in which to place the field
         """
-        settings_data = {"type": "combobox", "data": data}
+        settings_data = {"type": "combobox", "data": data, "tab": tab}
         self.add_settings(name, space, settings_data)
 
-    def add_checkbox(self, name: str, space: SettingsEnum, default_value=False):
+    def add_checkbox(self, name: str, space: SettingsEnum, default_value=False, tab="General"):
         """
         Adds a line edit field to the specified space
         :param name: name of the checkbox field
@@ -53,8 +55,21 @@ class PluginSettings:
          available)
          will be either put in the settings tab, when configuring the pipeline or when the pipeline step is activated
         :param default_value: default value of the checkbox
+        :param tab: tab in which to place the field
         """
-        settings_data = {"type": "checkbox", "data": default_value}
+        settings_data = {"type": "checkbox", "data": default_value, "tab": tab}
+        self.add_settings(name, space, settings_data)
+
+    def add_spinbox(self, name: str, space: SettingsEnum, default_value=0, tab="General"):
+        """
+        Adds a spin box field to the specified space
+        :param name: name of the spin box field
+        :param space: where the spin box will be used (SettingsEnum.GLOBAL, SettingsEnum.PIPELINE, SettingsEnum.ASSET
+         available)
+        :param default_value: default value of the spin box
+        :param tab: tab in which to place the field
+        """
+        settings_data = {"type": "spinbox", "data": default_value, "tab": tab}
         self.add_settings(name, space, settings_data)
 
     def load_configs(self, config_dir: Path):
