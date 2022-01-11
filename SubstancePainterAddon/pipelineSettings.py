@@ -1,6 +1,5 @@
 import os
 from pathlib import Path
-import json
 import importlib
 
 if __package__ == "":
@@ -20,6 +19,7 @@ def create_pipeline_settings() -> pSC.PipelineSettingsCreator:
 
     # Set outputs (if outputs can be multiple sets, e.g. multiple texture sets)
     pipeline_settings.has_set_outputs = True
+    pipeline_settings.set_export_data_types(["tga", "png", "tiff"])
 
     # Export all outputs at once
     pipeline_settings.export_all = True

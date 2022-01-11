@@ -1,4 +1,5 @@
 import os
+import subprocess
 
 """
 path: The path to xNormal.exe
@@ -25,8 +26,9 @@ def run_config(conf):
     f = open(config_file, 'w')
     f.write(conf)
     f.close()
-    
-    retcode = os.system("\"%s\" %s" % (path, config_file))
+
+    retcode = subprocess.call([path, f"\"{config_file}\""])
+    #  retcode = os.system("\"%s\" \"%s\"" % (path, config_file))
     os.remove(config_file)
     
     return retcode
@@ -34,7 +36,9 @@ def run_config(conf):
    
 def run_config_filename(conf_filename):
     """ Runs xNormal using the path to a configuration file. """
-    retcode = os.system("\"%s\" %s" % (path, conf_filename))
+    print([path, f"\"{conf_filename}\""])
+    retcode = subprocess.call([path, conf_filename])
+    #  retcode = os.system("\"%s\" \"%s\"" % (path, conf_filename))
     return retcode
     
     
@@ -144,8 +148,9 @@ def generation_options(out_filename, **kwargs):
         ("normals_x", "SwizzleX", "X+"),
         ("normals_y", "SwizzleY", "Y+"),
         ("normals_z", "SwizzleZ", "Z+"),
-        ("normals_high_texture", "BakeHighpolyBaseTex", False),
-        ("normals_high_matid", "BakeHighpolyBaseTextureDrawObjectIDIfNoTexture", False),
+
+        ("gen_id", "BakeHighpolyBaseTex", False),
+        ("draw_object_id", "BakeHighpolyBaseTextureDrawObjectIDIfNoTexture", False),
         
         ("gen_heights", "GenHeights", False),
         ("heights_tonemap", "HeightTonemap", "Interactive"),

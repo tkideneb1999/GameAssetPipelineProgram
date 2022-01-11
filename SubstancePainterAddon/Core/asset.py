@@ -1,6 +1,6 @@
 import json
-import importlib
 from pathlib import Path
+import importlib
 
 from . import pipeline as pipelineModule
 
@@ -203,8 +203,10 @@ class Asset:
                             if not output_set[connected_output_uid]:
                                 output_published = False
                                 break
+                        print(f"[GAPA][Asset] output: {connected_output_uid}, published: {output_published}")
                     else:
                         output_published = self.pipeline_progress[output_step_uid]["output_info"]["None"][connected_output_uid]["published"]
+                        print(f"[GAPA][Asset] output: {connected_output_uid}, published: {output_published}")
                     if not output_published:
                         has_all_files = False
 
@@ -242,7 +244,7 @@ class Asset:
                 file_name = self.pipeline.pipeline_steps[step_index].outputs[output_index].get_file_name()
                 output_version = self.pipeline_progress[step_uid]["output_info"]["None"][o]["version"]
                 file_paths[o] = (self.pipeline.get_output_name(output_uids[i]), Path() / self.level / self.name / step_folder_name / "export" / f"{file_name}.{output_version}.{export_suffixes[i]}")
-                return {"None": file_paths}
+            return {"None": file_paths}
         # Return:
         # {outputSetName:
         #  { output_uid:
@@ -257,11 +259,11 @@ class Asset:
         :returns: list of filepaths for assets to import
         """
         rel_asset_dir = Path() / self.level / self.name
-        file_format = "fbx"  # TODO(Blender Addon): implement file type
         filepaths = {}
-        for i in self.pipeline.pipeline_steps[step_index].inputs:
+        for i in range(len(self.pipeline.pipeline_steps[step_index].inputs)):
+            input_data = self.pipeline.pipeline_steps[step_index].inputs[i]
             # get connected output
-            output_uid = self.pipeline.io_connections[i.uid]
+            output_uid = self.pipeline.io_connections[input_data.uid]
             # reconstruct relative file path
             #   get step folder
             output_step_uid = self.pipeline.get_step_uid_from_io(output_uid)
@@ -270,13 +272,24 @@ class Asset:
             #   get file name of output
             output_index = self.pipeline.pipeline_steps[output_step_index].get_io_index_by_uid(output_uid)
             file_name = self.pipeline.pipeline_steps[output_step_index].outputs[output_index].get_file_name()
+            file_format = self.pipeline.pipeline_steps[output_step_index].outputs[output_index].data_type
             if self.pipeline_progress[output_step_uid]["has_multi_outputs"]:
                 for output_set in self.pipeline_progress[output_step_uid]["output_info"]:
                     version = self.pipeline_progress[output_step_uid]["output_info"][output_set][output_uid]["version"]
-                    filepaths[output_set][output_uid] = (i.name, rel_asset_dir / folder_name / "export" / output_set / f"{file_name}.{version}.{file_format}")
+                    if filepaths.get("None") is None:
+                        filepaths[output_set] = {output_uid: (input_data.name, rel_asset_dir / folder_name / "export" / f"{file_name}.{version}.{file_format}")}
+                    else:
+                        filepaths[output_set][output_uid] = (input_data.name, rel_asset_dir / folder_name / "export" / output_set / f"{file_name}.{version}.{file_format}")
             else:
                 version = self.pipeline_progress[output_step_uid]["output_info"]["None"][output_uid]["version"]
-                filepaths["None"] = {output_uid: (i.name, rel_asset_dir / folder_name / "export" / f"{file_name}.{version}.{file_format}")}
+                if filepaths.get("None") is None:
+                    filepaths["None"] = {output_uid: (input_data.name, rel_asset_dir / folder_name / "export" / f"{file_name}.{version}.{file_format}")}
+                else:
+                    filepaths["None"][output_uid] = (input_data.name, rel_asset_dir / folder_name / "export" / f"{file_name}.{version}.{file_format}")
+
+        # Workfile Folder
+        filepaths["workfiles"] = rel_asset_dir / self.pipeline.pipeline_steps[step_index].get_folder_name() / "workfiles"
+
         return filepaths, self.pipeline.pipeline_steps[step_index].config, self.pipeline.pipeline_steps[step_index].additional_settings
 
     def save_work_file(self, step_uid: str, workfile_path: str) -> None:

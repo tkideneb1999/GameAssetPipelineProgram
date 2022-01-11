@@ -56,8 +56,9 @@ class PipelineViewerView(qtw.QWidget):
         self.selected_step = -1
 
     def update_view(self, asset: Asset) -> None:
-        for step_widget in self.step_widget_list:
-            step_widget.deleteLater()
+        for i in reversed(range(len(self.step_widget_list))):
+            self.step_widget_list[i].deleteLater()
+            del self.step_widget_list[i]
         for index in range(len(asset.pipeline.pipeline_steps)):
             step = asset.pipeline.pipeline_steps[index]
             state = asset.pipeline_progress[step.uid]["state"]

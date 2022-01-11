@@ -112,3 +112,10 @@ class PipelineSettingsCreator:
         checkbox_dict = {"type": "checkbox",
                          "data": default_value}
         self.settings[name] = checkbox_dict
+
+    def set_export_data_types(self, types: list):
+        """
+        Set the export data types.
+        :param types: list of export suffixes without .
+        """
+        self.export_data_types = types

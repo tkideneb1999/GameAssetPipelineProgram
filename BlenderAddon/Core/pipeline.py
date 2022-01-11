@@ -105,7 +105,7 @@ class Pipeline:
                 indices.append(i)
         connected_input_uids = list(self.io_connections.keys())
         affected_inputs = []
-        for i in range(len(indices)):
+        for i in indices:
             affected_inputs.append(connected_input_uids[i])
         return affected_inputs
 

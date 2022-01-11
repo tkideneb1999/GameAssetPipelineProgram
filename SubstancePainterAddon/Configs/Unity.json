@@ -1,0 +1,145 @@
+{
+  "name": "Unity",
+  "input": {
+    "options": {},
+    "inputs": [
+      {
+        "inputName": "lowpoly",
+        "type": "mesh"
+      },
+      {
+        "inputName": "normal_base",
+        "type": "texture"
+      },
+      {
+        "inputName": "ambient_occlusion",
+        "type": "texture"
+      },
+      {
+        "inputName": "id",
+        "type": "texture"
+      },
+      {
+        "inputName": "thickness",
+        "type": "texture"
+      },
+      {
+        "inputName": "world_space_normals",
+        "type": "texture"
+      },
+      {
+        "inputName": "curvature",
+        "type": "texture"
+      }
+    ]
+  },
+  "output": {
+    "options": {
+      "exportShaderParams": false
+    },
+    "outputs": [
+      {
+        "outputName": "DA",
+        "type": "texture",
+        "fileName": "T_$mesh_$textureSet_DA",
+        "channels": [
+          {
+            "destChannel": "R",
+            "srcChannel": "R",
+            "srcMapType": "documentMap",
+            "srcMapName": "basecolor"
+          },
+          {
+            "destChannel": "G",
+            "srcChannel": "G",
+            "srcMapType": "documentMap",
+            "srcMapName": "basecolor"
+          },
+          {
+            "destChannel": "B",
+            "srcChannel": "B",
+            "srcMapType": "documentMap",
+            "srcMapName": "basecolor"
+          },
+          {
+            "destChannel": "A",
+            "srcChannel": "L",
+            "srcMapType": "documentMap",
+            "srcMapName": "opacity"
+          }
+        ],
+        "parameters": {
+          "bitDepth": "16",
+          "dithering": false,
+          "paddingAlgorithm": "infinite"
+        }
+      },
+      {
+        "outputName": "N",
+        "type": "texture",
+        "fileName": "T_$mesh_$textureSet_N",
+        "channels": [
+          {
+            "destChannel": "R",
+            "srcChannel": "R",
+            "srcMapType": "virtualMap",
+            "srcMapName": "Normal_OpenGL"
+          },
+          {
+            "destChannel": "G",
+            "srcChannel": "G",
+            "srcMapType": "virtualMap",
+            "srcMapName": "Normal_OpenGL"
+          },
+          {
+            "destChannel": "B",
+            "srcChannel": "B",
+            "srcMapType": "virtualMap",
+            "srcMapName": "Normal_OpenGL"
+          }
+        ],
+        "parameters": {
+          "bitDepth": "16",
+          "dithering": false,
+          "paddingAlgorithm": "infinite"
+        }
+      },
+      {
+        "outputName": "MOS",
+        "type": "texture",
+        "fileName": "T_$mesh_$textureSet_MOS",
+        "channels": [
+          {
+            "destChannel": "R",
+            "srcChannel": "L",
+            "srcMapType": "documentMap",
+            "srcMapName": "metallic"
+          },
+          {
+            "destChannel": "G",
+            "srcChannel": "L",
+            "srcMapType": "virtualMap",
+            "srcMapName": "AO_Mixed"
+          },
+          {
+            "destChannel": "B",
+            "srcChannel": "L",
+            "srcMapType": "defaultMap",
+            "srcMapName": "black"
+          },
+          {
+            "destChannel": "A",
+            "srcChannel": "L",
+            "srcMapType": "virtualMap",
+            "srcMapName": "Glossiness"
+          }
+        ],
+        "parameters": {
+          "bitDepth": "16",
+          "dithering": false,
+          "paddingAlgorithm": "infinite"
+        }
+      }
+    ]
+  }
+}

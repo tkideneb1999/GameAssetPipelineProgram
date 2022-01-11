@@ -1,0 +1,56 @@
+{
+  "name" : "SubstanceBake",
+  "input" : {
+    "options" : {},
+    "inputs" : [
+      {
+        "inputName" : "lowpoly",
+        "type" : "mesh",
+        "average_normals" : "UseExportedNormals"
+      },
+      {
+        "inputName" : "highpoly",
+        "type" : "mesh",
+        "average_normals" : "UseExportedNormals"
+      }
+    ]
+  },
+  "output" : {
+    "options" : {},
+    "outputs" : [
+      {
+        "outputName" : "normal_base",
+        "type" : "texture",
+        "genName" : "gen_normals"
+      },
+      {
+        "outputName" : "curvature",
+        "type" : "texture",
+        "genName" : "gen_curve"
+      },
+      {
+        "outputName" : "ambient_occlusion",
+        "type" : "texture",
+        "genName" : "gen_ao"
+      },
+      {
+        "outputName" : "thickness",
+        "type" : "texture",
+        "genName" : "gen_thickness"
+      },
+      {
+        "outputName" : "world_space_normals",
+        "type" : "texture",
+        "genName" : "gen_ws_normals"
+      },
+      {
+        "outputName" : "id",
+        "type" : "texture",
+        "genName" : "gen_id",
+        "overwrite_options": {
+          "draw_object_id" : true
+        }
+      }
+    ]
+  }
+}

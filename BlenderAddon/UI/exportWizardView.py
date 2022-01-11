@@ -10,8 +10,6 @@ from PyQt5 import QtCore as qtc
 
 from ..Core.asset import Asset
 from .exportWizard_GUI import Ui_export_Wizard
-from .PluginAssetSettingsView.pluginAssetSettingsView import PluginAssetSettingsView
-from ..Core.settings import Settings
 from .pluginHandler import PluginHandler
 
 
@@ -88,7 +86,7 @@ class ExportWizardView(qtw.QDialog):
 
         multi_asset_workfile = False  # TODO(Blender Addon): Multi Asset Workfiles
         if multi_asset_workfile is False:
-            path = self.project_dir / self.loaded_asset.level / self.loaded_asset.name / selected_step.get_folder_name() / f"{self.loaded_asset.name}.spp"
+            path = self.project_dir / self.loaded_asset.level / self.loaded_asset.name / selected_step.get_folder_name() / f"{self.loaded_asset.name}.blend"
             self.save_blend_file(path)
         if not export_all:
             selected_output_index = self.ui.outputs_list.currentRow()
@@ -116,7 +114,7 @@ class ExportWizardView(qtw.QDialog):
         abs_paths = publish_data
         for output_set in publish_data:
             for o in publish_data[output_set]:
-                abs_paths[output_set][o][1] = self.project_dir / publish_data[output_set][o]
+                abs_paths[output_set][o] = (publish_data[output_set][o][0], self.project_dir / publish_data[output_set][o][1])
 
         # update asset pipeline progress data & save changes
         self.loaded_asset.save(self.project_dir)

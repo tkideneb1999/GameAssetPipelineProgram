@@ -1,12 +1,17 @@
 import functools
+import importlib
 
 from PySide2 import QtWidgets as qtw
 from PySide2 import QtCore as qtc
 
-from .pipelineViewer_GUI import Ui_pipeline_viewer
-from .pipelineStepViewer_GUI import Ui_pipeline_step_viewer
+from . import pipelineViewer_GUI
+from . import pipelineStepViewer_GUI
 
-from ...Core.asset import Asset
+from ...Core import asset as assetModule
+
+importlib.reload(assetModule)
+importlib.reload(pipelineViewer_GUI)
+importlib.reload(pipelineStepViewer_GUI)
 
 
 def clickable(widget: qtw.QWidget):
@@ -42,7 +47,7 @@ class PipelineViewerView(qtw.QWidget):
 
     def __init__(self, current_program="standalone", parent=None):
         super(PipelineViewerView, self).__init__(parent)
-        self.ui = Ui_pipeline_viewer()
+        self.ui = pipelineViewer_GUI.Ui_pipeline_viewer()
         self.ui.setupUi(self)
 
         self.scrollbar_layout = qtw.QHBoxLayout(self)
@@ -55,9 +60,10 @@ class PipelineViewerView(qtw.QWidget):
         self.step_widget_list: list[PipelineStepViewerView] = []
         self.selected_step = -1
 
-    def update_view(self, asset: Asset) -> None:
-        for step_widget in self.step_widget_list:
-            step_widget.deleteLater()
+    def update_view(self, asset: assetModule.Asset) -> None:
+        for i in reversed(range(len(self.step_widget_list))):
+            self.step_widget_list[i].deleteLater()
+            del self.step_widget_list[i]
         for index in range(len(asset.pipeline.pipeline_steps)):
             step = asset.pipeline.pipeline_steps[index]
             state = asset.pipeline_progress[step.uid]["state"]
@@ -92,7 +98,7 @@ class PipelineStepViewerView(qtw.QWidget):
                  step_state: str, uses_current_program: bool,
                  is_plugin: bool, files_missing: bool, parent=None):
         super(PipelineStepViewerView, self).__init__(parent)
-        self.ui = Ui_pipeline_step_viewer()
+        self.ui = pipelineStepViewer_GUI.Ui_pipeline_step_viewer()
         self.ui.setupUi(self)
         self.index = step_index
         self.update_view(step_name, step_program, step_state)

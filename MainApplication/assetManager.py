@@ -138,6 +138,7 @@ class AssetManager(qtw.QWidget):
             print("[GAPA] Opening file explorer only possible on Windows")
 
     def run_plugin(self, step_index: int) -> None:
+        self.loaded_asset.load(self.project_dir)
         self.plugin_handler.run_plugin(self.loaded_asset, step_index)
         self.loaded_asset.load(self.project_dir)
         self.ui.pipeline_viewer.update_view(self.loaded_asset)

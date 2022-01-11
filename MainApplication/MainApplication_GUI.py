@@ -47,11 +47,11 @@ class Ui_MainWindow(object):
         self.verticalLayout_2 = QtWidgets.QVBoxLayout(self.settings_tab)
         self.verticalLayout_2.setObjectName("verticalLayout_2")
         self.tabs.addTab(self.settings_tab, "")
-        self.testing_tab = QtWidgets.QWidget()
-        self.testing_tab.setObjectName("testing_tab")
-        self.verticalLayout_5 = QtWidgets.QVBoxLayout(self.testing_tab)
+        self.project_settings_tab = QtWidgets.QWidget()
+        self.project_settings_tab.setObjectName("project_settings_tab")
+        self.verticalLayout_5 = QtWidgets.QVBoxLayout(self.project_settings_tab)
         self.verticalLayout_5.setObjectName("verticalLayout_5")
-        self.tabs.addTab(self.testing_tab, "")
+        self.tabs.addTab(self.project_settings_tab, "")
         self.verticalLayout.addWidget(self.tabs)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
@@ -69,7 +69,7 @@ class Ui_MainWindow(object):
         self.menubar.addAction(self.menuFile.menuAction())
 
         self.retranslateUi(MainWindow)
-        self.tabs.setCurrentIndex(3)
+        self.tabs.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
@@ -78,6 +78,6 @@ class Ui_MainWindow(object):
         self.tabs.setTabText(self.tabs.indexOf(self.assets_tab), _translate("MainWindow", "Assets"))
         self.tabs.setTabText(self.tabs.indexOf(self.pipelines_tab), _translate("MainWindow", "Pipeline Configurator"))
         self.tabs.setTabText(self.tabs.indexOf(self.settings_tab), _translate("MainWindow", "Settings"))
-        self.tabs.setTabText(self.tabs.indexOf(self.testing_tab), _translate("MainWindow", "Testing"))
+        self.tabs.setTabText(self.tabs.indexOf(self.project_settings_tab), _translate("MainWindow", "Project Settings"))
         self.menuFile.setTitle(_translate("MainWindow", "File"))
         self.actionSet_as_current_project.setText(_translate("MainWindow", "Set as current project"))

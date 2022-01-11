@@ -7,6 +7,7 @@ class SettingsEnum(Enum):
     GLOBAL = 0
     PIPELINE = 1
     ASSET = 2
+    PROJECT = 3
 
 
 class PluginSettings:
@@ -18,6 +19,7 @@ class PluginSettings:
         self.global_settings = {}
         self.pipeline_settings = {}
         self.asset_settings = {}
+        self.project_settings = {}
         self.has_set_outputs = False
         self.export_all = True
 
@@ -113,6 +115,8 @@ class PluginSettings:
             self.pipeline_settings[name] = settings_data
         elif space == SettingsEnum.ASSET:
             self.asset_settings[name] = settings_data
+        elif space == SettingsEnum.PROJECT:
+            self.project_settings[name] = settings_data
 
     def set_export_data_types(self, data_types: list) -> None:
         """

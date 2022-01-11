@@ -127,7 +127,7 @@ class ExportWizardView(qtw.QDialog):
         abs_paths = publish_data
         for output_set in publish_data:
             for o in publish_data[output_set]:
-                abs_paths[output_set][o][1] = self.project_dir / publish_data[output_set][o][1]
+                abs_paths[output_set][o] = (publish_data[output_set][o][0], self.project_dir / publish_data[output_set][o][1])
 
         # update asset pipeline progress data & save changes
         self.loaded_asset.save(self.project_dir)

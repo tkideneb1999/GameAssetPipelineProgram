@@ -12,8 +12,7 @@ from MainApplication.Settings.settingsView import SettingsView
 from .assetManager import AssetManager
 from .projectWizard import ProjectWizard
 from .LoadCurrentProjectWizard.loadCurrentProjectWizard import LoadCurrentProjectWizard
-
-from .PluginAssetSettingsView.collapsibleWidget import CollapsibleWidget
+from .ProjectSettingsView.projectSettingsView import ProjectSettingsView
 
 
 class MainWindow(qtw.QMainWindow):
@@ -39,14 +38,10 @@ class MainWindow(qtw.QMainWindow):
         self.settingsWidget.settings.set_plugin_dir(plugin_dir)
         self.ui.settings_tab.layout().addWidget(self.settingsWidget)
 
-        self.ui.actionSet_as_current_project.triggered.connect(self.set_as_current_project)
+        self.project_settings_widget = ProjectSettingsView(self.ui.project_settings_tab)
+        self.ui.project_settings_tab.layout().addWidget(self.project_settings_widget)
 
-        # Testing Tab
-        self.collapsible_widget = CollapsibleWidget(label="One", parent=self.ui.testing_tab)
-        self.collapsible_widget_2 = CollapsibleWidget(label="Two", parent=self.ui.testing_tab)
-        self.ui.testing_tab.layout().setAlignment(qtc.Qt.AlignTop)
-        self.ui.testing_tab.layout().addWidget(self.collapsible_widget)
-        self.ui.testing_tab.layout().addWidget(self.collapsible_widget_2)
+        self.ui.actionSet_as_current_project.triggered.connect(self.set_as_current_project)
 
         # Data
         self.project_name = ""
@@ -114,6 +109,9 @@ class MainWindow(qtw.QMainWindow):
         # Set Pipeline Data
         self.pipeline_configurator.set_project_dir(self.project_dir)
 
+        # Set Project Settings Data
+        self.project_settings_widget.set_project_dir(self.project_dir)
+
         # Create Level Folders
         for lvl in self.levels:
             path = self.project_dir / lvl
@@ -138,6 +136,7 @@ class MainWindow(qtw.QMainWindow):
             self.assetManager.update_pipelines(self.pipelines)
             self.assetManager.load_asset_list()
             self.pipeline_configurator.set_project_dir(self.project_dir)
+            self.project_settings_widget.set_project_dir(self.project_dir)
             return True
 
     def add_pipeline(self, path: Path, name: str):
@@ -164,6 +163,8 @@ class MainWindow(qtw.QMainWindow):
             project_data = {"name": self.project_name, "levels": self.levels, "pipelines": pipeline_data}
             f.write(json.dumps(project_data, indent=4))
             f.close()
+
+        self.project_settings_widget.save()
 
     def load_project_info(self):
         path = self.project_dir / "projectInfo.gapaproj"

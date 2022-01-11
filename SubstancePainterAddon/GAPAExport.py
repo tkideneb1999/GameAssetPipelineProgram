@@ -5,12 +5,12 @@ import importlib
 import json
 
 from PySide2 import QtWidgets as qtw
+from PySide2 import QtCore as qtc
 
 import substance_painter.logging as spLog
 import substance_painter.project as spProj
 import substance_painter.textureset as spTexSet
 import substance_painter.export as spExp
-import substance_painter.event as spEvent
 
 from .UI import exportWizardView
 from . import pipelineSettings as pS
@@ -26,8 +26,10 @@ class GAPAExport:
         self.project_info: Path = None
         self.sp_main_window = sp_main_window
         self.program = program_name
+        self.timer = qtc.QTimer()
+        self.timer.timeout.connect(self.process_queue)
+        self.timer.start(1)
         self.queue = queue.Queue()
-        spEvent.DISPATCHER.connect(spEvent.BusyStatusChanged, self.painter_busy_changed)
 
     def launch_export_dialog(self):
         if not spProj.is_open():
@@ -51,6 +53,15 @@ class GAPAExport:
         config_data = {}
         with config_path.open("r", encoding="utf-8") as c:
             config_data = json.loads(c.read())
+        for o in range(len(config_data["output"]["outputs"])):
+            output_name = config_data["output"]["outputs"][o]["outputName"]
+            first_entry = list(file_paths.keys())[0]
+            for o_uid in file_paths[first_entry]:
+                if file_paths[first_entry][o_uid][0] == output_name:
+                    index = list(file_paths[first_entry]).index(o_uid)
+                    config_data["output"]["outputs"][o]["fileName"] = file_paths[first_entry][o_uid][1].stem
+                    if config_data["output"]["outputs"][o]["parameters"].get("fileFormat") is None:
+                        config_data["output"]["outputs"][o]["parameters"]["fileFormat"] = export_settings["output_format"][index]
         export_config = {
             "exportPath": None,
             "defaultExportPreset": config_name,
@@ -60,7 +71,7 @@ class GAPAExport:
                 "maps": config_data["output"]["outputs"]
             }]
         }
-        export_parameters = [{"parameters": {"fileFormat": export_settings["output_format"]}}]
+        export_parameters = [{"parameters": {}}]
         export_config["exportParameters"] = export_parameters
         for output_set in file_paths:
             first_entry = list(file_paths[output_set].keys())[0]
@@ -71,9 +82,12 @@ class GAPAExport:
                 "exportPreset": config_name
             }]
             export_config["exportList"] = export_list
-            print(f"[GAPA] Exporting with: \n{export_config}")
-            result = spExp.export_project_textures(export_config)
-            print(f"[GAPA] {result.message}")
+
+            def export():
+                result = spExp.export_project_textures(export_config)
+                print(f"[GAPA] {result.message}")
+
+            self.queue_function(export)
 
     def save_workfile(self, filepath) -> None:
         spLog.info("[GAPA] Saving workfile")
@@ -109,9 +123,10 @@ class GAPAExport:
         else:
             func()
 
-    def painter_busy_changed(self, is_busy):
-        if is_busy:
+    def process_queue(self):
+        if spProj.is_busy():
             return
-        else:
-            func = self.queue.get()
-            func()
+        if self.queue.empty():
+            return
+        func = self.queue.get()
+        func()

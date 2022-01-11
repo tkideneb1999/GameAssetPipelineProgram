@@ -243,6 +243,9 @@ class PipelineStepView(qtw.QWidget):
         self.outputs.append(PipelineOutputView(len(self.outputs),
                                                f"{self.uid}.o{self.output_uid_counter}",
                                                parent=self))
+
+        export_data_types = self.ui.program_settings.settings.export_data_types
+        self.outputs[-1].set_data_type_combobox(export_data_types, export_data_types[0])
         self.outputs[-1].s_remove.connect(self.remove_output)
         self.outputs[-1].s_renamed.connect(self.output_renamed)
         self.ui.outputs_layout.addWidget((self.outputs[-1]))
@@ -262,6 +265,13 @@ class PipelineStepView(qtw.QWidget):
 
     def select_program(self, new_program: str) -> None:
         configs_available = self.ui.program_settings.program_changed(new_program)
+        export_data_types = self.ui.program_settings.settings.export_data_types
+        if export_data_types:
+            for o in self.outputs:
+                o.set_data_type_combobox(export_data_types, export_data_types[0])
+        else:
+            for o in self.outputs:
+                o.set_data_type_combobox([""], "")
         self.uses_configs = configs_available
         self.set_io_button_interactivity(not configs_available)
 

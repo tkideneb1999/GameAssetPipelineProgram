@@ -84,16 +84,17 @@ class ImportWizardView(qtw.QDialog):
 
         # Get selected step
         step_index = self.ui.pipeline_viewer.get_selected_index()
-        import_data = self.loaded_asset.import_assets(step_index)  # TODO(Blender Addon): Handle different file types
+        import_data = self.loaded_asset.import_assets(step_index)
         rel_filepaths = import_data[0]
         abs_filepaths = []
-        for f in rel_filepaths:
-            for output_set in rel_filepaths:
-                for output in rel_filepaths[output_set]:
-                    abs_filepaths.append((rel_filepaths[output_set][output][0],
-                                          self.project_dir / rel_filepaths[output_set][output][1]))
 
-        # TODO: Get Additional Pipeline Settings
+        for output_set in rel_filepaths:
+            if output_set == "workfiles":
+                abs_filepaths.append(("workfiles", self.project_dir / rel_filepaths["workfiles"]))
+                continue
+            for output in rel_filepaths[output_set]:
+                abs_filepaths.append((rel_filepaths[output_set][output][0],
+                                      self.project_dir / rel_filepaths[output_set][output][1]))
 
         # import assets
         func = functools.partial(self.import_files_func,

@@ -2,12 +2,13 @@ from pathlib import Path
 import importlib
 import queue
 import functools
+import shutil
 
 from PySide2 import QtWidgets as qtw
+from PySide2 import QtCore as qtc
 
 import substance_painter.logging as spLog
 import substance_painter.project as spProj
-import substance_painter.event as spEvent
 
 from .UI import importWizardView
 from .Core import settings as settingsModule
@@ -23,8 +24,10 @@ class GAPAImport:
         self.project_info: Path = None
         self.sp_main_window = sp_main_window
         self.program = program_name
+        self.timer = qtc.QTimer()
+        self.timer.timeout.connect(self.process_queue)
+        self.timer.start(1)
         self.queue = queue.Queue()
-        spEvent.DISPATCHER.connect(spEvent.BusyStatusChanged, self.painter_busy_changed)
 
     def import_files(self, filepaths_data, config, additional_settings) -> None:
         # filepaths: list[tuple[str,Path]], config: str, additional_settings: dict
@@ -62,27 +65,53 @@ class GAPAImport:
                                    import_cameras=import_cameras)
         spLog.info(f"[GAPA] creating project with config: {config}")
         mesh_path = None
+        workfile_dir: Path = None
         mesh_maps = []
         for f in filepaths_data:
-            if config == "UE4":
-                if f[0] == "lowpoly":
-                    mesh_path = str(f[1])
-                else:
-                    mesh_maps.append(str(f[1]))
-            if config == "NoMapsUE4":
-                if f[0] == "lowpoly":
-                    mesh_path = str(f[1])
+            if f[0] == "workfiles":
+                workfile_dir = f[1]
+        for f in filepaths_data:
+            if f[0] == "workfiles":
+                continue
+            elif f[0] == "lowpoly":
+                mesh_path = str(f[1])
+            else:
+                # create new filename
+                file_stem: str = f[1].stem
+                file_stem_parts = file_stem.split(".")
+                del file_stem_parts[-1]
+                file_stem = "".join(file_stem_parts)
+                # create workfile path with new file name
+                dst_path = workfile_dir / f"{file_stem}{f[1].suffix}"
+                # Copy File to workfile location
+                shutil.copyfile(f[1], dst_path)
+                # Append to mesh maps as str
+                mesh_maps.append(str(dst_path))
+
+        # Get Metadata
+        metadata = spProj.Metadata("GAPA")
+
         # check if project is open
         if spProj.is_open():
             # if project is open
-            spLog.warnig("[GAPA] A Project is already opened")
+            spLog.warning("[GAPA] A Project is already opened")
+            if metadata.get("lowpoly_path") == str(mesh_path):
+                reload_func = functools.partial(self.reimport_mesh, mesh_path, import_cameras)
+                self.queue_function(reload_func)
+                return
             spLog.info("[GAPA] Saving opened project and closing it")
             if spProj.needs_saving():
-                spProj.save(spProj.ProjectSaveMode.Full)
+                save_func = functools.partial(spProj.save, spProj.ProjectSaveMode.Full)
+                self.queue_function(save_func)
             spProj.close()
-        spProj.create(mesh_file_path=mesh_path,
-                      mesh_map_file_paths=mesh_maps,
-                      settings=settings)
+        spLog.info(f"[GAPA] mesh filepath: {mesh_path}")
+        spLog.info(f"[GAPA] mesh maps: {mesh_maps}")
+        spLog.info(f"[GAPA] settings: {settings}")
+        create_func = functools.partial(spProj.create, mesh_file_path=mesh_path,
+                                        mesh_map_file_paths=mesh_maps,
+                                        settings=settings)
+        self.queue_function(create_func)
+        metadata.set("lowpoly_path", str(mesh_path))
 
     def save_workfile(self, filepath, overwrite=True) -> None:  # filepath: Path
         spLog.info("[GAPA] Saving workfile")
@@ -134,15 +163,28 @@ class GAPAImport:
         self.project_info = Path(dialog.selectedFiles()[0])
         return True
 
+    def reimport_mesh(self, mesh_file_path: str, import_cameras: bool) -> None:
+        reload_settings = spProj.MeshReloadingSettings(import_cameras=import_cameras)
+        spProj.reload_mesh(mesh_file_path, reload_settings, self.on_mesh_reload)
+        spLog.warning("[GAPA] mesh map reload has to be done manually")
+
+    def on_mesh_reload(self, status: spProj.ReloadMeshStatus) -> None:
+        if status == spProj.ReloadMeshStatus.SUCCESS:
+            spLog.info("[GAPA] Mesh Successfully reloaded")
+        else:
+            spLog.warning("[GAPA] Mesh could not be reloaded")
+
     def queue_function(self, func):
+        spLog.info(f"[GAPA] Painter is busy: {spProj.is_busy()}")
         if spProj.is_busy():
             self.queue.put(func)
         else:
             func()
 
-    def painter_busy_changed(self, is_busy):
-        if is_busy:
+    def process_queue(self):
+        if spProj.is_busy():
             return
-        else:
-            func = self.queue.get()
-            func()
+        if self.queue.empty():
+            return
+        func = self.queue.get()
+        func()

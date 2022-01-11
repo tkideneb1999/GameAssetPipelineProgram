@@ -86,8 +86,11 @@ class GAPAExport(bpy.types.Operator):
         for output_set in file_paths:
             for o in file_paths[output_set]:
                 data = file_paths[output_set][o]
+                print(f"[GAPA] Exporting file type: {data[1].suffix}")
                 if data[1].suffix == ".fbx":
                     bpy.ops.export_scene.fbx(filepath=str(data[1]), use_selection=export_settings["export_selected"])
+                if data[1].suffix == ".obj":
+                    bpy.ops.export_scene.obj(file_path=str(data[1]), use_selection=export_settings["export_selected"])
 
     def save_workfile(self, filepath: list[Path]) -> None:
         bpy.ops.wm.save_as_mainfile(filepath=str(filepath))

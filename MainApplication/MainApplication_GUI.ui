@@ -48,7 +48,7 @@
        <bool>false</bool>
       </property>
       <property name="currentIndex">
-       <number>3</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="assets_tab">
        <attribute name="title">
@@ -75,9 +75,9 @@
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_2"/>
       </widget>
-      <widget class="QWidget" name="testing_tab">
+      <widget class="QWidget" name="project_settings_tab">
        <attribute name="title">
-        <string>Testing</string>
+        <string>Project Settings</string>
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_5"/>
       </widget>

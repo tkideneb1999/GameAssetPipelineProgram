@@ -1,13 +1,12 @@
 import functools
 
 from PyQt5 import QtWidgets as qtw
-from PyQt5.QtWidgets import QListWidgetItem
 from PyQt5 import QtCore as qtc
 
-from MainApplication.PipelineViewerView.pipelineViewer_GUI import Ui_pipeline_viewer
-from MainApplication.PipelineViewerView.pipelineStepViewer_GUI import Ui_pipeline_step_viewer
+from .pipelineViewer_GUI import Ui_pipeline_viewer
+from .pipelineStepViewer_GUI import Ui_pipeline_step_viewer
 
-from MainApplication.Core.asset import Asset
+from ..Core.asset import Asset
 
 
 def clickable(widget: qtw.QWidget):
@@ -57,8 +56,9 @@ class PipelineViewerView(qtw.QWidget):
         self.selected_step = -1
 
     def update_view(self, asset: Asset) -> None:
-        for step_widget in self.step_widget_list:
-            step_widget.deleteLater()
+        for i in reversed(range(len(self.step_widget_list))):
+            self.step_widget_list[i].deleteLater()
+            del self.step_widget_list[i]
         for index in range(len(asset.pipeline.pipeline_steps)):
             step = asset.pipeline.pipeline_steps[index]
             state = asset.pipeline_progress[step.uid]["state"]
