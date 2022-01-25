@@ -24,11 +24,25 @@ To remove any data the program generates, delete the GAPASettings folder in the 
 ### Registering Programs
 1. Add the exe of the program
 2. Start the program after registration at least once, to activate the add-on correctly
+![grafik](https://user-images.githubusercontent.com/13368962/151027992-8ee00ab7-7987-40f2-aceb-d33df4258ca1.png)
+
 ### Pipeline Configurator
 - Add at least one Pipeline before adding new assets
 - Pipeline Steps can be added via the `Add Step` Button, removed via right-click and `Delete`
 - If Configs are used, do not add or delete any inputs and outputs
+![grafik](https://user-images.githubusercontent.com/13368962/151027781-143d3791-c304-4c39-84a9-08e7f82d6e65.png)
+
 ### Asset Browser
 - Asset removal not implemented
 - Run plugins by right-clicking on a step and choose `Run Plugin...`
 - Open the folder containing the files of a step by right-clicking and selecting `Open In Explorer` (only works on windows)
+![grafik](https://user-images.githubusercontent.com/13368962/151027548-150bb62f-f999-43ba-b800-a17cedfe4bfe.png)
+
+### Import / Export
+![grafik](https://user-images.githubusercontent.com/13368962/151029251-79f483c8-118a-4cb5-9c3f-fdeb3860534e.png)
+
+## Known Issues
+- Step selection highlight in Pipeline Overview not working
+- Do not modify the pipeline after using it in any assets!
+- Texture sets that have different outputs are not supported
+- No Position Map Baker available
