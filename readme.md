@@ -6,13 +6,13 @@
 
 ## Blender Addon Installation
 1. Navigate to the BlenderAddon folder of the downloaded files
-2. Open the \_\_init__.py file
+2. Open the `__init__.py` file
 3. Change the `pyQt_path` variable to point to the site packages folder of the Main Application
 4. Create a zip archive from the files in the BlenderAddon folder called GAPA
 5. Install the add-on as you would with any other Blender add-on
 
 ## Substance Painter Addon Installation
-1. Make sure the `PROGRAM_NAME` variable in the `\_\_init__.py` file matches the name of the Painter executable file
+1. Make sure the `PROGRAM_NAME` variable in the `__init__.py` file matches the name of the Painter executable file
 2. Open Substance Painter and click on Python/Plugins Folder
 3. navigate to the plugins folder
 4. create a folder called GAPA
