@@ -16,3 +16,5 @@
 2. navigate to the plugins folder
 3. create a folder called GAPA
 4. copy all files in the SubstancePainterAddon Directory of the downloaded files to this location.
+
+To remove any data the program generates, delete the GAPASettings folder in the Documents Directory.
