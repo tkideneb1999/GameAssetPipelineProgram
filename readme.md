@@ -21,6 +21,7 @@
 To remove any data the program generates, delete the GAPASettings folder in the Documents Directory.
 
 ## Functionality
+Set the current project in the File Menu to provide Access for the add-ons to it
 ### Registering Programs
 1. Add the exe of the program
 2. Start the program after registration at least once, to activate the add-on correctly
