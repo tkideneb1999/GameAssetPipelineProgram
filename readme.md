@@ -47,3 +47,4 @@ Set the current project in the File Menu to provide Access for the add-ons to it
 - Do not modify the pipeline after using it in any assets!
 - Texture sets that have different outputs are not supported
 - No Position Map Baker available
+- For Python Version 3.10: PyQt5 throws an error when installing it
