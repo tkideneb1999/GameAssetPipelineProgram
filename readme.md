@@ -5,13 +5,15 @@
 3. **Run the Start.bat file at least once** before using add-ons
 
 ## Blender Addon Installation
+Works for Blender 2.93 to 3.00
 1. Navigate to the BlenderAddon folder of the downloaded files
 2. Open the `__init__.py` file
 3. Change the `pyQt_path` variable to point to the site packages folder of the Main Application
-4. Create a zip archive from the files in the BlenderAddon folder called GAPA
+4. Put the Files from the Blender Addon Folder in a folder called GAPA, then put this in a zip Archive with the same name
 5. Install the add-on as you would with any other Blender add-on
 
 ## Substance Painter Addon Installation
+Works for Substance Painter 2021
 1. Make sure the `PROGRAM_NAME` variable in the `__init__.py` file matches the name of the Painter executable file
 2. Open Substance Painter and click on Python/Plugins Folder
 3. navigate to the plugins folder
