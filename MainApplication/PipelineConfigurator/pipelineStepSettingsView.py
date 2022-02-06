@@ -202,6 +202,8 @@ class PipelineStepSettingsView(qtw.QWidget):
 
     def config_changed(self, config: str) -> None:
         if self.settings_active and (not config == ""):
+            if config is not self.ui.configs_combobox.currentText():
+                self.ui.configs_combobox.setCurrentText(config)
             self.s_selected_config.emit(config)
 
     def current_config(self) -> str:

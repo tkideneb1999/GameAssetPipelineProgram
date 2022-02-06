@@ -79,7 +79,7 @@ def run(import_data: dict, export_data: dict, settings: dict, config_name: str) 
                 high_meshes.append(xNormal.high_mesh_options(str(file_data[1]), **high_opts))
             if file_data[0] == "lowpoly":
                 low_opts = {
-                    "average_normals": config_data["input"]["inputs"][1]["average_normals"]
+                    "average_normals": config_data["input"]["inputs"][0]["average_normals"]
                 }
                 low_meshes.append(xNormal.low_mesh_options(str(file_data[1]), **low_opts))
 

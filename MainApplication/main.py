@@ -23,6 +23,13 @@ class MainWindow(qtw.QMainWindow):
         self.setWindowTitle("Game Asset Pipeline Automation")
 
         # set up tabs
+        self.settingsWidget = SettingsView(self.ui.settings_tab)
+        file_location = Path(os.path.abspath(__file__))
+        print(file_location.parent)
+        plugin_dir = file_location.parent / "Plugins"
+        self.settingsWidget.settings.set_plugin_dir(plugin_dir)
+        self.ui.settings_tab.layout().addWidget(self.settingsWidget)
+
         self.pipeline_configurator = PipelineConfigurator(self.ui.pipelines_tab)
         self.pipeline_configurator.s_pipeline_saved.connect(self.add_pipeline)
 
@@ -30,13 +37,6 @@ class MainWindow(qtw.QMainWindow):
 
         self.assetManager = AssetManager(self.ui.assets_tab)
         self.ui.assets_tab.layout().addWidget(self.assetManager)
-
-        self.settingsWidget = SettingsView(self.ui.settings_tab)
-        file_location = Path(os.path.abspath(__file__))
-        print(file_location.parent)
-        plugin_dir = file_location.parent / "Plugins"
-        self.settingsWidget.settings.set_plugin_dir(plugin_dir)
-        self.ui.settings_tab.layout().addWidget(self.settingsWidget)
 
         self.project_settings_widget = ProjectSettingsView(self.ui.project_settings_tab)
         self.ui.project_settings_tab.layout().addWidget(self.project_settings_widget)

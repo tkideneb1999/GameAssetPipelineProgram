@@ -12,7 +12,7 @@ def get_pipeline_settings_location() -> str:
 
 
 def create_pipeline_settings() -> pSC.PipelineSettingsCreator:
-    step_settings = pSC.PipelineSettingsCreator(configs_dir=Path(get_pipeline_settings_location()).parent / "Configs")
+    step_settings = pSC.PipelineSettingsCreator()
     step_settings.has_set_outputs = False
     step_settings.set_export_data_types(["fbx", "obj"])
     return step_settings

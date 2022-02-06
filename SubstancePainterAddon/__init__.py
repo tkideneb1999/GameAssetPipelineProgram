@@ -27,7 +27,7 @@ def start_plugin():
     spLog.info("[GAPA] registering Addon")
     settings = settingsModule.Settings()
     settings.load()
-    settings.enable_addon("Adobe Substance 3D Painter", Path(pipelineSettingsModule.get_pipeline_settings_location()))
+    settings.enable_addon(PROGRAM_NAME, Path(pipelineSettingsModule.get_pipeline_settings_location()))
     spLog.info("[GAPA] starting Addon")
     global IMPORT_PLUGIN
     IMPORT_PLUGIN = GAPAImport.GAPAImport(PROGRAM_NAME, spUI.get_main_window())

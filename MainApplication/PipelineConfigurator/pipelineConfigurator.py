@@ -310,6 +310,7 @@ class PipelineStepView(qtw.QWidget):
         pipeline_step.program = self.ui.program_combobox.currentText()
         pipeline_step.input_id_counter = self.input_uid_counter
         pipeline_step.output_id_counter = self.output_uid_counter
+        pipeline_step.config = self.ui.program_settings.current_config()
 
         # IO
         connections = {}
