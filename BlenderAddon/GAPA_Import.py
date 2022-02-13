@@ -79,6 +79,8 @@ class GAPAImport(bpy.types.Operator):
             file_suffix = filepath[1].suffix
             if file_suffix == ".fbx":
                 bpy.ops.import_scene.fbx(filepath=str(filepath))
+            if file_suffix == ".obj":
+                bpy.ops.import_scene.obj(filepath=str(filepath))
 
     def save_workfile(self, filepath: Path) -> None:
         bpy.ops.wm.save_as_mainfile(filepath=str(filepath))
