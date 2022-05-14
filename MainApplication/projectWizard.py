@@ -40,3 +40,8 @@ class ProjectWizard(qtw.QDialog):
         levels_string = self.ui_project_wizard.levels_line_edit.text()
         levels_string = levels_string.replace(" ", "")
         return levels_string.split(',')
+
+    def set_data(self, proj_data: dict) -> None:
+        self.ui_project_wizard.project_name_line_edit.setText(proj_data["proj_name"])
+        self.ui_project_wizard.project_dir_line_edit.setText(proj_data["proj_dir"])
+        self.ui_project_wizard.levels_line_edit.setText(proj_data["proj_lvls"])

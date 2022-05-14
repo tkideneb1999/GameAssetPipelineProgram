@@ -49,8 +49,10 @@ class MainWindow(qtw.QMainWindow):
         self.levels = []
         self.pipelines = {}
 
-    def launch_project_wizard(self):
+    def launch_project_wizard(self, proj_data=None):
         project_wizard = ProjectWizard()
+        if proj_data is not None:
+            project_wizard.set_data(proj_data)
         project_wizard.setWindowModality(qtc.Qt.ApplicationModal)
         result = project_wizard.exec_()
         if result == 0:
@@ -74,28 +76,54 @@ class MainWindow(qtw.QMainWindow):
         proj_dir = project_wizard.get_project_dir_data()
         proj_lvls = project_wizard.get_levels_data()
 
-        # Check if Project Name is set
-        if proj_name == "":
-            print("No Project Name set. Restarting Wizard")
-            self.launch_project_wizard()
-            return
+        proj_name_ok = not (proj_name == "")
+        proj_dir_ok = not (proj_dir == "") and Path(proj_dir).exists()
+        proj_lvls_ok = not(len(proj_lvls) == 1 and proj_lvls[0] == "")
 
-        if proj_dir is None:
-            print("Current Project Dir is no a valid path. Restarting Wizard")
-            self.launch_project_wizard()
-            return
+        if (not proj_name_ok) or (not proj_dir_ok) or (not proj_lvls_ok):
+            proj_data = {}
+            if not proj_name_ok:
+                print("[GAPA] Not a valid Project Name")
+                proj_data["proj_name"] = ""
+            else:
+                proj_data["proj_name"] = proj_name
+            if not proj_dir_ok:
+                print("[GAPA] Current Project Dir is not a valid path")
+                proj_data["proj_dir"] = ""
+            else:
+                proj_data["proj_dir"] = proj_dir
+            if not proj_lvls_ok:
+                print("[GAPA] No Levels Supplied")
+                proj_data["proj_lvls"] = ""
+            else:
+                proj_data["proj_lvls"] = ",".join(proj_lvls)
+            print("[GAPA] Restarting Project Wizard")
+            self.launch_project_wizard(proj_data=proj_data)
 
-        proj_dir = Path(proj_dir) / proj_name
 
-        if not proj_dir.parents[0].exists():
-            print("Current Project Dir is no a valid path. Restarting Wizard")
-            self.launch_project_wizard()
-            return
 
-        if len(proj_lvls) == 0:
-            print("No Levels Supplied. Restarting Project Wizard")
-            self.launch_project_wizard()
-            return
+        ## Check if Project Name is set
+        #if proj_name == "":
+        #    print("No Project Name set. Restarting Wizard")
+        #    self.launch_project_wizard()
+        #    return
+#
+        #if proj_dir is None:
+        #    print("Current Project Dir is no a valid path. Restarting Wizard")
+        #    self.launch_project_wizard()
+        #    return
+#
+        #proj_dir = Path(proj_dir) / proj_name
+#
+        #if not proj_dir.parents[0].exists():
+        #    print("Current Project Dir is no a valid path. Restarting Wizard")
+        #    self.launch_project_wizard()
+        #    return
+#
+        #if len(proj_lvls) == 0:
+        #    print("No Levels Supplied. Restarting Project Wizard")
+        #    self.launch_project_wizard()
+        #    return
 
         # Set Project Data
         self.project_name = proj_name
