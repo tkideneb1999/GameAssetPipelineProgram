@@ -94,9 +94,9 @@ class MainWindow(qtw.QMainWindow):
                 proj_data["proj_dir"] = proj_dir
             if not proj_lvls_ok:
                 print("[GAPA] No Levels Supplied")
-                proj_data["proj_lvls"] = ""
+                proj_data["proj_lvls"] = []
             else:
-                proj_data["proj_lvls"] = ",".join(proj_lvls)
+                proj_data["proj_lvls"] = proj_lvls
             print("[GAPA] Restarting Project Wizard")
             self.launch_project_wizard(proj_data=proj_data)
 
