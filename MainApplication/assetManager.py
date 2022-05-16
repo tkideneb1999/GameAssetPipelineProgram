@@ -111,11 +111,8 @@ class AssetManager(qtw.QWidget):
         # TODO(Asset Manager): Remove Folder and files
         """
 
-    def display_selected_asset(self, level: str, index: int) -> None:
-        if index == -1:
-            return
-        asset_name = self.assets[level][index]
-        self.loaded_asset = Asset(asset_name, level, project_dir=self.project_dir)
+    def display_selected_asset(self, level_name: str, asset_name: str) -> None:
+        self.loaded_asset = Asset(asset_name, level_name, project_dir=self.project_dir)
 
         self.ui.asset_details.update_asset_details(self.loaded_asset.name,
                                                    self.loaded_asset.level,
@@ -193,3 +190,4 @@ class AssetManager(qtw.QWidget):
                 else:
                     self.assets[asset_data[1]].append(asset_data[0])
         self.ui.asset_list.update_asset_list(self.assets)
+
