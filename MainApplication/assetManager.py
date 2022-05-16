@@ -1,8 +1,6 @@
 from pathlib import Path
 import os
 import sys
-import functools
-import queue
 import re
 
 from PyQt5 import QtWidgets as qtw
@@ -16,6 +14,7 @@ from . import pluginHandler
 
 class AssetManager(qtw.QWidget):
     s_level_added = qtc.pyqtSignal(str)  # Level Name
+    s_level_removed = qtc.pyqtSignal(str)  # Level Name
 
     def __init__(self, parent):
         super().__init__(parent)
@@ -28,7 +27,10 @@ class AssetManager(qtw.QWidget):
         self.ui.asset_list.s_asset_changed.connect(self.display_selected_asset)
         self.ui.asset_list.s_open_file_explorer.connect(self.open_asset_in_explorer)
         self.ui.asset_list.s_add_asset.connect(self.add_new_asset)
+        self.ui.asset_list.s_remove_asset.connect(self.remove_asset)
         self.ui.asset_list.s_add_level.connect(self.add_new_level)
+        self.ui.asset_list.s_remove_level.connect(self.remove_level)
+
         self.ui.pipeline_viewer.s_open_file_explorer.connect(self.open_step_in_explorer)
         self.ui.pipeline_viewer.s_run_plugin.connect(self.run_plugin)
 
@@ -113,6 +115,14 @@ class AssetManager(qtw.QWidget):
         else:
             self.add_new_asset()
 
+    def remove_asset(self, level: str, name: str) -> None:
+        print(f"[GAPA] Removing Asset {name} from Level {level}")
+        self.assets[level].remove(name)
+        self.save_asset_list()
+        path = self.project_dir / level / name
+        path.rename(path.parent / f"deprecated_{name}")
+        self.ui.asset_list.update_asset_list(self.assets)
+
     def add_new_level(self) -> None:
         print("[GAPA] Adding Levels not yet implemented")
         text, ok = qtw.QInputDialog().getText(self, "Add Level", "Level Name:", qtw.QLineEdit.Normal, "")
@@ -128,20 +138,12 @@ class AssetManager(qtw.QWidget):
         self.s_level_added.emit(text_no_spaces)
         self.ui.asset_list.update_asset_list(self.assets)
 
-    def remove_asset(self) -> None:
-        print("[GAPA] Asset Removal not implemented")
-        """
-        selected_assets = self.ui.asset_list.selectedIndexes()
-        if not selected_assets:
-            return
-        else:
-            for i in selected_assets:
-                print("[Asset Manager] Remove not yet implemented")
-                # self.ui.asset_list.takeItem(i.row())
-                # self.assets.remove(self.assets[i.row()])
-
-        # TODO(Asset Manager): Remove Folder and files
-        """
+    def remove_level(self, level_name: str):
+        print(f"[GAPA] Removing Level: {level_name}")
+        del self.assets[level_name]
+        self.s_level_removed.emit(level_name)
+        self.save_asset_list()
+        self.ui.asset_list.update_asset_list(self.assets)
 
     def display_selected_asset(self, level_name: str, asset_name: str) -> None:
         self.loaded_asset = Asset(asset_name, level_name, project_dir=self.project_dir)

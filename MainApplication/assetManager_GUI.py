@@ -70,9 +70,8 @@ class Ui_asset_manager(object):
     def retranslateUi(self, asset_manager):
         _translate = QtCore.QCoreApplication.translate
         asset_manager.setWindowTitle(_translate("asset_manager", "Form"))
-        self.add_asset_button.setText(_translate("asset_manager", "Add"))
+        self.add_asset_button.setText(_translate("asset_manager", "Add Asset"))
         self.asset_details_label.setText(_translate("asset_manager", "Details"))
-
 from .AssetDetailsView.assetDetailsView import AssetDetailsView
 from .AssetListView.assetListView import AssetListView
 from .PipelineViewerView.pipelineViewerView import PipelineViewerView

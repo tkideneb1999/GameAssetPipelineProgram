@@ -37,6 +37,7 @@ class MainWindow(qtw.QMainWindow):
 
         self.assetManager = AssetManager(self.ui.assets_tab)
         self.assetManager.s_level_added.connect(self.add_level)
+        self.assetManager.s_level_removed.connect(self.remove_level)
         self.ui.assets_tab.layout().addWidget(self.assetManager)
 
         self.project_settings_widget = ProjectSettingsView(self.ui.project_settings_tab)
@@ -179,6 +180,14 @@ class MainWindow(qtw.QMainWindow):
             print("[GAPA] Level Name already exists")
         self.levels.append(lvl_name)
         self.save_project_info()
+        path = self.project_dir / lvl_name
+        path.mkdir(parents=True)
+
+    def remove_level(self, lvl_name: str):
+        self.levels.remove(lvl_name)
+        self.save_project_info()
+        path = self.project_dir / lvl_name
+        path.rename(self.project_dir / f"deprecated_{lvl_name}")
 
     def set_as_current_project(self):
         self.settingsWidget.settings.set_current_project(self.project_dir / "projectInfo.gapaproj")
