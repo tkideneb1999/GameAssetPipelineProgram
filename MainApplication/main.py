@@ -36,6 +36,7 @@ class MainWindow(qtw.QMainWindow):
         self.ui.pipelines_tab.layout().addWidget(self.pipeline_configurator)
 
         self.assetManager = AssetManager(self.ui.assets_tab)
+        self.assetManager.s_level_added.connect(self.add_level)
         self.ui.assets_tab.layout().addWidget(self.assetManager)
 
         self.project_settings_widget = ProjectSettingsView(self.ui.project_settings_tab)
@@ -172,6 +173,12 @@ class MainWindow(qtw.QMainWindow):
         self.pipelines[name] = r_path
         self.save_project_info()
         self.assetManager.update_pipelines(self.pipelines)
+
+    def add_level(self, lvl_name: str):
+        if lvl_name in self.levels:
+            print("[GAPA] Level Name already exists")
+        self.levels.append(lvl_name)
+        self.save_project_info()
 
     def set_as_current_project(self):
         self.settingsWidget.settings.set_current_project(self.project_dir / "projectInfo.gapaproj")

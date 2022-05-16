@@ -5,25 +5,28 @@ from .newAssetWizard_GUI import Ui_new_asset_wizard
 class NewAssetWizard(qtw.QDialog):
     def __init__(self, levels, pipelines):
         super().__init__()
-        self.ui_new_asset_wizard = Ui_new_asset_wizard()
-        self.ui_new_asset_wizard.setupUi(self)
+        self.ui = Ui_new_asset_wizard()
+        self.ui.setupUi(self)
         self.setWindowTitle("Create New Asset")
-        self.ui_new_asset_wizard.levels_combo_box.addItems(levels)
-        self.ui_new_asset_wizard.pipeline_combobox.addItems(pipelines)
+        self.ui.levels_combo_box.addItems(levels)
+        self.ui.pipeline_combobox.addItems(pipelines)
+
+    def set_starting_level(self, lvl_name: str):
+        self.ui.levels_combo_box.setCurrentText(lvl_name)
 
     def get_name_data(self):
-        return self.ui_new_asset_wizard.name_line_edit.text()
+        return self.ui.name_line_edit.text()
 
     def get_pipeline_data(self):
-        return self.ui_new_asset_wizard.pipeline_combobox.currentText()
+        return self.ui.pipeline_combobox.currentText()
 
     def get_level_data(self):
-        return self.ui_new_asset_wizard.levels_combo_box.currentText()
+        return self.ui.levels_combo_box.currentText()
 
     def get_tags_data(self):
-        tags_string = self.ui_new_asset_wizard.tags_line_edit.text()
+        tags_string = self.ui.tags_line_edit.text()
         tags_string.replace(' ', '')
         return tags_string.split(',')
 
     def get_comment_data(self):
-        return self.ui_new_asset_wizard.comment_line_edit.text()
+        return self.ui.comment_line_edit.text()

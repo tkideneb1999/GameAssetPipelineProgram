@@ -3,6 +3,7 @@ import os
 import sys
 import functools
 import queue
+import re
 
 from PyQt5 import QtWidgets as qtw
 from PyQt5 import QtCore as qtc
@@ -14,33 +15,42 @@ from . import pluginHandler
 
 
 class AssetManager(qtw.QWidget):
+    s_level_added = qtc.pyqtSignal(str)  # Level Name
+
     def __init__(self, parent):
         super().__init__(parent)
         self.ui = Ui_asset_manager()
         self.ui.setupUi(self)
+        self.ui.asset_list.mode = 1
 
         # Asset List
-        self.ui.add_asset_button.clicked.connect(self.add_new_asset)
-        self.ui.remove_asset_button.clicked.connect(self.remove_asset)
+        self.ui.add_asset_button.clicked.connect(self.add_new_asset_with_button)
         self.ui.asset_list.s_asset_changed.connect(self.display_selected_asset)
         self.ui.asset_list.s_open_file_explorer.connect(self.open_asset_in_explorer)
+        self.ui.asset_list.s_add_asset.connect(self.add_new_asset)
+        self.ui.asset_list.s_add_level.connect(self.add_new_level)
         self.ui.pipeline_viewer.s_open_file_explorer.connect(self.open_step_in_explorer)
         self.ui.pipeline_viewer.s_run_plugin.connect(self.run_plugin)
 
         # Data
         self.assets: dict[str, list[str]] = {}
         self.loaded_asset: Asset = None
-        self.levels: list[str] = []
         self.project_dir: Path = Path()
         self.pipelines: dict[str, Path] = {}
+        self.special_characters = re.compile(r'[@!#$%^&*()<>?/\|}{~:]')
 
         # Plugins
         self.plugin_handler = pluginHandler.PluginHandler(parent=self)
 
-    def add_new_asset(self) -> None:
+    def add_new_asset(self, lvl_selected=False, lvl_name=""):
+        print(f"Level Selected: {lvl_selected}, Level Name: {lvl_name}")
+
         pipeline_names = list(self.pipelines.keys())
-        dialog = NewAssetWizard(self.levels, pipeline_names)
+        dialog = NewAssetWizard(list(self.assets.keys()), pipeline_names)
         dialog.setWindowModality(qtc.Qt.ApplicationModal)
+        if lvl_selected:
+            dialog.set_starting_level(lvl_name)
+
         result = dialog.exec_()
         if result == 0:
             return
@@ -74,7 +84,7 @@ class AssetManager(qtw.QWidget):
                 return
 
         # Check if selected level is viable
-        if asset_level not in self.levels:
+        if asset_level not in list(self.assets.keys()):
             print(f"{asset_level} is not a valid Level.")
             self.add_new_asset()
             return
@@ -95,6 +105,28 @@ class AssetManager(qtw.QWidget):
         # Serialize Asset
         new_asset.save(self.project_dir)
         self.save_asset_list()
+
+    def add_new_asset_with_button(self) -> None:
+        current_item = self.ui.asset_list.get_current_item()
+        if current_item is not None:
+            self.add_new_asset(True, current_item)
+        else:
+            self.add_new_asset()
+
+    def add_new_level(self) -> None:
+        print("[GAPA] Adding Levels not yet implemented")
+        text, ok = qtw.QInputDialog().getText(self, "Add Level", "Level Name:", qtw.QLineEdit.Normal, "")
+        if not ok:
+            return
+        text_no_spaces = text.replace(' ', '')
+        if text_no_spaces in list(self.assets.keys()):
+            print("[GAPA] Level name already exists")
+            self.add_new_level()
+        if self.special_characters.search(text_no_spaces):
+            self.add_new_level()
+        self.assets[text_no_spaces] = []
+        self.s_level_added.emit(text_no_spaces)
+        self.ui.asset_list.update_asset_list(self.assets)
 
     def remove_asset(self) -> None:
         print("[GAPA] Asset Removal not implemented")
@@ -142,9 +174,8 @@ class AssetManager(qtw.QWidget):
 
     def add_levels(self, levels):
         for lvl in levels:
-            self.levels.append(lvl)
             self.assets[lvl] = []
-        print("Viable Levels: ", self.levels)
+        print("Viable Levels: ", list(self.assets.keys()))
 
     def update_pipelines(self, pipelines):
         self.pipelines = pipelines

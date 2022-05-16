@@ -31,11 +31,9 @@ class Ui_asset_manager(object):
         self.horizontalLayout_2.setContentsMargins(9, 0, 9, 0)
         self.horizontalLayout_2.setObjectName("horizontalLayout_2")
         self.add_asset_button = QtWidgets.QPushButton(asset_manager)
+        self.add_asset_button.setMinimumSize(QtCore.QSize(160, 0))
         self.add_asset_button.setObjectName("add_asset_button")
         self.horizontalLayout_2.addWidget(self.add_asset_button)
-        self.remove_asset_button = QtWidgets.QPushButton(asset_manager)
-        self.remove_asset_button.setObjectName("remove_asset_button")
-        self.horizontalLayout_2.addWidget(self.remove_asset_button)
         self.verticalLayout.addLayout(self.horizontalLayout_2)
         self.horizontalLayout.addLayout(self.verticalLayout)
         self.verticalLayout_2 = QtWidgets.QVBoxLayout()
@@ -73,8 +71,8 @@ class Ui_asset_manager(object):
         _translate = QtCore.QCoreApplication.translate
         asset_manager.setWindowTitle(_translate("asset_manager", "Form"))
         self.add_asset_button.setText(_translate("asset_manager", "Add"))
-        self.remove_asset_button.setText(_translate("asset_manager", "Remove"))
         self.asset_details_label.setText(_translate("asset_manager", "Details"))
+
 from .AssetDetailsView.assetDetailsView import AssetDetailsView
 from .AssetListView.assetListView import AssetListView
 from .PipelineViewerView.pipelineViewerView import PipelineViewerView
