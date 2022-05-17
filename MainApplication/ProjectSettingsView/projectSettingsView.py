@@ -6,6 +6,7 @@ from PyQt5 import QtCore as qtc
 
 from ..Core.settings import Settings
 from ..localSettingsView import LocalSettingsView
+from ..TagDatabase.tagDatabaseWidget import TagDatabaseWidget
 
 
 class ProjectSettingsView(qtw.QWidget):
@@ -22,6 +23,10 @@ class ProjectSettingsView(qtw.QWidget):
         self.plugin_widgets: dict[str, LocalSettingsView] = {}
 
         self.project_dir: Path = None
+
+        self.create_tab("Tag Database")
+        self.tag_database = TagDatabaseWidget(self)
+        self.tabs["Tag Database"].layout().addWidget(self.tag_database)
 
         settings = Settings()
         settings.load()
@@ -51,6 +56,7 @@ class ProjectSettingsView(qtw.QWidget):
 
     def set_project_dir(self, project_dir: Path) -> None:
         self.project_dir = project_dir
+        self.tag_database.load_tags(self.project_dir)
         has_loaded = self.load()
 
     def save(self) -> None:

@@ -209,8 +209,9 @@ class AssetManager(qtw.QWidget):
     def load_asset_list(self) -> None:
         path = self.project_dir / "assets.meta"
         if not path.exists():
-            if not path.is_file():
-                raise Exception("Asset List does not exist.")
+            raise Exception("Asset List does not exist.")
+        if not path.is_file():
+            raise Exception("Asset List does not exist.")
         with path.open("r", encoding="utf-8") as f:
             asset_list_info = f.readline()
             num_assets = int(asset_list_info.split()[1])
