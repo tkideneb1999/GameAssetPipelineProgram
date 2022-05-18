@@ -5,7 +5,7 @@
 3. **Run the Start.bat file at least once** before using add-ons
 
 ## Blender Addon Installation
-Works for Blender 2.93 to 3.00
+Works for Blender 2.93 to 3.00, 3.1 and above not supported because Python was upgraded from 3.9 to 3.10
 1. Navigate to the BlenderAddon folder of the downloaded files
 2. Open the `__init__.py` file
 3. Change the `pyQt_path` variable to point to the site packages folder of the Main Application
