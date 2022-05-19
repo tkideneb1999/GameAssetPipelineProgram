@@ -122,9 +122,8 @@ class ImportWizardView(qtw.QDialog):
 
         self.accept()
 
-    def display_selected_asset(self, level, index) -> None:  # level: str, index: int
-        asset_name = self.assets[level][index]
-        self.loaded_asset = assetModule.Asset(asset_name, level, project_dir=self.project_dir)
+    def display_selected_asset(self, level_name, asset_name) -> None:  # level: str, index: int
+        self.loaded_asset = assetModule.Asset(asset_name, level_name, project_dir=self.project_dir)
 
         self.ui.asset_details.update_asset_details(self.loaded_asset.name,
                                                    self.loaded_asset.level,
