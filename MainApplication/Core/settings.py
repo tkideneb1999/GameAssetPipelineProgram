@@ -24,16 +24,6 @@ class Settings(object):
 
         return cls.instance
 
-    def register_program(self, name: str, path: Path, addon_enabled=False) -> None:
-        self.program_registration.add_program(name, path)
-        self.save()
-
-    def remove_program(self, name: str) -> None:
-        result = self.program_registration.remove_program(name)
-        if result:
-            print(f"[GAPA] Removed {name} from registered programs")
-            self.save()
-
     def set_plugin_dir(self, plugin_dir: Path) -> None:
         self.plugin_registration.set_plugin_dir(plugin_dir)
         self.save()

@@ -10,7 +10,6 @@ from pathlib import Path
 
 pyQt_path = Path(r"F:\Studium\GameAssetPipelineAutomation\GameAssetPipelineProgram\venv\Lib\site-packages")
 sys.path.append(str(pyQt_path))
-print(sys.path)
 
 import bpy
 
