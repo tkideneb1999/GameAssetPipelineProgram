@@ -46,6 +46,8 @@ class PipelineViewerView(qtw.QWidget):
         self.ui.setupUi(self)
 
         self.scrollbar_layout = qtw.QHBoxLayout(self)
+        self.scrollbar_layout.setContentsMargins(0,0,0,0)
+        self.scrollbar_layout.setSpacing(0)
         self.scrollbar_layout.addStretch()
         self.scrollable_widget = qtw.QWidget(self)
         self.scrollable_widget.setLayout(self.scrollbar_layout)
@@ -103,6 +105,16 @@ class PipelineStepViewerView(qtw.QWidget):
         signals = clickable(self)
         signals[0].connect(self.clicked)
         signals[1].connect(self.contextMenuRequested)
+
+    def focusInEvent(self, event) -> None:
+        if self.files_missing:
+            return
+        if not self.uses_current_program:
+            return
+        self.ui.frame.setFrameShadow(qtw.QFrame.Sunken)
+
+    def focusOutEvent(self, event) -> None:
+        self.ui.frame.setFrameShadow(qtw.QFrame.Raised)
 
     def update_view(self, step_name: str, step_program: str, step_state: str) -> None:
         self.ui.name_label.setText(step_name)
