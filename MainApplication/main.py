@@ -93,7 +93,7 @@ class MainWindow(qtw.QMainWindow):
                 print("[GAPA] Current Project Dir is not a valid path")
                 proj_data["proj_dir"] = ""
             else:
-                proj_data["proj_dir"] = proj_dir
+                proj_data["proj_dir"] = Path(proj_dir)
             if not proj_lvls_ok:
                 print("[GAPA] No Levels Supplied")
                 proj_data["proj_lvls"] = []
@@ -129,7 +129,7 @@ class MainWindow(qtw.QMainWindow):
 
         # Set Project Data
         self.project_name = proj_name
-        self.project_dir = proj_dir
+        self.project_dir = Path(proj_dir) / self.project_name
         self.levels = proj_lvls
 
         # Set Asset Manager Data

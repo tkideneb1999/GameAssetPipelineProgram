@@ -23,7 +23,7 @@ class TagDatabase:
             f.writelines(tag_list)
 
     def load(self, project_dir: Path):
-        path = project_dir / "tags.meta"
+        path = Path(project_dir) / "tags.meta"
         if not path.exists():
             print("[GAPA][Warning] Tag Data not found, using new one")
             return

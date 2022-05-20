@@ -187,6 +187,9 @@ class AssetManager(qtw.QWidget):
         self.project_dir = project_dir
         self.plugin_handler.set_project_dir(project_dir)
 
+    def update_asset_list(self):
+        self.ui.asset_list.update_asset_list(self.assets)
+
     # -------------
     # SERIALIZATION
     # -------------
