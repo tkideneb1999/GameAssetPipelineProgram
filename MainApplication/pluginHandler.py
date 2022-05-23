@@ -3,7 +3,7 @@ from pathlib import Path
 import json
 import functools
 
-from PyQt5 import QtCore as qtc
+from PySide6 import QtCore as qtc
 
 from .Core.settings import Settings
 from .Core.asset import Asset

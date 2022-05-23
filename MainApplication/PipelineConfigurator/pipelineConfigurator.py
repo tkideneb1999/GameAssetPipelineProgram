@@ -1,7 +1,7 @@
 from pathlib import Path
 
-from PyQt5 import QtWidgets as qtw
-from PyQt5 import QtCore as qtc
+from PySide6 import QtWidgets as qtw
+from PySide6 import QtCore as qtc
 
 from ..Core import pipeline as pipelineModule
 from ..Core.settings import Settings
@@ -12,7 +12,7 @@ from .pipeline_step_output_GUI import Ui_pipeline_step_output
 
 class PipelineConfigurator(qtw.QWidget):
 
-    s_pipeline_saved = qtc.pyqtSignal(Path, str)
+    s_pipeline_saved = qtc.Signal(Path, str)
 
     def __init__(self, parent=None):
         super(PipelineConfigurator, self).__init__(parent)
@@ -168,8 +168,8 @@ class PipelineConfigurator(qtw.QWidget):
 
 class PipelineStepView(qtw.QWidget):
     # Step Signals
-    s_step_removed = qtc.pyqtSignal(int)  # Step Index
-    s_update_inputs = qtc.pyqtSignal(int)  # Step Index
+    s_step_removed = qtc.Signal(int)  # Step Index
+    s_update_inputs = qtc.Signal(int)  # Step Index
 
     def __init__(self, index: int, uid, load=False, parent=None):
         super(PipelineStepView, self).__init__(parent)
@@ -362,7 +362,7 @@ class PipelineStepView(qtw.QWidget):
 
 
 class PipelineInputView(qtw.QWidget):
-    s_remove = qtc.pyqtSignal(int)
+    s_remove = qtc.Signal(int)
 
     def __init__(self, index: int, uid: str, parent=None):
         super(PipelineInputView, self).__init__(parent)
@@ -447,8 +447,8 @@ class PipelineInputView(qtw.QWidget):
 
 
 class PipelineOutputView(qtw.QWidget):
-    s_remove = qtc.pyqtSignal(int)  # Output Index
-    s_renamed = qtc.pyqtSignal(int, str)  # Output Index, New Name
+    s_remove = qtc.Signal(int)  # Output Index
+    s_renamed = qtc.Signal(int, str)  # Output Index, New Name
 
     def __init__(self, index: int, uid: str, parent=None):
         super(PipelineOutputView, self).__init__(parent)

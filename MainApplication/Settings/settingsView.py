@@ -1,7 +1,7 @@
 from pathlib import Path
 
-from PyQt5 import QtWidgets as qtw
-from PyQt5 import QtCore as qtc
+from PySide6 import QtWidgets as qtw
+from PySide6 import QtCore as qtc
 
 from .settings_GUI import Ui_settings
 from MainApplication.Core.settings import Settings
@@ -10,7 +10,7 @@ from .pluginSettingsView import PluginSettingsView
 
 
 class SettingsView(qtw.QWidget):
-    s_program_registered = qtc.pyqtSignal()
+    s_program_registered = qtc.Signal()
 
     def __init__(self, parent=None):
         super(SettingsView, self).__init__(parent)
@@ -79,7 +79,7 @@ class ProgramListViewItem(qtw.QWidget):
 
 
 class PluginListViewItem(qtw.QWidget):
-    s_launch_settings = qtc.pyqtSignal(str)
+    s_launch_settings = qtc.Signal(str)
 
     def __init__(self, plugin_name, parent=None):
         super(PluginListViewItem, self).__init__(parent)

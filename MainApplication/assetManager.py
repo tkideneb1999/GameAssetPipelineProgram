@@ -3,8 +3,8 @@ import os
 import sys
 import re
 
-from PyQt5 import QtWidgets as qtw
-from PyQt5 import QtCore as qtc
+from PySide6 import QtWidgets as qtw
+from PySide6 import QtCore as qtc
 
 from .assetManager_GUI import Ui_asset_manager
 from MainApplication.Core.asset import Asset
@@ -13,8 +13,8 @@ from . import pluginHandler
 
 
 class AssetManager(qtw.QWidget):
-    s_level_added = qtc.pyqtSignal(str)  # Level Name
-    s_level_removed = qtc.pyqtSignal(str)  # Level Name
+    s_level_added = qtc.Signal(str)  # Level Name
+    s_level_removed = qtc.Signal(str)  # Level Name
 
     def __init__(self, parent):
         super().__init__(parent)

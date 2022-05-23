@@ -1,4 +1,4 @@
-from PyQt5 import QtWidgets as qtw
+from PySide6 import QtWidgets as qtw
 from .newAssetWizard_GUI import Ui_new_asset_wizard
 
 

@@ -1,5 +1,6 @@
-from PyQt5 import QtWidgets as qtw
-from PyQt5 import QtCore as qtc
+from PySide6 import QtWidgets as qtw
+from PySide6 import QtCore as qtc
+from PySide6 import QtGui as qtg
 from .projectWizard_GUI import Ui_project_wizard
 import re
 from pathlib import Path
@@ -51,11 +52,11 @@ class ProjectWizard(qtw.QDialog):
 
     def eventFilter(self, source, event):
         if event.type() == qtc.QEvent.ContextMenu and source is self.ui_project_wizard.level_list:
-            add_action = qtw.QAction("Add Level...")
+            add_action = qtg.QAction("Add Level...")
             add_action.triggered.connect(self.add_level)
-            rename_action = qtw.QAction("Rename Level")
+            rename_action = qtg.QAction("Rename Level")
             rename_action.triggered.connect(self.rename_level)
-            remove_action = qtw.QAction("Remove Level")
+            remove_action = qtg.QAction("Remove Level")
             remove_action.triggered.connect(self.remove_level)
 
             context_menu = qtw.QMenu()

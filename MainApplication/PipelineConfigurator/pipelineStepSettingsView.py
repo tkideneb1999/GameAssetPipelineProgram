@@ -1,7 +1,7 @@
 import importlib.util
 
-from PyQt5 import QtWidgets as qtw
-from PyQt5 import QtCore as qtc
+from PySide6 import QtWidgets as qtw
+from PySide6 import QtCore as qtc
 
 from MainApplication.Core.settings import Settings
 from MainApplication.PipelineConfigurator.pipeline_step_settings_GUI import Ui_pipeline_step_settings_GUI
@@ -11,9 +11,9 @@ from MainApplication.Plugins.pluginAPI import PluginSettings
 
 class PipelineStepSettingsView(qtw.QWidget):
 
-    s_selected_config = qtc.pyqtSignal(str)
-    s_settings_added = qtc.pyqtSignal(dict)
-    s_settings_changed = qtc.pyqtSignal(str, str)
+    s_selected_config = qtc.Signal(str)
+    s_settings_added = qtc.Signal(dict)
+    s_settings_changed = qtc.Signal(str, str)
 
     def __init__(self, parent=None):
         super(PipelineStepSettingsView, self).__init__(parent)

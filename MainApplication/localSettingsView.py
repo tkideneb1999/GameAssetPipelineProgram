@@ -1,10 +1,10 @@
-from PyQt5 import QtWidgets as qtw
-from PyQt5 import QtCore as qtc
+from PySide6 import QtWidgets as qtw
+from PySide6 import QtCore as qtc
 import functools
 
 
 class LocalSettingsView(qtw.QWidget):
-    s_setting_changed = qtc.pyqtSignal(str)  # Name of setting
+    s_setting_changed = qtc.Signal(str)  # Name of setting
 
     def __init__(self, settings: dict, saved_settings=None, parent=None):
         super(LocalSettingsView, self).__init__(parent)

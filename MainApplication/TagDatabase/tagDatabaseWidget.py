@@ -1,7 +1,7 @@
 from pathlib import Path
 import re
 
-from PyQt5 import QtWidgets as qtw
+from PySide6 import QtWidgets as qtw
 
 from .. import spellcheckHelper as scH
 from .tagDatabase_GUI import Ui_tagDatabase

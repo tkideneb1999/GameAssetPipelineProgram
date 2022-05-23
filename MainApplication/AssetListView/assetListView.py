@@ -1,18 +1,18 @@
 import functools
 
-from PyQt5 import QtWidgets as qtw
-from PyQt5 import QtCore as qtc
+from PySide6 import QtWidgets as qtw
+from PySide6 import QtCore as qtc
 
 from MainApplication.AssetListView.assetList_GUI import Ui_asset_list_widget
 from MainApplication.warningPopUp import WarningPopUp
 
 class AssetListView(qtw.QWidget):
-    s_asset_changed = qtc.pyqtSignal(str, str)  # Returns level name and asset name
-    s_open_file_explorer = qtc.pyqtSignal(str, str)  # level name, asset name
-    s_add_asset = qtc.pyqtSignal(bool, str)  # level selected, level name
-    s_remove_asset = qtc.pyqtSignal(str, str)  # level name, asset name
-    s_add_level = qtc.pyqtSignal()
-    s_remove_level = qtc.pyqtSignal(str)  # Level
+    s_asset_changed = qtc.Signal(str, str)  # Returns level name and asset name
+    s_open_file_explorer = qtc.Signal(str, str)  # level name, asset name
+    s_add_asset = qtc.Signal(bool, str)  # level selected, level name
+    s_remove_asset = qtc.Signal(str, str)  # level name, asset name
+    s_add_level = qtc.Signal()
+    s_remove_level = qtc.Signal(str)  # Level
 
     def __init__(self, parent=None, mode=0):
         super(AssetListView, self).__init__(parent)

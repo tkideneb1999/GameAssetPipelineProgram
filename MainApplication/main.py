@@ -3,8 +3,8 @@ from pathlib import Path
 import json
 import os
 
-from PyQt5 import QtWidgets as qtw
-from PyQt5 import QtCore as qtc
+from PySide6 import QtWidgets as qtw
+from PySide6 import QtCore as qtc
 
 from .MainApplication_GUI import Ui_MainWindow
 from .PipelineConfigurator.pipelineConfigurator import PipelineConfigurator

@@ -1,8 +1,8 @@
 from pathlib import Path
 import json
 
-from PyQt5 import QtWidgets as qtw
-from PyQt5 import QtCore as qtc
+from PySide6 import QtWidgets as qtw
+from PySide6 import QtCore as qtc
 
 from ..Core.settings import Settings
 from ..localSettingsView import LocalSettingsView
