@@ -5,8 +5,8 @@ import os
 import sys
 from collections.abc import Callable
 
-from PyQt5 import QtWidgets as qtw
-from PyQt5 import QtCore as qtc
+from PySide6 import QtWidgets as qtw
+from PySide6 import QtCore as qtc
 
 from ..Core.asset import Asset
 from .exportWizard_GUI import Ui_export_Wizard

@@ -1,7 +1,7 @@
 import functools
 
-from PyQt5 import QtWidgets as qtw
-from PyQt5 import QtCore as qtc
+from PySide6 import QtWidgets as qtw
+from PySide6 import QtCore as qtc
 
 from .pipelineViewer_GUI import Ui_pipeline_viewer
 from .pipelineStepViewer_GUI import Ui_pipeline_step_viewer
@@ -12,8 +12,8 @@ from ...Core.asset import Asset
 def clickable(widget: qtw.QWidget):
     class Filter(qtc.QObject):
 
-        s_clicked = qtc.pyqtSignal()
-        s_context_menu_requested = qtc.pyqtSignal(qtc.QPoint)
+        s_clicked = qtc.Signal()
+        s_context_menu_requested = qtc.Signal(qtc.QPoint)
 
         def eventFilter(self, source: qtc.QObject, event: qtc.QEvent) -> bool:
             if source == widget:
@@ -36,9 +36,9 @@ def clickable(widget: qtw.QWidget):
 
 
 class PipelineViewerView(qtw.QWidget):
-    s_step_selected = qtc.pyqtSignal(int)
-    s_open_file_explorer = qtc.pyqtSignal(int)  # step index
-    s_run_plugin = qtc.pyqtSignal(int)
+    s_step_selected = qtc.Signal(int)
+    s_open_file_explorer = qtc.Signal(int)  # step index
+    s_run_plugin = qtc.Signal(int)
 
     def __init__(self, current_program="standalone", parent=None):
         super(PipelineViewerView, self).__init__(parent)
@@ -87,9 +87,9 @@ class PipelineViewerView(qtw.QWidget):
 
 
 class PipelineStepViewerView(qtw.QWidget):
-    s_clicked = qtc.pyqtSignal(int)
-    s_open_file_explorer = qtc.pyqtSignal(int)
-    s_run_plugin = qtc.pyqtSignal(int)
+    s_clicked = qtc.Signal(int)
+    s_open_file_explorer = qtc.Signal(int)
+    s_run_plugin = qtc.Signal(int)
 
     def __init__(self, step_index: int, step_name: str, step_program: str,
                  step_state: str, uses_current_program: bool,

@@ -5,8 +5,8 @@ import os
 import sys
 from collections.abc import Callable
 
-from PyQt5 import QtWidgets as qtw
-from PyQt5 import QtCore as qtc
+from PySide6 import QtWidgets as qtw
+from PySide6 import QtCore as qtc
 
 from ..Core.asset import Asset
 from .importWizard_GUI import Ui_import_Wizard
@@ -102,7 +102,7 @@ class ImportWizardView(qtw.QDialog):
 
         self.accept()
 
-    def display_selected_asset(self, level_name: str, asset_name: int) -> None:
+    def display_selected_asset(self, level_name: str, asset_name: str) -> None:
         self.loaded_asset = Asset(asset_name, level_name, project_dir=self.project_dir)
 
         self.ui.asset_details.update_asset_details(self.loaded_asset.name,

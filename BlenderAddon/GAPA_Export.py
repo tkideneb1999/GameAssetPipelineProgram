@@ -4,7 +4,7 @@ import queue
 
 import bpy
 
-from PyQt5 import QtWidgets as qtw
+from PySide6 import QtWidgets as qtw
 
 from .UI.exportWizardView import ExportWizardView
 from .Core.settings import Settings
