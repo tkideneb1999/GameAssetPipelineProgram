@@ -25,8 +25,8 @@ To remove any data the program generates, delete the GAPASettings folder in the 
 ## Functionality
 Set the current project in the File Menu to provide Access for the add-ons to it
 ### Registering Programs
-1. Add the exe of the program
-2. Start the program after registration at least once, to activate the add-on correctly
+Start the Pipeline Tool at least once to initiate some settings.
+After Add-on installation enabling the Add-on automatically registers it.
 ![grafik](https://user-images.githubusercontent.com/13368962/151027992-8ee00ab7-7987-40f2-aceb-d33df4258ca1.png)
 
 ### Pipeline Configurator
@@ -45,8 +45,6 @@ Set the current project in the File Menu to provide Access for the add-ons to it
 ![grafik](https://user-images.githubusercontent.com/13368962/151029251-79f483c8-118a-4cb5-9c3f-fdeb3860534e.png)
 
 ## Known Issues
-- Step selection highlight in Pipeline Overview not working
 - Do not modify the pipeline after using it in any assets!
 - Texture sets that have different outputs are not supported
 - No Position Map Baker available
-- For Python Version 3.10: PyQt5 throws an error when installing it
