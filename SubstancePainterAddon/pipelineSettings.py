@@ -1,36 +1,40 @@
 import os
 from pathlib import Path
 import importlib
-
-if __package__ == "":
-    import MainApplication.PipelineConfigurator.pipelineSettingsCreator as pSC
-else:
-    from .Core import pipelineSettingsCreator as pSC
-    importlib.reload(pSC)
+import pluginAPI
+importlib.reload(pluginAPI)
 
 
 def get_pipeline_settings_location() -> str:
     return os.path.abspath(__file__)
 
 
-def create_pipeline_settings() -> pSC.PipelineSettingsCreator:
-    pipeline_settings = pSC.PipelineSettingsCreator(
-        configs_dir=Path(get_pipeline_settings_location()).parent / "Configs")
+def create_pipeline_settings() -> pluginAPI.PluginSettings:
+    settings_template = pluginAPI.PluginSettings(
+        config_dir=Path(get_pipeline_settings_location()).parent / "Configs")
 
     # Set outputs (if outputs can be multiple sets, e.g. multiple texture sets)
-    pipeline_settings.has_set_outputs = True
-    pipeline_settings.set_export_data_types(["tga", "png", "tiff"])
+    settings_template.has_set_outputs = True
+    settings_template.set_export_data_types(["tga", "png", "tiff"])
 
     # Export all outputs at once
-    pipeline_settings.export_all = True
+    settings_template.export_all = True
 
     # Add additional settings
     #   Normal Map type (OpenGL/DirectX)
-    pipeline_settings.add_combobox_selection("Normal Map", ["Direct X", "OpenGL"])
+    settings_template.add_combobox("Normal Map",
+                                   pluginAPI.SettingsEnum.PIPELINE,
+                                   ["Direct X", "OpenGL"])
     #   UDIM Workflow
-    pipeline_settings.add_combobox_selection("UDIM Workflow", ["No UDIM", "Texture Set per UV Tile", "UV Tile"])
+    settings_template.add_combobox("UDIM Workflow",
+                                   pluginAPI.SettingsEnum.PIPELINE,
+                                   ["No UDIM", "Texture Set per UV Tile", "UV Tile"])
     #   Import Cameras
-    pipeline_settings.add_checkbox("Import Cameras", False)
+    settings_template.add_checkbox("Import Cameras",
+                                   pluginAPI.SettingsEnum.PIPELINE,
+                                   False)
     #   Tangent per Fragment
-    pipeline_settings.add_checkbox("Fragment Tangent", True)
-    return pipeline_settings
+    settings_template.add_checkbox("Fragment Tangent",
+                                   pluginAPI.SettingsEnum.PIPELINE,
+                                   True)
+    return settings_template

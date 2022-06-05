@@ -4,14 +4,17 @@ from pathlib import Path
 import substance_painter.logging as spLog
 import substance_painter.ui as spUI
 
+from .Core import settings as settingsModule
+importlib.reload(settingsModule)
+SETTINGS = settingsModule.Settings()
+SETTINGS.load()
+
 from . import GAPAImport
 from . import GAPAExport
-from .Core import settings as settingsModule
 from . import pipelineSettings as pipelineSettingsModule
 
 importlib.reload(GAPAImport)
 importlib.reload(GAPAExport)
-importlib.reload(settingsModule)
 importlib.reload(pipelineSettingsModule)
 
 
