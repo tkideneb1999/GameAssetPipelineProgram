@@ -114,8 +114,9 @@ class LocalSettingsView(qtw.QWidget):
 
         self.settings[name] = default_value
 
-        checked_changed = functools.partial(self.set_setting, name=name)
-        checkbox.toggled.connect(checked_changed)
+        def selected(value):
+            self.set_setting(name, value)
+        checkbox.toggled.connect(selected)
 
         self.gui_elements[name] = [checkbox]
 

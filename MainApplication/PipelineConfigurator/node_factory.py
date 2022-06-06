@@ -6,17 +6,19 @@ from .nodegraph import BaseNode
 
 def create_node_class(name: str, settings: dict, in_configs: dict, in_export_all: bool, in_has_set_outputs: bool):
     class PipelineNode(BaseNode):
-        __identifier__ = f'pipeline.{name}'
+        __identifier__ = f'pipeline.{name.strip(" ")}'
         NODE_NAME = name
         settings_template = settings
         configs = in_configs
         export_all = in_export_all
         has_set_outputs = in_has_set_outputs
+        program = name
 
         def __init__(self):
             super(PipelineNode, self).__init__()
             self.set_port_deletion_allowed(True)
             self.settings_values = {}
+            self.current_config = None
             for settings_name in self.settings_template:
                 data = self.settings_template[settings_name]["data"]
                 data_type = type(data)
@@ -28,11 +30,8 @@ def create_node_class(name: str, settings: dict, in_configs: dict, in_export_all
                     default_value = data
                 self.settings_values[settings_name] = default_value
             if not (self.configs == {}):
-                first_config = list(self.configs.values())[0]
-                for i in first_config["inputs"]:
-                    self.add_input(i[0])
-                for o in first_config["outputs"]:
-                    self.add_output(o[0])
+                self.current_config = list(self.configs.keys())[0]
+                self.config_selected(self.current_config)
 
         def get_settings(self):
             return self.settings_values
@@ -48,6 +47,7 @@ def create_node_class(name: str, settings: dict, in_configs: dict, in_export_all
                 print(f"[GAPA] Config does not exist")
                 return
 
+            self.current_config = config_name
             print(f"[GAPA] Changing IO for Node {self.name()}")
             inputs = self.inputs()
             for ip in inputs:

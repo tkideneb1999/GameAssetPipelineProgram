@@ -9,9 +9,8 @@ from .nodegraph import constants
 
 from ..Core.settings import Settings
 from . import node_factory
-from . import property_bin
+from .propertiesBin import PropertiesBin
 from ..Plugins import pluginAPI
-from .pipelineSettingsCreator import PipelineSettingsCreator
 
 
 class PipelineConfigurator(qtw.QWidget):
@@ -27,8 +26,10 @@ class PipelineConfigurator(qtw.QWidget):
         # Node Graph
         self.graph = ng.NodeGraph(self)
         self.graph.set_grid_mode(constants.VIEWER_GRID_MODE_DOTS)
+        self.graph.node_selected.connect(self.node_selected)
+        self.graph.node_created.connect(self.node_created)
+        self.graph.nodes_deleted.connect(self.node_deleted)
 
-        # TODO: Register Program Nodes
         program_names = self.settings.program_registration.get_program_list()
         for p_name in program_names:
             addon_path = self.settings.program_registration.get_program_addon_path(p_name)
@@ -59,9 +60,21 @@ class PipelineConfigurator(qtw.QWidget):
         self.h_Layout.setContentsMargins(0, 0, 0, 0)
         self.h_Layout.addWidget(self.graph.widget)
 
+        self.property_bin = PropertiesBin(self)
+        self.h_Layout.addWidget(self.property_bin)
+
         self.setLayout(self.h_Layout)
 
         self.project_dir: Path = Path()
 
     def set_project_dir(self, project_dir: Path) -> None:
         self.project_dir = project_dir
+
+    def node_selected(self, node):
+        self.property_bin.node_selected(node)
+
+    def node_created(self, node):
+        self.property_bin.node_selected(node)
+
+    def node_deleted(self, node):
+        self.property_bin.node_deleted(node)
