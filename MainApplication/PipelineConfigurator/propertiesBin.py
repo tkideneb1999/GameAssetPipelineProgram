@@ -1,9 +1,13 @@
+import functools
+
 from PySide6 import QtWidgets as qtw
 from PySide6 import QtCore as qtc
 
 from .nodegraph.nodes.base_node import BaseNode
 
 from ..localSettingsView import LocalSettingsView
+from .properties_bin_port_GUI import Ui_Port
+from . import node_factory
 
 NO_NODE_SELECTED_TEXT = "--No Node selected--"
 
@@ -15,12 +19,22 @@ class PropertiesBin(qtw.QWidget):
         self.setMinimumSize(300, 300)
         self.setSizePolicy(qtw.QSizePolicy.Minimum, qtw.QSizePolicy.Expanding)
 
-        self.frame = qtw.QFrame(self)
-        self.frame.setFrameShape(qtw.QFrame.Box)
-        self.frame.setFrameShadow(qtw.QFrame.Plain)
+        self.scroll_area = qtw.QScrollArea(self)
+        self.scroll_area.setVerticalScrollBarPolicy(qtc.Qt.ScrollBarAlwaysOn)
+        self.scroll_area.setHorizontalScrollBarPolicy(qtc.Qt.ScrollBarAlwaysOff)
+        self.scroll_area.setWidgetResizable(True)
 
-        self.f_layout = qtw.QVBoxLayout(self.frame)
-        self.frame.setLayout(self.f_layout)
+        self.v_Layout = qtw.QVBoxLayout(self)
+        self.v_Layout.setContentsMargins(0, 0, 0, 0)
+        self.v_Layout.addWidget(self.scroll_area)
+        self.setLayout(self.v_Layout)
+
+        self.scrollable_widget = qtw.QWidget()
+
+        self.s_layout = qtw.QVBoxLayout(self.scrollable_widget)
+        self.s_layout.addStretch()
+        self.scrollable_widget.setLayout(self.s_layout)
+        self.scroll_area.setWidget(self.scrollable_widget)
 
         self.node_selected_label = qtw.QLabel(NO_NODE_SELECTED_TEXT)
         self.node_name_label = qtw.QLineEdit(self)
@@ -31,18 +45,19 @@ class PropertiesBin(qtw.QWidget):
         self.config_combo_box.currentTextChanged.connect(self.on_config_changed)
         self.config_combo_box.hide()
 
-        self.f_layout.addWidget(self.node_selected_label)
-        self.f_layout.addWidget(self.node_name_label)
-        self.f_layout.addWidget(self.config_combo_box)
-
-        self.v_Layout = qtw.QVBoxLayout(self)
-        self.v_Layout.addWidget(self.frame)
-        self.setLayout(self.v_Layout)
+        # Header
+        self.s_layout.insertWidget(self.__next_to_last(), self.node_selected_label)
+        self.s_layout.insertWidget(self.__next_to_last(), self.node_name_label)
+        self.s_layout.insertWidget(self.__next_to_last(), self.config_combo_box)
 
         self.settings_view: LocalSettingsView = None
-        self.current_node: BaseNode = None
+        self.ports_view: PortsView = None
+        self.current_node: node_factory.PipelineNodeBase = None
 
-    def node_selected(self, node: BaseNode):
+    def node_selected(self, node: node_factory.PipelineNodeBase):
+        if self.current_node is not None:
+            if node.id == self.current_node.id:
+                return
         self.node_selected_label.hide()
         self.node_name_label.setText(node.name())
         self.node_name_label.show()
@@ -55,28 +70,54 @@ class PropertiesBin(qtw.QWidget):
         if self.current_node is not None:
             self.current_node.settings_values = self.settings_view.get_settings()
         self.current_node = node
-
+        uses_configs = False
         if not node.configs == {}:
+            self.config_combo_box.setEnabled(True)
             self.config_combo_box.blockSignals(True)
             self.config_combo_box.addItems(list(node.configs.keys()))
             self.config_combo_box.setCurrentText(node.current_config)
             self.config_combo_box.blockSignals(False)
             self.config_combo_box.show()
+            uses_configs = True
+        else:
+            self.config_combo_box.setEnabled(False)
 
+        # Settings View
         if self.settings_view is not None:
             self.settings_view.deleteLater()
-        self.settings_view = LocalSettingsView(node.settings_template, node.settings_values, self)
+        self.settings_view = LocalSettingsView(node.settings_template,
+                                               saved_settings=node.settings_values,
+                                               tab_side=qtw.QTabWidget.North,
+                                               parent=self)
         self.node_name_label.setText(node.name())
-        self.f_layout.addWidget(self.settings_view)
+        self.s_layout.insertWidget(self.__next_to_last(), self.settings_view)
+
+        # Ports View
+        if self.ports_view is not None:
+            self.ports_view.deleteLater()
+        self.ports_view = PortsView(config_used=uses_configs,
+                                    data_types=node.export_data_types,
+                                    node=self.current_node,
+                                    parent=self)
+        # TODO: Save Port data in Node
+        config_data = self.current_node.get_config_data(node.current_config)
+        self.ports_view.on_config_selected(config_data)
+        self.s_layout.insertWidget(self.__next_to_last(), self.ports_view)
 
     def node_deleted(self, nodes):
-        print("Node Deleted")
         for n in nodes:
             if n == self.current_node.id:
-                print("Node was being displayed")
+                # Settings View
                 self.settings_view.deleteLater()
                 self.settings_view = None
+
+                # Ports View
+                self.ports_view.deleteLater()
+                self.ports_view = None
+
+                # Node
                 self.current_node = None
+
                 self.node_name_label.hide()
                 self.node_selected_label.show()
                 self.config_combo_box.clear()
@@ -92,4 +133,155 @@ class PropertiesBin(qtw.QWidget):
     def on_config_changed(self, name):
         if self.current_node is None:
             return
-        self.current_node.config_selected(name)
+        result = self.current_node.config_selected(name)
+        if not result:
+            return
+        config_data = self.current_node.get_config_data(name)
+        self.ports_view.on_config_selected(config_data)
+
+    def __next_to_last(self) -> int:
+        return self.s_layout.count() - 1
+
+    def __before_ports(self) -> int:
+        return self.s_layout.count() - 2
+
+
+class PortsView(qtw.QWidget):
+
+    def __init__(self, config_used: bool, data_types: list, node: BaseNode, parent=None):
+        super(PortsView, self).__init__(parent=parent)
+
+        # Data
+        self._config_used = config_used
+        self._data_types = data_types
+        self.current_node = node
+        self._i_port_widgets: list[SinglePortView] = []
+        self._o_port_widgets: list[SinglePortView] = []
+
+        self.io_layout = qtw.QHBoxLayout(self)
+        self.io_layout.setContentsMargins(0, 0, 0, 0)
+
+        # Inputs
+        self.i_layout = qtw.QVBoxLayout(self)
+        self.io_layout.addLayout(self.i_layout)
+        self.add_input_button = qtw.QPushButton("Add Input")
+        self.i_layout.addWidget(self.add_input_button)
+        self.i_layout.addStretch()
+
+        self.line = qtw.QFrame(self)
+        self.line.setFrameShape(qtw.QFrame.VLine)
+        self.io_layout.addWidget(self.line)
+
+        # Outputs
+        self.o_layout = qtw.QVBoxLayout(self)
+        self.io_layout.addLayout(self.o_layout)
+        self.add_output_button = qtw.QPushButton("Add Output")
+        self.o_layout.addWidget(self.add_output_button)
+        self.o_layout.addStretch()
+
+        # Signal Wiring
+        self.add_input_button.clicked.connect(functools.partial(self.add_input))
+        self.add_output_button.clicked.connect(functools.partial(self.add_output))
+
+        # On Config Used
+        if config_used:
+            self.add_input_button.setEnabled(False)
+            self.add_output_button.setEnabled(False)
+
+        self.setLayout(self.io_layout)
+
+    def on_config_selected(self, config_data: dict):
+        if config_data is None:
+            return
+        # Delete all previous Ports
+        for i in reversed(range(len(self._i_port_widgets))):
+            self._i_port_widgets[i].deleteLater()
+            del self._i_port_widgets[i]
+        for o in reversed(range(len(self._o_port_widgets))):
+            self._o_port_widgets[o].deleteLater()
+            del self._o_port_widgets[o]
+        # Add new ports
+        for i in config_data["inputs"]:
+            self.add_input(i)
+        for o in config_data["outputs"]:
+            self.add_output(o)
+
+    def add_input(self, config_data=None):
+        port_widget = SinglePortView(data_types=self._data_types,
+                                     is_input=True,
+                                     config_data=config_data,
+                                     parent=self)
+
+        if config_data is None:
+            name = self.generate_name(True)
+            painter_func = node_factory.PORT_DATA_TYPE_MAP.get(self._data_types[0])
+            self.current_node.add_input(name, painter_func=painter_func)
+            port_widget.set_name(name)
+
+        self._i_port_widgets.append(port_widget)
+        self.i_layout.insertWidget(self.i_layout.count() - 1, port_widget)
+
+    def add_output(self, config_data=None):
+        port_widget = SinglePortView(data_types=self._data_types,
+                                     is_input=False,
+                                     config_data=config_data,
+                                     parent=self)
+
+        if config_data is None:
+            name = self.generate_name(False)
+            painter_func = node_factory.PORT_DATA_TYPE_MAP.get(self._data_types[0])
+            self.current_node.add_output(name, painter_func=painter_func)
+            port_widget.set_name(name)
+
+        self._o_port_widgets.append(port_widget)
+        self.o_layout.insertWidget(self.o_layout.count() - 1, port_widget)
+
+    def generate_name(self, is_input: bool, name="input", count=0) -> str:
+        gen_name = f"{name}_{count}"
+        if is_input:
+            port = self.current_node.get_input(gen_name)
+        else:
+            port = self.current_node.get_output(gen_name)
+        if port is None:
+            return gen_name
+        else:
+            return self.generate_name(is_input, name, count+1)
+
+
+class SinglePortView(qtw.QWidget):
+    s_data_type_changed = qtc.Signal(str, str)  # id, type
+    s_port_name_changed = qtc.Signal(str, str)  # id, new name
+
+    def __init__(self, data_types: list, is_input, config_data=None, parent=None):
+        super(SinglePortView, self).__init__(parent)
+
+        #TODO: Assign ID
+        self.uid = "NotARealId"
+
+        self.ui = Ui_Port()
+        self.ui.setupUi(self)
+
+        if not is_input:
+            self.ui.data_type_menu.addItems(data_types)
+
+        if config_data is not None:
+            self.ui.port_name_edit.setEnabled(False)
+            self.ui.port_name_edit.setText(config_data[0])
+            if is_input:
+                self.ui.data_type_menu.addItem(config_data[1])
+                self.ui.data_type_menu.setEnabled(False)
+
+        self.ui.data_type_menu.currentTextChanged.connect(self.on_data_type_changed)
+        self.ui.port_name_edit.editingFinished.connect(self.on_port_name_changed)
+
+    def set_name(self, new_name):
+        self.ui.port_name_edit.setText(new_name)
+
+    def set_data_type(self, new_data_type):
+        self.ui.data_type_menu.setCurrentText(new_data_type)
+
+    def on_port_name_changed(self, text):
+        self.s_port_name_changed.emit(self.uid, text)
+
+    def on_data_type_changed(self, text):
+        self.s_data_type_changed.emit(self.uid, text)

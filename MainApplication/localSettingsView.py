@@ -1,3 +1,5 @@
+from enum import Enum
+
 from PySide6 import QtWidgets as qtw
 from PySide6 import QtCore as qtc
 import functools
@@ -6,7 +8,7 @@ import functools
 class LocalSettingsView(qtw.QWidget):
     s_setting_changed = qtc.Signal(str)  # Name of setting
 
-    def __init__(self, settings: dict, saved_settings=None, parent=None):
+    def __init__(self, settings: dict, saved_settings=None, tab_side=qtw.QTabWidget.West, parent=None):
         super(LocalSettingsView, self).__init__(parent)
 
         # GUI Types
@@ -19,9 +21,10 @@ class LocalSettingsView(qtw.QWidget):
 
         self.dialog_layout = qtw.QVBoxLayout(self)
         self.setLayout(self.dialog_layout)
+        self.dialog_layout.setContentsMargins(0, 0, 0, 0)
 
         self.tab_widget = qtw.QTabWidget(self)
-        self.tab_widget.setTabPosition(qtw.QTabWidget.West)
+        self.tab_widget.setTabPosition(tab_side)
         self.tabs: dict[str, qtw.QWidget] = {}
         self.create_tab("General")
         self.dialog_layout.addWidget(self.tab_widget)

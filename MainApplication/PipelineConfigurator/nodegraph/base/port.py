@@ -98,6 +98,22 @@ class Port(object):
         """
         return self.model.name
 
+    def rename(self, new_name: str):
+        current_connections = self.connected_ports()
+        self.clear_connections(False)
+        self.model.name = new_name
+        self.__view._name = new_name
+        for port in current_connections:
+            self.connect_to(port, False)
+
+    @property
+    def data_type(self):
+        return self.model.data_type
+
+    @data_type.setter
+    def data_type(self, new_data_type):
+        self.model.data_type = new_data_type
+
     def visible(self):
         """
         Port visible in the node graph.

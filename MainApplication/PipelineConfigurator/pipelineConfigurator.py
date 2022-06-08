@@ -30,6 +30,7 @@ class PipelineConfigurator(qtw.QWidget):
         self.graph.node_created.connect(self.node_created)
         self.graph.nodes_deleted.connect(self.node_deleted)
 
+        # Register Program Nodes
         program_names = self.settings.program_registration.get_program_list()
         for p_name in program_names:
             addon_path = self.settings.program_registration.get_program_addon_path(p_name)
@@ -41,7 +42,8 @@ class PipelineConfigurator(qtw.QWidget):
                                                         program_settings.pipeline_settings,
                                                         program_settings.configs,
                                                         program_settings.export_all,
-                                                        program_settings.has_set_outputs)
+                                                        program_settings.has_set_outputs,
+                                                        program_settings.export_data_types)
             self.graph.register_node(node_class, alias=p_name)
 
         # Register Plugin Nodes
@@ -53,12 +55,14 @@ class PipelineConfigurator(qtw.QWidget):
                                                         plugin_settings.pipeline_settings,
                                                         plugin_settings.configs,
                                                         plugin_settings.export_all,
-                                                        plugin_settings.has_set_outputs)
+                                                        plugin_settings.has_set_outputs,
+                                                        plugin_settings.export_data_types)
             self.graph.register_node(node_class, alias=p_name)
 
         self.h_Layout = qtw.QHBoxLayout(self)
         self.h_Layout.setContentsMargins(0, 0, 0, 0)
         self.h_Layout.addWidget(self.graph.widget)
+        self.graph.widget.setSizePolicy(qtw.QSizePolicy.Expanding, qtw.QSizePolicy.MinimumExpanding)
 
         self.property_bin = PropertiesBin(self)
         self.h_Layout.addWidget(self.property_bin)

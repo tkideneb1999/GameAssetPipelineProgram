@@ -12,7 +12,6 @@ from ..constants import (
 
 from ..errors import NodePropertyError
 
-
 class PortModel(object):
     """
     Data dump for a port object.
@@ -26,9 +25,9 @@ class PortModel(object):
         self.multi_connection = False
         self.visible = True
         self.locked = False
-        self.data_types = []
-        self.selected_data_type = -1
         self.connected_ports = defaultdict(list)
+        self.data_type = None
+        self.uid = ""
 
     def __repr__(self):
         return '<{}(\'{}\') object at {}>'.format(
@@ -76,6 +75,7 @@ class NodeModel(object):
         self.width = 100.0
         self.height = 80.0
         self.pos = [0.0, 0.0]
+        self.uid = ""
 
         # BaseNode attrs.
         self.input_ports = {}
