@@ -164,6 +164,7 @@ class PortsView(qtw.QWidget):
         self.i_layout = qtw.QVBoxLayout(self)
         self.io_layout.addLayout(self.i_layout)
         self.add_input_button = qtw.QPushButton("Add Input")
+        self.add_input_button.setSizePolicy(qtw.QSizePolicy.Expanding, qtw.QSizePolicy.Fixed)
         self.i_layout.addWidget(self.add_input_button)
         self.i_layout.addStretch()
 
@@ -175,6 +176,7 @@ class PortsView(qtw.QWidget):
         self.o_layout = qtw.QVBoxLayout(self)
         self.io_layout.addLayout(self.o_layout)
         self.add_output_button = qtw.QPushButton("Add Output")
+        self.add_output_button.setSizePolicy(qtw.QSizePolicy.Expanding, qtw.QSizePolicy.Fixed)
         self.o_layout.addWidget(self.add_output_button)
         self.o_layout.addStretch()
 
@@ -255,33 +257,49 @@ class PortsView(qtw.QWidget):
                                      data_types=self._data_types,
                                      is_input=True,
                                      uses_config=uses_config,
+                                     index=len(self._o_port_widgets),
                                      parent=self)
 
         self._i_port_widgets.append(port_widget)
         self.i_layout.insertWidget(self.i_layout.count() - 1, port_widget)
         port_widget.s_port_name_changed.connect(self.current_node.rename_input)
+        port_widget.s_delete_port.connect(self._on_delete_input)
 
     def _add_output_widget(self, port, uses_config):
         port_widget = SinglePortView(port=port,
                                      data_types=self._data_types,
                                      is_input=False,
                                      uses_config=uses_config,
+                                     index=len(self._o_port_widgets),
                                      parent=self)
 
         self._o_port_widgets.append(port_widget)
         self.o_layout.insertWidget(self.o_layout.count() - 1, port_widget)
         port_widget.s_port_name_changed.connect(self.current_node.rename_output)
+        port_widget.s_delete_port.connect(self._on_delete_output)
+
+    def _on_delete_input(self, name: str, index: int):
+        self.current_node.delete_input(name)
+        self._i_port_widgets[index].deleteLater()
+        del self._i_port_widgets[index]
+
+    def _on_delete_output(self, name: str, index: int):
+        self.current_node.delete_output(name)
+        self._o_port_widgets[index].deleteLater()
+        del self._o_port_widgets[index]
 
 
 class SinglePortView(qtw.QWidget):
     s_data_type_changed = qtc.Signal()  # id, type
     s_port_name_changed = qtc.Signal(str, str)  # old name, new name
+    s_delete_port = qtc.Signal(str, int)  # Name, is input, index
 
-    def __init__(self, port, data_types: list, is_input: bool, uses_config: bool, parent=None):
+    def __init__(self, port, data_types: list, is_input: bool, uses_config: bool, index: int, parent=None):
         super(SinglePortView, self).__init__(parent)
 
         self.ui = Ui_Port()
         self.ui.setupUi(self)
+        self.index = index
 
         self.port = port
         if not is_input and data_types is not None:
@@ -289,6 +307,7 @@ class SinglePortView(qtw.QWidget):
 
         if uses_config:
             self.ui.port_name_edit.setEnabled(False)
+            self.ui.remove_port_button.setEnabled(False)
             if is_input:
                 self.ui.data_type_menu.setEnabled(False)
                 self.ui.data_type_menu.addItem(port.data_type)
@@ -298,6 +317,7 @@ class SinglePortView(qtw.QWidget):
 
         self.ui.data_type_menu.currentTextChanged.connect(self.on_data_type_changed)
         self.ui.port_name_edit.editingFinished.connect(self.on_port_name_changed)
+        self.ui.remove_port_button.clicked.connect(self.on_delete_port)
 
     def set_name(self, new_name):
         self.ui.port_name_edit.setText(new_name)
@@ -311,3 +331,6 @@ class SinglePortView(qtw.QWidget):
 
     def on_data_type_changed(self, text):
         self.port.data_type = text
+
+    def on_delete_port(self):
+        self.s_delete_port.emit(self.port.name(), self.index)

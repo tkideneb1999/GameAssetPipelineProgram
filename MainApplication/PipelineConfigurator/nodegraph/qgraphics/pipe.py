@@ -12,7 +12,8 @@ from ..constants import (
     PIPE_LAYOUT_ANGLE, PIPE_LAYOUT_CURVED,
     ITEM_CACHE_MODE,
     NODE_LAYOUT_VERTICAL, NODE_LAYOUT_HORIZONTAL,
-    NODE_LAYOUT_DIRECTION)
+    NODE_LAYOUT_DIRECTION,
+    PIPE_ARROW_SIZE)
 from ..qgraphics.port import PortItem
 
 PIPE_STYLES = {
@@ -38,7 +39,7 @@ class PipeItem(QtWidgets.QGraphicsPathItem):
         self._highlight = False
         self._input_port = input_port
         self._output_port = output_port
-        size = 1.5
+        size = PIPE_ARROW_SIZE
         self._arrow = QtGui.QPolygonF()
         self._arrow.append(QtCore.QPointF(-size, size))
         self._arrow.append(QtCore.QPointF(0.0, -size * 1.5))
