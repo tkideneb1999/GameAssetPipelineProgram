@@ -101,7 +101,7 @@ class PropertiesBin(qtw.QWidget):
                                     parent=self)
         # TODO: Save Port data in Node
         config_data = self.current_node.get_config_data(node.current_config)
-        self.ports_view.on_config_selected(config_data)
+        # self.ports_view.on_config_selected(config_data)
         self.s_layout.insertWidget(self.__next_to_last(), self.ports_view)
 
     def node_deleted(self, nodes):
@@ -136,8 +136,7 @@ class PropertiesBin(qtw.QWidget):
         result = self.current_node.config_selected(name)
         if not result:
             return
-        config_data = self.current_node.get_config_data(name)
-        self.ports_view.on_config_selected(config_data)
+        self.ports_view.on_config_selected()
 
     def __next_to_last(self) -> int:
         return self.s_layout.count() - 1
@@ -148,13 +147,13 @@ class PropertiesBin(qtw.QWidget):
 
 class PortsView(qtw.QWidget):
 
-    def __init__(self, config_used: bool, data_types: list, node: BaseNode, parent=None):
+    def __init__(self, config_used: bool, data_types: list, node: node_factory.PipelineNodeBase, parent=None):
         super(PortsView, self).__init__(parent=parent)
 
         # Data
         self._config_used = config_used
         self._data_types = data_types
-        self.current_node = node
+        self.current_node: node_factory.PipelineNodeBase = node
         self._i_port_widgets: list[SinglePortView] = []
         self._o_port_widgets: list[SinglePortView] = []
 
@@ -190,53 +189,57 @@ class PortsView(qtw.QWidget):
 
         self.setLayout(self.io_layout)
 
-    def on_config_selected(self, config_data: dict):
-        if config_data is None:
-            return
-        # Delete all previous Ports
+        current_config = self.current_node.get_current_config_data()
+        # Mirror IO
+        self.mirror_io()
+
+    def on_config_selected(self):
+        # Delete all previous Port Widgets
         for i in reversed(range(len(self._i_port_widgets))):
             self._i_port_widgets[i].deleteLater()
             del self._i_port_widgets[i]
         for o in reversed(range(len(self._o_port_widgets))):
             self._o_port_widgets[o].deleteLater()
             del self._o_port_widgets[o]
-        # Add new ports
-        for i in config_data["inputs"]:
-            self.add_input(i)
-        for o in config_data["outputs"]:
-            self.add_output(o)
+        # Add new Port Widgets
+        self.mirror_io()
+
+    def mirror_io(self):
+        inputs = self.current_node.input_ports()
+        for p in inputs:
+            self._add_input_widget(p, self._config_used)
+
+        outputs = self.current_node.output_ports()
+        for p in outputs:
+            self._add_output_widget(p, self._config_used)
 
     def add_input(self, config_data=None):
-        port_widget = SinglePortView(data_types=self._data_types,
-                                     is_input=True,
-                                     config_data=config_data,
-                                     parent=self)
-
         if config_data is None:
-            name = self.generate_name(True)
-            painter_func = node_factory.PORT_DATA_TYPE_MAP.get(self._data_types[0])
-            self.current_node.add_input(name, painter_func=painter_func)
-            port_widget.set_name(name)
-
-        self._i_port_widgets.append(port_widget)
-        self.i_layout.insertWidget(self.i_layout.count() - 1, port_widget)
+            name = self._generate_name(True)
+            if not self._data_types:
+                painter_func = node_factory.PORT_DATA_TYPE_MAP.get(None)
+            else:
+                painter_func = node_factory.PORT_DATA_TYPE_MAP.get(self._data_types[0])
+        else:
+            name = config_data[0]
+            painter_func = node_factory.PORT_DATA_TYPE_MAP.get(config_data[1])
+        port = self.current_node.add_input(name, painter_func=painter_func)
+        self._add_input_widget(port, config_data)
 
     def add_output(self, config_data=None):
-        port_widget = SinglePortView(data_types=self._data_types,
-                                     is_input=False,
-                                     config_data=config_data,
-                                     parent=self)
-
         if config_data is None:
-            name = self.generate_name(False)
-            painter_func = node_factory.PORT_DATA_TYPE_MAP.get(self._data_types[0])
-            self.current_node.add_output(name, painter_func=painter_func)
-            port_widget.set_name(name)
+            name = self._generate_name(False)
+            if not self._data_types:
+                painter_func = node_factory.PORT_DATA_TYPE_MAP.get(None)
+            else:
+                painter_func = node_factory.PORT_DATA_TYPE_MAP.get(self._data_types[0])
+        else:
+            name = config_data[0]
+            painter_func = node_factory.PORT_DATA_TYPE_MAP.get(config_data[1])
+        port = self.current_node.add_output(name, painter_func=painter_func)
+        self._add_output_widget(port, config_data)
 
-        self._o_port_widgets.append(port_widget)
-        self.o_layout.insertWidget(self.o_layout.count() - 1, port_widget)
-
-    def generate_name(self, is_input: bool, name="input", count=0) -> str:
+    def _generate_name(self, is_input: bool, name="input", count=0) -> str:
         gen_name = f"{name}_{count}"
         if is_input:
             port = self.current_node.get_input(gen_name)
@@ -245,31 +248,53 @@ class PortsView(qtw.QWidget):
         if port is None:
             return gen_name
         else:
-            return self.generate_name(is_input, name, count+1)
+            return self._generate_name(is_input, name, count + 1)
+
+    def _add_input_widget(self, port, uses_config):
+        port_widget = SinglePortView(port=port,
+                                     data_types=self._data_types,
+                                     is_input=True,
+                                     uses_config=uses_config,
+                                     parent=self)
+
+        self._i_port_widgets.append(port_widget)
+        self.i_layout.insertWidget(self.i_layout.count() - 1, port_widget)
+        port_widget.s_port_name_changed.connect(self.current_node.rename_input)
+
+    def _add_output_widget(self, port, uses_config):
+        port_widget = SinglePortView(port=port,
+                                     data_types=self._data_types,
+                                     is_input=False,
+                                     uses_config=uses_config,
+                                     parent=self)
+
+        self._o_port_widgets.append(port_widget)
+        self.o_layout.insertWidget(self.o_layout.count() - 1, port_widget)
+        port_widget.s_port_name_changed.connect(self.current_node.rename_output)
 
 
 class SinglePortView(qtw.QWidget):
-    s_data_type_changed = qtc.Signal(str, str)  # id, type
-    s_port_name_changed = qtc.Signal(str, str)  # id, new name
+    s_data_type_changed = qtc.Signal()  # id, type
+    s_port_name_changed = qtc.Signal(str, str)  # old name, new name
 
-    def __init__(self, data_types: list, is_input, config_data=None, parent=None):
+    def __init__(self, port, data_types: list, is_input: bool, uses_config: bool, parent=None):
         super(SinglePortView, self).__init__(parent)
-
-        #TODO: Assign ID
-        self.uid = "NotARealId"
 
         self.ui = Ui_Port()
         self.ui.setupUi(self)
 
-        if not is_input:
+        self.port = port
+        if not is_input and data_types is not None:
             self.ui.data_type_menu.addItems(data_types)
 
-        if config_data is not None:
+        if uses_config:
             self.ui.port_name_edit.setEnabled(False)
-            self.ui.port_name_edit.setText(config_data[0])
             if is_input:
-                self.ui.data_type_menu.addItem(config_data[1])
                 self.ui.data_type_menu.setEnabled(False)
+                self.ui.data_type_menu.addItem(port.data_type)
+        self.ui.port_name_edit.setText(port.name())
+        if data_types is not None:
+            self.ui.data_type_menu.setCurrentText(port.data_type)
 
         self.ui.data_type_menu.currentTextChanged.connect(self.on_data_type_changed)
         self.ui.port_name_edit.editingFinished.connect(self.on_port_name_changed)
@@ -280,8 +305,9 @@ class SinglePortView(qtw.QWidget):
     def set_data_type(self, new_data_type):
         self.ui.data_type_menu.setCurrentText(new_data_type)
 
-    def on_port_name_changed(self, text):
-        self.s_port_name_changed.emit(self.uid, text)
+    def on_port_name_changed(self):
+        # Check if Port name already exists
+        self.s_port_name_changed.emit(self.port.name(), self.ui.port_name_edit.text())
 
     def on_data_type_changed(self, text):
-        self.s_data_type_changed.emit(self.uid, text)
+        self.port.data_type = text

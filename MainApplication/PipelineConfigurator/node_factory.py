@@ -89,8 +89,12 @@ class PipelineNodeBase(BaseNode):
     def __init__(self):
         super(PipelineNodeBase, self).__init__()
         self.set_port_deletion_allowed(True)
+
+        self.input_uid_counter = 0
+        self.output_uid_counter = 0
         self.settings_values = {}
         self.current_config = None
+
         for settings_name in self.settings_template:
             data = self.settings_template[settings_name]["data"]
             data_type = type(data)
@@ -117,30 +121,130 @@ class PipelineNodeBase(BaseNode):
     def get_config_data(self, config_name: str) -> dict:
         return self.configs.get(config_name)
 
-    def config_selected(self, config_name: str) -> bool:
-        if config_name not in list(self.configs.keys()):
-            print(f"[GAPA] Config does not exist")
-            return False
+    def get_current_config_data(self) -> dict:
+        return self.configs.get(self.current_config)
 
-        self.current_config = config_name
-        print(f"[GAPA] Changing IO for Node {self.name()}")
+    def get_uid(self):
+        return self.model.uid
+
+    def set_uid(self, uid: str):
+        self.model.uid = uid
+
+    def delete_input(self, port):
+        port_obj = self.get_input(port)
+        port_obj.clear_connections()
+        super(PipelineNodeBase, self).delete_input(port)
+
+    def delete_output(self, port):
+        port_obj = self.get_output(port)
+        port_obj.clear_connections()
+        super(PipelineNodeBase, self).delete_output(port)
+
+    def add_input(self, name='input', multi_input=False, display_name=True,
+                  color=None, locked=False, painter_func=None):
+        port = super(PipelineNodeBase, self).add_input(name=name,
+                                                       multi_input=multi_input,
+                                                       display_name=display_name,
+                                                       color=color,
+                                                       locked=locked,
+                                                       painter_func=painter_func)
+        port.set_uid(f"{self.get_uid()}.i{self.input_uid_counter}")
+        self.input_uid_counter += 1
+        return port
+
+    def add_output(self, name='output', multi_output=True, display_name=True,
+                   color=None, locked=False, painter_func=None):
+        port = super(PipelineNodeBase, self).add_output(name=name,
+                                                        multi_output=multi_output,
+                                                        display_name=display_name,
+                                                        color=color,
+                                                        locked=locked,
+                                                        painter_func=painter_func)
+        port.set_uid(f"{self.get_uid()}.o{self.output_uid_counter}")
+        if self.export_data_types:
+            port.data_type = self.export_data_types[0]
+        self.output_uid_counter += 1
+        return port
+
+    def rename_input(self, old_name, new_name):
+        # Get all port names and connections of ports
+        ports = self.inputs()
+        if new_name in ports:
+            return False
+        data = {}
+        for p in ports:
+            painter_func = None
+            if hasattr(ports[p].view, '_port_painter'):
+                painter_func = ports[p].view._port_painter
+            data[p] = {"connections": ports[p].connected_ports(),
+                       "painter_func": painter_func}
+            # Delete all ports
+            self.delete_input(p)
+        # Create new ports with names corresponding to previous order
+        for p in data:
+            name = p
+            if name == old_name:
+                name = new_name
+
+            port = self.add_input(name, painter_func=data[p]["painter_func"])
+            for c in data[p]["connections"]:
+                port.connect_to(c)
+        return True
+
+    def rename_output(self, old_name, new_name):
+        # Get all port names and connections of ports
+        ports = self.outputs()
+        if new_name in ports:
+            return False
+        data = {}
+        for p in ports:
+            painter_func = None
+            if hasattr(ports[p].view, '_port_painter'):
+                painter_func = ports[p].view._port_painter
+            data[p] = {"connections": ports[p].connected_ports(),
+                       "painter_func": painter_func}
+            # Delete all ports
+            self.delete_output(p)
+        # Create new ports with names corresponding to previous order
+        for p in data:
+            name = p
+            if name == old_name:
+                name = new_name
+            port = self.add_output(name, painter_func=data[p]["painter_func"])
+            for c in data[p]["connections"]:
+                port.connect_to(c)
+        return True
+
+    def delete_all_inputs(self):
         inputs = self.inputs()
         for ip in inputs:
-            inputs[ip].clear_connections()
             self.delete_input(ip)
+
+    def delete_all_outputs(self):
         outputs = self.outputs()
         for op in outputs:
-            outputs[op].clear_connections()
             self.delete_output(op)
 
-        config = self.configs[config_name]
-
-        for i in config["inputs"]:
-            draw_square_func = PORT_DATA_TYPE_MAP.get(i[1])
-            self.add_input(i[0], painter_func=draw_square_func)
-        for o in config["outputs"]:
-            draw_tri_func = PORT_DATA_TYPE_MAP.get(o[1])
-            self.add_output(o[0], painter_func=draw_tri_func)
+    def config_selected(self, config_name: str) -> bool:
+        config_data = self.configs.get(config_name)
+        if config_data is None:
+            return False
+        self.delete_all_inputs()
+        self.delete_all_outputs()
+        for i in config_data["inputs"]:
+            if not self.export_data_types:
+                painter_func = None
+            else:
+                painter_func = PORT_DATA_TYPE_MAP.get(i[1])
+            port = self.add_input(i[0], painter_func=painter_func)
+            port.data_type = i[1]
+        for o in config_data["outputs"]:
+            if not self.export_data_types:
+                painter_func = None
+            else:
+                painter_func = PORT_DATA_TYPE_MAP.get(o[1])
+            port = self.add_output(o[0], painter_func=painter_func)
+            port.data_type = o[1]
         return True
 
 

@@ -30,6 +30,8 @@ class PipelineConfigurator(qtw.QWidget):
         self.graph.node_created.connect(self.node_created)
         self.graph.nodes_deleted.connect(self.node_deleted)
 
+        self.uid_counter = 0
+
         # Register Program Nodes
         program_names = self.settings.program_registration.get_program_list()
         for p_name in program_names:
@@ -77,8 +79,10 @@ class PipelineConfigurator(qtw.QWidget):
     def node_selected(self, node):
         self.property_bin.node_selected(node)
 
-    def node_created(self, node):
+    def node_created(self, node: node_factory.PipelineNodeBase):
         self.property_bin.node_selected(node)
+        node.set_uid(f"s{self.uid_counter}")
+        self.uid_counter += 1
 
     def node_deleted(self, node):
         self.property_bin.node_deleted(node)

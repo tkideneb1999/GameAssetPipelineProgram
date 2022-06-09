@@ -98,13 +98,8 @@ class Port(object):
         """
         return self.model.name
 
-    def rename(self, new_name: str):
-        current_connections = self.connected_ports()
-        self.clear_connections(False)
-        self.model.name = new_name
-        self.__view._name = new_name
-        for port in current_connections:
-            self.connect_to(port, False)
+    def set_uid(self, uid: str):
+        self.model.uid = uid
 
     @property
     def data_type(self):

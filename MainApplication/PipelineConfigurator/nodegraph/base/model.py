@@ -27,7 +27,7 @@ class PortModel(object):
         self.locked = False
         self.connected_ports = defaultdict(list)
         self.data_type = None
-        self.uid = ""
+        self.uid = None
 
     def __repr__(self):
         return '<{}(\'{}\') object at {}>'.format(
@@ -75,7 +75,7 @@ class NodeModel(object):
         self.width = 100.0
         self.height = 80.0
         self.pos = [0.0, 0.0]
-        self.uid = ""
+        self.uid = None
 
         # BaseNode attrs.
         self.input_ports = {}
