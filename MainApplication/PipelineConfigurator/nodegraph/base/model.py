@@ -11,6 +11,11 @@ from ..constants import (
 )
 
 from ..errors import NodePropertyError
+from ....Core.pipeline import (Pipeline,
+                               PipelineStep,
+                               PipelineInput,
+                               PipelineOutput)
+
 
 class PortModel(object):
     """
@@ -26,6 +31,8 @@ class PortModel(object):
         self.visible = True
         self.locked = False
         self.connected_ports = defaultdict(list)
+
+        # GAPA Data
         self.data_type = None
         self.uid = None
 
@@ -75,7 +82,15 @@ class NodeModel(object):
         self.width = 100.0
         self.height = 80.0
         self.pos = [0.0, 0.0]
+
+        # GAPA Data
         self.uid = None
+        self.program = ""
+        self.is_plugin = False
+        self.has_set_outputs = False
+        self.export_all = False
+        self.settings = {}
+        self.config = None
 
         # BaseNode attrs.
         self.input_ports = {}
@@ -261,6 +276,8 @@ class NodeModel(object):
                     'name': name,
                     'multi_connection': model.multi_connection,
                     'display_name': model.display_name,
+                    'uid': model.uid,
+                    'data_type': model.data_type,
                 })
             connected_ports = model.to_dict['connected_ports']
             if connected_ports:
@@ -271,6 +288,8 @@ class NodeModel(object):
                     'name': name,
                     'multi_connection': model.multi_connection,
                     'display_name': model.display_name,
+                    'uid': model.uid,
+                    'data_type': model.data_type,
                 })
             connected_ports = model.to_dict['connected_ports']
             if connected_ports:

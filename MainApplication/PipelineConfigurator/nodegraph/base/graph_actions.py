@@ -19,6 +19,7 @@ def build_context_menu(graph):
     file_menu.add_command('Save...', _save_session, QtGui.QKeySequence.Save)
     file_menu.add_command('Save As...', _save_session_as, 'Ctrl+Shift+S')
     file_menu.add_command('New Session', _new_session)
+    file_menu.add_command('Publish...', _publish_pipeline)
 
     # "Edit" menu.
     # --------------------------------------------------------------------------
@@ -312,3 +313,7 @@ def _layout_graph_up(graph):
     """
     nodes = graph.selected_nodes() or graph.all_nodes()
     graph.auto_layout_nodes(nodes=nodes, down_stream=False)
+
+
+def _publish_pipeline(graph):
+    graph.s_publish_pipeline.emit()

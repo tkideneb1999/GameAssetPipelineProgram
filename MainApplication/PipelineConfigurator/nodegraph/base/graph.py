@@ -112,6 +112,11 @@ class NodeGraph(QtCore.QObject):
     :parameters: :str
     :emits: new session path
     """
+    s_publish_pipeline = QtCore.Signal()
+    """
+    CUSTOM
+    Signal is triggered when Publish Pipeline Command is being called
+    """
 
     def __init__(self, parent=None, **kwargs):
         """

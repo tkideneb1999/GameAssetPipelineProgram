@@ -68,7 +68,7 @@ class PropertiesBin(qtw.QWidget):
         if not node_group == 'pipeline':
             return
         if self.current_node is not None:
-            self.current_node.settings_values = self.settings_view.get_settings()
+            self.current_node.settings = self.settings_view.get_settings()
         self.current_node = node
         uses_configs = False
         if not node.configs == {}:
@@ -86,7 +86,7 @@ class PropertiesBin(qtw.QWidget):
         if self.settings_view is not None:
             self.settings_view.deleteLater()
         self.settings_view = LocalSettingsView(node.settings_template,
-                                               saved_settings=node.settings_values,
+                                               saved_settings=node.settings,
                                                tab_side=qtw.QTabWidget.North,
                                                parent=self)
         self.node_name_label.setText(node.name())

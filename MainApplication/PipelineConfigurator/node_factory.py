@@ -3,6 +3,8 @@ from PySide6 import QtGui as qtg
 
 from .nodegraph import BaseNode
 
+from ..Core.pipeline import (PipelineStep, PipelineInput, PipelineOutput)
+
 
 def draw_square_port(painter, rect, info):
     painter.save()
@@ -84,6 +86,7 @@ class PipelineNodeBase(BaseNode):
     export_all = False
     has_set_outputs = False
     program = "Program"
+    is_plugin = False
     export_data_types = []
 
     def __init__(self):
@@ -92,8 +95,10 @@ class PipelineNodeBase(BaseNode):
 
         self.input_uid_counter = 0
         self.output_uid_counter = 0
-        self.settings_values = {}
+
         self.current_config = None
+
+        settings_values = {}
 
         for settings_name in self.settings_template:
             data = self.settings_template[settings_name]["data"]
@@ -104,13 +109,14 @@ class PipelineNodeBase(BaseNode):
                 default_value = ""
             else:
                 default_value = data
-            self.settings_values[settings_name] = default_value
-        if not (self.configs == {}):
-            self.current_config = list(self.configs.keys())[0]
-            self.config_selected(self.current_config)
+            settings_values[settings_name] = default_value
 
-    def get_settings(self):
-        return self.settings_values
+        # Set Correct Static Model Data
+        self.settings = settings_values
+        self.model.program = self.program
+        self.model.is_plugin = self.is_plugin
+        self.model.has_set_outputs = self.has_set_outputs
+        self.model.export_all = self.export_all
 
     def get_settings_template(self):
         return self.settings_template
@@ -122,13 +128,24 @@ class PipelineNodeBase(BaseNode):
         return self.configs.get(config_name)
 
     def get_current_config_data(self) -> dict:
-        return self.configs.get(self.current_config)
+        return self.configs.get(self.model.config)
+
+    def get_current_config_name(self) -> str:
+        return self.model.config
 
     def get_uid(self):
         return self.model.uid
 
     def set_uid(self, uid: str):
         self.model.uid = uid
+
+    @property
+    def settings(self) -> dict:
+        return self.model.settings
+
+    @settings.setter
+    def settings(self, settings: dict):
+        self.model.settings = settings
 
     def delete_input(self, port):
         port_obj = self.get_input(port)
@@ -229,6 +246,7 @@ class PipelineNodeBase(BaseNode):
         config_data = self.configs.get(config_name)
         if config_data is None:
             return False
+        self.model.config = config_name
         self.delete_all_inputs()
         self.delete_all_outputs()
         for i in config_data["inputs"]:
@@ -244,11 +262,39 @@ class PipelineNodeBase(BaseNode):
             else:
                 painter_func = PORT_DATA_TYPE_MAP.get(o[1])
             port = self.add_output(o[0], painter_func=painter_func)
-            port.data_type = o[1]
+            if not self.export_data_types:
+                port.data_type = o[1]
         return True
+
+    def to_pipeline_data(self):
+        step = PipelineStep(self.model.uid)
+        step.name = self.name()
+        step.program = self.program
+        step.config = self.model.config
+        step.is_plugin = self.is_plugin
+        step.has_set_outputs = self.has_set_outputs
+        step.export_all = self.export_all
+
+        connections = {}
+        for i in self.input_ports():
+            step_input = PipelineInput(i.model.uid)
+            step_input.name = i.model.name
+            step.inputs.append(step_input)
+            if not i.connected_ports():
+                continue
+            connected_port = i.connected_ports()[0]
+            connections[i.model.uid] = connected_port.model.uid
+        for o in self.model.output_ports:
+            step_output = PipelineOutput(self.model.output_ports[o].uid)
+            step_output.name = o
+            step_output.data_type = self.model.output_ports[o].data_type
+            step.outputs.append(step_output)
+
+        return step, connections
 
 
 def create_node_class(name: str,
+                      in_is_plugin: bool,
                       settings: dict,
                       in_configs: dict,
                       in_export_all: bool,
@@ -262,6 +308,7 @@ def create_node_class(name: str,
         export_all = in_export_all
         has_set_outputs = in_has_set_outputs
         program = name
+        is_plugin = in_is_plugin
         export_data_types = in_export_data_types
 
     return PipelineNode
