@@ -484,16 +484,16 @@ class BaseNode(NodeObject):
         self._model.output_ports = {}
         self._model.input_ports = {}
 
-        [self.add_input(name=port['name'],
-                        multi_input=port['multi_connection'],
-                        display_name=port['display_name'],
-                        locked=port.get('locked') or False)
-         for port in port_data['input_ports']]
-        [self.add_output(name=port['name'],
-                         multi_output=port['multi_connection'],
-                         display_name=port['display_name'],
-                         locked=port.get('locked') or False)
-         for port in port_data['output_ports']]
+        [self.add_input(name=port_name,
+                        multi_input=port.multi_connection,
+                        display_name=port.display_name,
+                        locked=port.locked)
+         for port_name, port in port_data['input_ports'].items()]
+        [self.add_output(name=port_name,
+                         multi_output=port.multi_connection,
+                         display_name=port.display_name,
+                         locked=port.locked)
+         for port_name, port in port_data['output_ports'].items()]
         self.draw()
 
     def inputs(self):

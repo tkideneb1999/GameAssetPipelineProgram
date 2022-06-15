@@ -11,10 +11,6 @@ from ..constants import (
 )
 
 from ..errors import NodePropertyError
-from ....Core.pipeline import (Pipeline,
-                               PipelineStep,
-                               PipelineInput,
-                               PipelineOutput)
 
 
 class PortModel(object):

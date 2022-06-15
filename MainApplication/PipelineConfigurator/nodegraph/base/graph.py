@@ -11,7 +11,7 @@ from .commands import (NodeAddedCmd,
                        PortConnectedCmd)
 from .factory import NodeFactory
 from .menu import NodeGraphMenu, NodesMenu
-from .model import NodeGraphModel
+from .model import NodeGraphModel, PortModel
 from .node import NodeObject
 from .port import Port
 from ..constants import (
@@ -1302,6 +1302,26 @@ class NodeGraph(QtCore.QObject):
                 # set properties.
                 for prop in node.model.properties.keys():
                     if prop in n_data.keys():
+                        if prop == 'input_ports':
+                            input_ports = {}
+                            for port_data in n_data['input_ports']:
+                                port = PortModel(node)
+                                port.type_ = IN_PORT
+                                for ip_name, ip_data in port_data.items():
+                                    if ip_name in port.__dict__.keys():
+                                        port.__setattr__(ip_name, ip_data)
+                                input_ports[port.name] = port
+                            n_data['input_ports'] = input_ports
+                        elif prop == 'output_ports':
+                            output_ports = {}
+                            for port_data in n_data['output_ports']:
+                                port = PortModel(node)
+                                port.type_ = OUT_PORT
+                                for op_name, op_data in port_data.items():
+                                    if op_name in port.__dict__.keys():
+                                        port.__setattr__(op_name, op_data)
+                                output_ports[port.name] = port
+                            n_data['output_ports'] = output_ports
                         node.model.set_property(prop, n_data[prop])
                 # set custom properties.
                 for prop, val in n_data.get('custom', {}).items():
