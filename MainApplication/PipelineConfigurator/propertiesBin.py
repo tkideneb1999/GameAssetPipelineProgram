@@ -8,6 +8,7 @@ from .nodegraph.nodes.base_node import BaseNode
 from ..localSettingsView import LocalSettingsView
 from .properties_bin_port_GUI import Ui_Port
 from . import node_factory
+from . import port_draw_functions
 
 NO_NODE_SELECTED_TEXT = "--No Node selected--"
 
@@ -219,12 +220,12 @@ class PortsView(qtw.QWidget):
         if config_data is None:
             name = self._generate_name(True)
             if not self._data_types:
-                painter_func = node_factory.PORT_DATA_TYPE_MAP.get(None)
+                painter_func = port_draw_functions.PORT_DATA_TYPE_MAP.get(None)
             else:
-                painter_func = node_factory.PORT_DATA_TYPE_MAP.get(self._data_types[0])
+                painter_func = port_draw_functions.PORT_DATA_TYPE_MAP.get(self._data_types[0])
         else:
             name = config_data[0]
-            painter_func = node_factory.PORT_DATA_TYPE_MAP.get(config_data[1])
+            painter_func = port_draw_functions.PORT_DATA_TYPE_MAP.get(config_data[1])
         port = self.current_node.add_input(name, painter_func=painter_func)
         self._add_input_widget(port, config_data)
 
@@ -232,12 +233,12 @@ class PortsView(qtw.QWidget):
         if config_data is None:
             name = self._generate_name(False)
             if not self._data_types:
-                painter_func = node_factory.PORT_DATA_TYPE_MAP.get(None)
+                painter_func = port_draw_functions.PORT_DATA_TYPE_MAP.get(None)
             else:
-                painter_func = node_factory.PORT_DATA_TYPE_MAP.get(self._data_types[0])
+                painter_func = port_draw_functions.PORT_DATA_TYPE_MAP.get(self._data_types[0])
         else:
             name = config_data[0]
-            painter_func = node_factory.PORT_DATA_TYPE_MAP.get(config_data[1])
+            painter_func = port_draw_functions.PORT_DATA_TYPE_MAP.get(config_data[1])
         port = self.current_node.add_output(name, painter_func=painter_func)
         self._add_output_widget(port, config_data)
 

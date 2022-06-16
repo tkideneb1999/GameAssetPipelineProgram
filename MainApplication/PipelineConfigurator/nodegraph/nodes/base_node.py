@@ -18,6 +18,8 @@ from ..widgets.node_widgets import (NodeBaseWidget,
                                     NodeLineEdit,
                                     NodeCheckBox)
 
+from ... import port_draw_functions
+
 
 class BaseNode(NodeObject):
     """
@@ -487,12 +489,14 @@ class BaseNode(NodeObject):
         [self.add_input(name=port_name,
                         multi_input=port.multi_connection,
                         display_name=port.display_name,
-                        locked=port.locked)
+                        locked=port.locked,
+                        painter_func=port_draw_functions.PORT_DATA_TYPE_MAP.get(port.data_type))
          for port_name, port in port_data['input_ports'].items()]
         [self.add_output(name=port_name,
                          multi_output=port.multi_connection,
                          display_name=port.display_name,
-                         locked=port.locked)
+                         locked=port.locked,
+                         painter_func=port_draw_functions.PORT_DATA_TYPE_MAP.get(port.data_type))
          for port_name, port in port_data['output_ports'].items()]
         self.draw()
 
