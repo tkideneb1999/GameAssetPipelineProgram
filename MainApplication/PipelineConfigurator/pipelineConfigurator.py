@@ -59,7 +59,7 @@ class PipelineConfigurator(qtw.QWidget):
             plugin_module = self.settings.plugin_registration.get_plugin(p_name)
             plugin_settings: pluginAPI.PluginSettings = plugin_module.register_settings()
             node_class = node_factory.create_node_class(name=p_name,
-                                                        in_is_plugin=False,
+                                                        in_is_plugin=True,
                                                         settings=plugin_settings.pipeline_settings,
                                                         in_configs=plugin_settings.configs,
                                                         in_export_all=plugin_settings.export_all,

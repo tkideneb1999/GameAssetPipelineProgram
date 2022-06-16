@@ -201,6 +201,7 @@ class PipelineNodeBase(BaseNode):
         step.is_plugin = self.is_plugin
         step.has_set_outputs = self.has_set_outputs
         step.export_all = self.export_all
+        step.additional_settings = self.settings
 
         connections = {}
         for i in self.input_ports():

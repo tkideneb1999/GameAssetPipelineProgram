@@ -13,7 +13,7 @@ class PluginAssetSettingsView(qtw.QDialog):
         self.dialog_layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(self.dialog_layout)
 
-        self.settings_widget = LocalSettingsView(settings, saved_settings, self)
+        self.settings_widget = LocalSettingsView(settings=settings, saved_settings=saved_settings, parent=self)
         self.dialog_layout.addWidget(self.settings_widget)
 
         self.outputs = outputs

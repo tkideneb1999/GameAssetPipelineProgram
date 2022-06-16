@@ -16,7 +16,13 @@ import bpy
 from . import GAPA_Export
 from . import GAPA_Import
 from .Core.settings import Settings
+
+settings = Settings()
+settings.load()
+
 from .pipelineSettings import get_pipeline_settings_location
+
+
 
 
 def menu_func(self, context):
