@@ -137,7 +137,7 @@ class MainWindow(qtw.QMainWindow):
         self.assetManager.set_project_dir(self.project_dir)
 
         # Set Pipeline Data
-        self.pipeline_configurator.set_project_dir(self.project_dir)
+        self.pipeline_configurator.set_project_data(self.project_dir)
 
         # Set Project Settings Data
         self.project_settings_widget.set_project_dir(self.project_dir)
@@ -165,7 +165,7 @@ class MainWindow(qtw.QMainWindow):
             self.assetManager.set_project_dir(self.project_dir)
             self.assetManager.update_pipelines(self.pipelines)
             self.assetManager.load_asset_list()
-            self.pipeline_configurator.set_project_dir(self.project_dir)
+            self.pipeline_configurator.set_project_data(self.project_dir, self.pipelines)
             self.project_settings_widget.set_project_dir(self.project_dir)
             return True
 

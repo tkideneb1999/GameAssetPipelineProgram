@@ -20,7 +20,7 @@ class PluginRegistration:
             return
         filenames = os.listdir(self.plugin_dir)
         for filename in filenames:
-            if filename == "pluginAPI.py":
+            if filename == "pluginAPI.py" or filename == "__pycache__":
                 continue
             if not (self.plugin_dir / filename / "__init__.py").exists():
                 print(f"[GAPA] Plugin has no __init__ file: {filename}")
