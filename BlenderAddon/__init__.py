@@ -8,17 +8,16 @@ bl_info = {
 import sys
 from pathlib import Path
 
-pyQt_path = Path(r"F:\Studium\GameAssetPipelineAutomation\GameAssetPipelineProgram\venv\Lib\site-packages")
-sys.path.append(str(pyQt_path))
-
 import bpy
 
-from . import GAPA_Export
-from . import GAPA_Import
 from .Core.settings import Settings
 
 settings = Settings()
 settings.load()
+sys.path.append(str(settings.pyside_path))
+
+from . import GAPA_Export
+from . import GAPA_Import
 
 from .pipelineSettings import get_pipeline_settings_location
 

@@ -37,8 +37,10 @@ class GAPAExport(bpy.types.Operator):
     def modal(self, context, event):
         if event.type == 'TIMER':
             if self.qt_window and not self.qt_window.isVisible():
+                if not self.bpy_queue.empty():
+                    self._execute_queued()
+                    return {"PASS_THROUGH"}
                 self.cancel(context)
-                print("[GAPA] Qt Window not Visible")
                 return {"FINISHED"}
 
             self.qt_app.processEvents()

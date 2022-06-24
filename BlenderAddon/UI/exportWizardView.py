@@ -54,10 +54,10 @@ class ExportWizardView(qtw.QDialog):
         print("Closing Window")
         self.accept()
 
-    def register_save_workfile_func(self, func: Callable[Path]) -> None:
+    def register_save_workfile_func(self, func: Callable) -> None:
         self.save_workfile_func = func
 
-    def register_export_func(self, func: Callable[Path, str, bool]) -> None:
+    def register_export_func(self, func: Callable) -> None:
         self.export_file_func = func
 
     def publish_asset(self):

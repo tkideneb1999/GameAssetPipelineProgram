@@ -1,7 +1,6 @@
 import sys
 from pathlib import Path
 import json
-import os
 
 from PySide6 import QtWidgets as qtw
 from PySide6 import QtCore as qtc
@@ -24,10 +23,6 @@ class MainWindow(qtw.QMainWindow):
 
         # set up tabs
         self.settingsWidget = SettingsView(self.ui.settings_tab)
-        file_location = Path(os.path.abspath(__file__))
-        print(file_location.parent)
-        plugin_dir = file_location.parent / "Plugins"
-        self.settingsWidget.settings.set_plugin_dir(plugin_dir)
         self.ui.settings_tab.layout().addWidget(self.settingsWidget)
 
         self.pipeline_configurator = PipelineConfigurator(self.ui.pipelines_tab)
@@ -70,7 +65,7 @@ class MainWindow(qtw.QMainWindow):
             self.assetManager.set_project_dir(self.project_dir)
             self.assetManager.update_pipelines(self.pipelines)
             self.assetManager.load_asset_list()
-            self.pipeline_configurator.set_project_dir(self.project_dir)
+            self.pipeline_configurator.set_project_data(self.project_dir, self.pipelines)
             return
 
         # Check Data
@@ -101,31 +96,6 @@ class MainWindow(qtw.QMainWindow):
                 proj_data["proj_lvls"] = proj_lvls
             print("[GAPA] Restarting Project Wizard")
             self.launch_project_wizard(proj_data=proj_data)
-
-
-
-        ## Check if Project Name is set
-        #if proj_name == "":
-        #    print("No Project Name set. Restarting Wizard")
-        #    self.launch_project_wizard()
-        #    return
-#
-        #if proj_dir is None:
-        #    print("Current Project Dir is no a valid path. Restarting Wizard")
-        #    self.launch_project_wizard()
-        #    return
-#
-        #proj_dir = Path(proj_dir) / proj_name
-#
-        #if not proj_dir.parents[0].exists():
-        #    print("Current Project Dir is no a valid path. Restarting Wizard")
-        #    self.launch_project_wizard()
-        #    return
-#
-        #if len(proj_lvls) == 0:
-        #    print("No Levels Supplied. Restarting Project Wizard")
-        #    self.launch_project_wizard()
-        #    return
 
         # Set Project Data
         self.project_name = proj_name

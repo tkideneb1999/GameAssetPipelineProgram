@@ -258,7 +258,9 @@ class Asset:
         for i in range(len(self.pipeline.pipeline_steps[step_index].inputs)):
             input_data = self.pipeline.pipeline_steps[step_index].inputs[i]
             # get connected output
-            output_uid = self.pipeline.io_connections[input_data.uid]
+            output_uid = self.pipeline.io_connections.get(input_data.uid)
+            if output_uid is None:
+                continue
             # reconstruct relative file path
             #   get step folder
             output_step_uid = self.pipeline.get_step_uid_from_io(output_uid)

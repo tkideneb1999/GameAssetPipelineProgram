@@ -138,9 +138,10 @@ class ImportWizardView(qtw.QDialog):
         inputs = self.loaded_asset.pipeline.pipeline_steps[index].inputs
         inputs_names = []
         for i in inputs:
-            output_uid = self.loaded_asset.pipeline.io_connections[i.uid]
-            output_name = self.loaded_asset.pipeline.get_output_name(output_uid)
-            inputs_names.append(output_name)
+            output_uid = self.loaded_asset.pipeline.io_connections.get(i.uid)
+            if output_uid is None:
+                continue
+            inputs_names.append(i.name)
         self.ui.inputs_list.clear()
         self.ui.inputs_list.addItems(inputs_names)
 

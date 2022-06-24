@@ -17,6 +17,7 @@ class Settings(object):
             cls.program_registration = ProgramRegistration()
             cls.plugin_registration = PluginRegistration()
 
+            cls.pyside_path = None
             cls.current_project_info_path = Path()
             cls.has_settings = False
 
@@ -24,13 +25,16 @@ class Settings(object):
 
         return cls.instance
 
-    def set_plugin_dir(self, plugin_dir: Path) -> None:
+    def _set_plugin_dir(self, plugin_dir: Path) -> None:
         self.plugin_registration.set_plugin_dir(plugin_dir)
         self.save()
 
     def set_current_project(self, project_info_path: Path) -> None:
         self.current_project_info_path = project_info_path
         self.save()
+
+    def _set_pyside_path(self, path: Path) -> None:
+        self.pyside_path = path
 
     def save(self) -> None:
         if not self.save_path.exists():
@@ -41,7 +45,10 @@ class Settings(object):
         settings_path = self.save_path / "settings.json"
         if not settings_path.exists():
             settings_path.touch()
-        data = {"current_project": str(self.current_project_info_path)}
+        data = {
+            "current_project": str(self.current_project_info_path),
+            "pyside_path": str(self.pyside_path),
+        }
         with settings_path.open("w", encoding="utf-8") as f:
             f.write(json.dumps(data, indent=4))
 
@@ -63,6 +70,7 @@ class Settings(object):
         with settings_path.open("r", encoding="utf-8") as f:
             data = json.loads(f.read())
             self.current_project_info_path = Path(data["current_project"])
+            self.pyside_path = Path(data["pyside_path"])
             self.has_settings = True
 
     def enable_addon(self, name: str, addon_path: Path):

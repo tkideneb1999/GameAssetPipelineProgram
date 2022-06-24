@@ -51,14 +51,14 @@ class ImportWizardView(qtw.QDialog):
         print("Closing Window")
         self.accept()
 
-    def register_save_workfile_func(self, func: Callable[Path]) -> None:
+    def register_save_workfile_func(self, func: Callable) -> None:
         """
         Registers the function that will save the workfile, to be executed when needed.
         :param func: Function object that has a path as an input that contains the path for the work file to be saved to
         """
         self.save_workfile_func = func
 
-    def register_import_files_func(self, func: Callable[list[Path]]) -> None:
+    def register_import_files_func(self, func: Callable) -> None:
         """
         Registers the function that will import files from steps that have outputs connected to the inputs of the selected step.
         :param func: Function object that takes a list of paths. The paths contain the location of the exported files of the outputs
@@ -118,9 +118,10 @@ class ImportWizardView(qtw.QDialog):
         inputs = self.loaded_asset.pipeline.pipeline_steps[index].inputs
         inputs_names = []
         for i in inputs:
-            output_uid = self.loaded_asset.pipeline.io_connections[i.uid]
-            output_name = self.loaded_asset.pipeline.get_output_name(output_uid)
-            inputs_names.append(output_name)
+            output_uid = self.loaded_asset.pipeline.io_connections.get(i.uid)
+            if output_uid is None:
+                continue
+            inputs_names.append(i.name)
         self.ui.inputs_list.clear()
         self.ui.inputs_list.addItems(inputs_names)
 

@@ -258,7 +258,9 @@ class Asset:
         for i in range(len(self.pipeline.pipeline_steps[step_index].inputs)):
             input_data = self.pipeline.pipeline_steps[step_index].inputs[i]
             # get connected output
-            output_uid = self.pipeline.io_connections[input_data.uid]
+            output_uid = self.pipeline.io_connections.get(input_data.uid)
+            if output_uid is None:
+                continue
             # reconstruct relative file path
             #   get step folder
             output_step_uid = self.pipeline.get_step_uid_from_io(output_uid)
@@ -271,8 +273,8 @@ class Asset:
             if self.pipeline_progress[output_step_uid]["has_multi_outputs"]:
                 for output_set in self.pipeline_progress[output_step_uid]["output_info"]:
                     version = self.pipeline_progress[output_step_uid]["output_info"][output_set][output_uid]["version"]
-                    if filepaths.get("None") is None:
-                        filepaths[output_set] = {output_uid: (input_data.name, rel_asset_dir / folder_name / "export" / f"{file_name}.{version}.{file_format}")}
+                    if filepaths.get(output_set) is None:
+                        filepaths[output_set] = {output_uid: (input_data.name, rel_asset_dir / folder_name / "export" / output_set / f"{file_name}.{version}.{file_format}")}
                     else:
                         filepaths[output_set][output_uid] = (input_data.name, rel_asset_dir / folder_name / "export" / output_set / f"{file_name}.{version}.{file_format}")
             else:
