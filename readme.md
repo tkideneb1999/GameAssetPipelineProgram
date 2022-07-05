@@ -7,10 +7,8 @@
 ## Blender Addon Installation
 Works for Blender 2.93 to 3.00, 3.1 and above not supported because Python was upgraded from 3.9 to 3.10
 1. Navigate to the BlenderAddon folder of the downloaded files
-2. Open the `__init__.py` file
-3. Change the `pyQt_path` variable to point to the site packages folder of the Main Application
-4. Put the Files from the Blender Addon Folder in a folder called GAPA, then put this in a zip Archive with the same name
-5. Install the add-on as you would with any other Blender add-on
+2. Put the Files from the Blender Addon Folder in a folder called GAPA, then put this in a zip Archive with the same name
+3. Install the add-on as you would with any other Blender add-on
 
 ## Substance Painter Addon Installation
 Works for Substance Painter 2021
@@ -31,9 +29,12 @@ After Add-on installation enabling the Add-on automatically registers it.
 
 ### Pipeline Configurator
 - Add at least one Pipeline before adding new assets
-- Pipeline Steps can be added via the `Add Step` Button, removed via right-click and `Delete`
-- If Configs are used, do not add or delete any inputs and outputs
-![grafik](https://user-images.githubusercontent.com/13368962/151027781-143d3791-c304-4c39-84a9-08e7f82d6e65.png)
+- Pipeline Steps can be added by pressing Tab and selecting a step
+- Inputs and outputs can be wrangled like in any other nodegraph
+- Images inputs/outputs are generally marked with a square, 3D meshes with a triangle, any other with a circle. This is only an indication and they can still be connected to each other
+- Pipelines can be saved and published by right-clicking anywhere in the viewport and respectively selecting Save or Publish
+- !! The Nodegraph is work in progress and still needs refinement
+![grafik](https://user-images.githubusercontent.com/13368962/177412819-28b10f97-a977-4008-96c0-929aa6716731.png)
 
 ### Asset Browser
 - Asset removal not implemented
@@ -48,3 +49,9 @@ After Add-on installation enabling the Add-on automatically registers it.
 - Do not modify the pipeline after using it in any assets!
 - Texture sets that have different outputs are not supported
 - No Position Map Baker available
+
+## Future Plans
+- Asset Dependencies
+- Substance Designer Add-On
+- Meshroom Add-On or Plug-In
+- Pipeline File/Asset Imports
