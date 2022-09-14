@@ -1,8 +1,8 @@
 
 import os
 
-from PySide6.QtWidgets import QGraphicsItem
-from PySide6.QtGui import QColor
+from ...Common.qtpy.QtWidgets import QGraphicsItem
+from ...Common.qtpy.QtGui import QColor
 
 from .pkg_info import __version__
 

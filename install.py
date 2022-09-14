@@ -1,7 +1,7 @@
 from pathlib import Path
 import os
 
-from MainApplication.Core.settings import Settings
+from MainApplication.Common.Core.settings import Settings
 
 pyside_path = Path(os.path.abspath(__file__)).parent / "venv" / "Lib" / "site-packages"
 plugin_path = Path(os.path.abspath(__file__)).parent / "MainApplication" / "Plugins"

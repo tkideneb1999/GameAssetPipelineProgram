@@ -1,4 +1,4 @@
-from . import AssetDetailsView
-from . import AssetListView
+from .Common import AssetDetailsView
+from .Common import AssetListView
 from . import PipelineConfigurator
-from . import PipelineViewerView
+from .Common import PipelineViewerView

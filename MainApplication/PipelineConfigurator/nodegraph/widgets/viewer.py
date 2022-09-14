@@ -2,7 +2,7 @@
 import math
 from distutils.version import LooseVersion
 
-from PySide6 import QtGui, QtCore, QtWidgets, QtOpenGLWidgets
+from ....Common.qtpy import QtGui, QtCore, QtWidgets, QtOpenGLWidgets
 
 from ..base.menu import BaseMenu
 from ..constants import IN_PORT, OUT_PORT, PIPE_LAYOUT_CURVED

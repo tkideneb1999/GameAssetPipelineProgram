@@ -3,10 +3,9 @@ import importlib.util
 from PySide6 import QtWidgets as qtw
 from PySide6 import QtCore as qtc
 
-from MainApplication.Core.settings import Settings
+from MainApplication.Common.Core.settings import Settings
 from MainApplication.PipelineConfigurator.pipeline_step_settings_GUI import Ui_pipeline_step_settings_GUI
 from MainApplication.PipelineConfigurator.pipelineSettingsCreator import PipelineSettingsCreator
-from MainApplication.Plugins.pluginAPI import PluginSettings
 
 
 class PipelineStepSettingsView(qtw.QWidget):

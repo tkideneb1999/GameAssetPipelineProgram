@@ -3,11 +3,11 @@ import os
 import sys
 import re
 
-from PySide6 import QtWidgets as qtw
-from PySide6 import QtCore as qtc
+from .Common.qtpy import QtWidgets as qtw
+from .Common.qtpy import QtCore as qtc
 
 from .assetManager_GUI import Ui_asset_manager
-from MainApplication.Core.asset import Asset
+from .Common.Core.asset import Asset
 from .newAssetWizard import NewAssetWizard
 from . import pluginHandler
 

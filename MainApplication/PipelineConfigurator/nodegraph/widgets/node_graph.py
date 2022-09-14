@@ -1,4 +1,4 @@
-from PySide6 import QtWidgets
+from ....Common.qtpy import QtWidgets
 
 from ..widgets.viewer_nav import NodeNavigationWidget
 

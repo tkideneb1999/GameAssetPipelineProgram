@@ -1,10 +1,8 @@
-from pathlib import Path
-
-from PySide6 import QtWidgets as qtw
-from PySide6 import QtCore as qtc
+from ..Common.qtpy import QtWidgets as qtw
+from ..Common.qtpy import QtCore as qtc
 
 from .settings_GUI import Ui_settings
-from MainApplication.Core.settings import Settings
+from MainApplication.Common.Core.settings import Settings
 from .plugin_item_GUI import Ui_plugin_item
 from .pluginSettingsView import PluginSettingsView
 

@@ -1,5 +1,5 @@
 
-from PySide6 import QtWidgets, QtCore, QtGui
+from ....Common.qtpy import QtWidgets, QtCore, QtGui
 
 
 class NodeTextItem(QtWidgets.QGraphicsTextItem):

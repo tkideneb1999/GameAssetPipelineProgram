@@ -1,14 +1,14 @@
 from pathlib import Path
 import importlib.util
 
-from PySide6 import QtWidgets as qtw
-from PySide6 import QtCore as qtc
+from ..Common.qtpy import QtWidgets as qtw
+from ..Common.qtpy import QtCore as qtc
 
 from .nodegraph.base import graph as ng
 from .nodegraph import constants
 
-from ..Core.settings import Settings
-from ..Core.pipeline import Pipeline
+from ..Common.Core.settings import Settings
+from ..Common.Core.pipeline import Pipeline
 from . import node_factory
 from .propertiesBin import PropertiesBin
 from ..Plugins import pluginAPI

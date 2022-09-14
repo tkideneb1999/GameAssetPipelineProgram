@@ -1,7 +1,7 @@
 
 import math
 
-from PySide6 import QtCore, QtGui, QtWidgets
+from ....Common.qtpy import QtCore, QtGui, QtWidgets
 
 from ..constants import (
     PIPE_DEFAULT_COLOR, PIPE_ACTIVE_COLOR,

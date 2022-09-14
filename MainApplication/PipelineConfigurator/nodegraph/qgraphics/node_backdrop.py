@@ -1,4 +1,4 @@
-from PySide6 import QtGui, QtCore, QtWidgets
+from ....Common.qtpy import QtGui, QtCore, QtWidgets
 
 from ..constants import (Z_VAL_PIPE,
                          NODE_SEL_COLOR,

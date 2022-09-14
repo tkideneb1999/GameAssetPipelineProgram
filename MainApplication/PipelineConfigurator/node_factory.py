@@ -1,9 +1,6 @@
-from PySide6 import QtCore as qtc
-from PySide6 import QtGui as qtg
-
 from .nodegraph import BaseNode
 
-from ..Core.pipeline import (PipelineStep, PipelineInput, PipelineOutput)
+from ..Common.Core.pipeline import (PipelineStep, PipelineInput, PipelineOutput)
 from . import port_draw_functions
 
 

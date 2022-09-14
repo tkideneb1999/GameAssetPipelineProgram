@@ -3,7 +3,7 @@ import json
 import os
 import re
 
-from PySide6 import QtCore, QtWidgets, QtGui
+from ....Common.qtpy import QtCore, QtWidgets, QtGui
 
 from .commands import (NodeAddedCmd,
                        NodeRemovedCmd,

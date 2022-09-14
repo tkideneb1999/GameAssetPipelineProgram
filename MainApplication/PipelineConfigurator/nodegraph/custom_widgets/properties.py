@@ -1,7 +1,7 @@
 #!/usr/bin/python
 from collections import defaultdict
 
-from PySide6 import QtWidgets, QtCore, QtGui
+from ....Common.qtpy import QtWidgets, QtCore, QtGui
 
 from ..constants import (NODE_PROP_QLABEL,
                                    NODE_PROP_QLINEEDIT,

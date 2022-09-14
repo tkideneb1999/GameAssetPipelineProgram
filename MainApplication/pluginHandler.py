@@ -5,8 +5,8 @@ import functools
 
 from PySide6 import QtCore as qtc
 
-from .Core.settings import Settings
-from .Core.asset import Asset
+from .Common.Core.settings import Settings
+from .Common.Core.asset import Asset
 
 from MainApplication.pluginAssetSettingsView import PluginAssetSettingsView
 

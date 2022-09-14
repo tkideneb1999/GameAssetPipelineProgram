@@ -1,6 +1,6 @@
 
 import math
-from PySide6 import QtGui, QtCore, QtWidgets
+from ....Common.qtpy import QtGui, QtCore, QtWidgets
 
 from ..constants import (
     VIEWER_COLOR_BACKGROUND,

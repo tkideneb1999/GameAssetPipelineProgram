@@ -1,4 +1,4 @@
-from PySide6 import QtCore, QtWidgets
+from ....Common.qtpy import QtCore, QtWidgets
 
 from ..constants import (Z_VAL_NODE,
                          NODE_WIDTH,

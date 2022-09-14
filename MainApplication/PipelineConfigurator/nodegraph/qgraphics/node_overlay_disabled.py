@@ -1,5 +1,5 @@
 
-from PySide6 import QtGui, QtCore, QtWidgets
+from ....Common.qtpy import QtGui, QtCore, QtWidgets
 
 from ..constants import Z_VAL_NODE_WIDGET
 

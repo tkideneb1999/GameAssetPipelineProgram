@@ -1,4 +1,4 @@
-from PySide6 import QtCore, QtGui, QtWidgets
+from ....Common.qtpy import QtCore, QtGui, QtWidgets
 
 from ..constants import (NODE_SEL_BORDER_COLOR,
                          NODE_SEL_COLOR,

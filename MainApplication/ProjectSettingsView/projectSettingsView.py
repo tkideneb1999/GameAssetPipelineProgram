@@ -1,10 +1,10 @@
 from pathlib import Path
 import json
 
-from PySide6 import QtWidgets as qtw
-from PySide6 import QtCore as qtc
+from ..Common.qtpy import QtWidgets as qtw
+from ..Common.qtpy import QtCore as qtc
 
-from ..Core.settings import Settings
+from MainApplication.Common.Core.settings import Settings
 from ..localSettingsView import LocalSettingsView
 from ..TagDatabase.tagDatabaseWidget import TagDatabaseWidget
 

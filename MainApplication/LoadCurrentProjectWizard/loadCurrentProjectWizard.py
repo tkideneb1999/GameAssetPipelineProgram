@@ -1,4 +1,4 @@
-from PySide6 import QtWidgets as qtw
+from ..Common.qtpy import QtWidgets as qtw
 
 from .loadCurrentProjectWizard_GUI import Ui_loadCurrentProjectWizard
 

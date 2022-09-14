@@ -1,6 +1,6 @@
 import os
 
-from PySide6 import QtWidgets
+from ....Common.qtpy import QtWidgets
 
 _current_user_directory = os.path.expanduser('~')
 

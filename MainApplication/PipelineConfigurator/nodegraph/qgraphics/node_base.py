@@ -1,6 +1,6 @@
 from collections import OrderedDict
 
-from PySide6 import QtGui, QtCore, QtWidgets
+from ....Common.qtpy import QtGui, QtCore, QtWidgets
 
 from ..constants import (IN_PORT, OUT_PORT,
                          NODE_WIDTH, NODE_HEIGHT,

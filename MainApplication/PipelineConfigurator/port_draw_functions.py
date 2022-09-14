@@ -1,5 +1,5 @@
-from PySide6 import QtCore as qtc
-from PySide6 import QtGui as qtg
+from ..Common.qtpy import QtCore as qtc
+from ..Common.qtpy import QtGui as qtg
 
 
 def draw_square_port(painter, rect, info):

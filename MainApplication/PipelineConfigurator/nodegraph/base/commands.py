@@ -1,5 +1,5 @@
 
-from PySide6 import QtGui
+from ....Common.qtpy import QtGui
 
 from ..constants import IN_PORT, OUT_PORT
 
