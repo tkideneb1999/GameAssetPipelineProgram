@@ -8,15 +8,15 @@
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
 
-from .Common.qtpy.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
+from qtpy.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
     QMetaObject, QObject, QPoint, QRect,
     QSize, QTime, QUrl, Qt)
-from .Common.qtpy.QtGui import (QAction, QBrush, QColor, QConicalGradient,
+from qtpy.QtGui import (QAction, QBrush, QColor, QConicalGradient,
     QCursor, QFont, QFontDatabase, QGradient,
     QIcon, QImage, QKeySequence, QLinearGradient,
     QPainter, QPalette, QPixmap, QRadialGradient,
     QTransform)
-from .Common.qtpy.QtWidgets import (QApplication, QHBoxLayout, QMainWindow, QMenu,
+from qtpy.QtWidgets import (QApplication, QHBoxLayout, QMainWindow, QMenu,
     QMenuBar, QSizePolicy, QStatusBar, QTabWidget,
     QVBoxLayout, QWidget)
 

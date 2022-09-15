@@ -1,5 +1,5 @@
 
-from ....Common.qtpy import QtWidgets, QtCore, QtGui
+from qtpy import QtWidgets, QtCore, QtGui
 
 from ..custom_widgets.properties import NodePropWidget
 

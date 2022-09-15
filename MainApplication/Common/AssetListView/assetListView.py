@@ -1,10 +1,10 @@
 import functools
 
-from MainApplication.Common.qtpy import QtWidgets as qtw
-from MainApplication.Common.qtpy import QtCore as qtc
+from qtpy import QtWidgets as qtw
+from qtpy import QtCore as qtc
 
-from MainApplication.Common.AssetListView.assetList_GUI import Ui_asset_list_widget
-from MainApplication.warningPopUp import WarningPopUp
+from .assetList_GUI import Ui_asset_list_widget
+from ..warningPopUp import WarningPopUp
 
 class AssetListView(qtw.QWidget):
     s_asset_changed = qtc.Signal(str, str)  # Returns level name and asset name
@@ -15,7 +15,7 @@ class AssetListView(qtw.QWidget):
     s_remove_level = qtc.Signal(str)  # Level
 
     def __init__(self, parent=None, mode=0):
-        super(AssetListView, self).__init__(parent)
+        super().__init__(parent)
         self.ui = Ui_asset_list_widget()
         self.ui.setupUi(self)
         self.ui.asset_tree.setColumnCount(1)

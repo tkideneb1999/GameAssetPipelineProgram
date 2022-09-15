@@ -8,9 +8,9 @@
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
 
-from .Common.qtpy.QtCore import (QCoreApplication, QMetaObject, QSize)
-from .Common.qtpy.QtGui import (QFont)
-from .Common.qtpy.QtWidgets import (QHBoxLayout, QLabel, QPushButton,
+from qtpy.QtCore import (QCoreApplication, QMetaObject, QSize)
+from qtpy.QtGui import (QFont)
+from qtpy.QtWidgets import (QHBoxLayout, QLabel, QPushButton,
                                QSizePolicy, QVBoxLayout)
 
 from .Common.AssetDetailsView.assetDetailsView import AssetDetailsView

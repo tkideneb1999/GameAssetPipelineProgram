@@ -1,4 +1,4 @@
-from ....Common.qtpy import QtWidgets
+from qtpy import QtWidgets
 
 from ..widgets.viewer_nav import NodeNavigationWidget
 

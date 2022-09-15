@@ -1,13 +1,19 @@
 import importlib
+import importlib.util
 from pathlib import Path
 
 import substance_painter.logging as spLog
 import substance_painter.ui as spUI
 
-from .Core import settings as settingsModule
+from . import settingsLoader
+settingsLoader.load_required_packages(use_main_app_pyside=False)
+
+from Common.Core import settings as settingsModule
+
 importlib.reload(settingsModule)
 SETTINGS = settingsModule.Settings()
 SETTINGS.load()
+
 
 from . import GAPAImport
 from . import GAPAExport

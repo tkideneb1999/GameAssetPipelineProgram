@@ -1,8 +1,8 @@
 
 import os
 
-from ...Common.qtpy.QtWidgets import QGraphicsItem
-from ...Common.qtpy.QtGui import QColor
+from qtpy.QtWidgets import QGraphicsItem
+from qtpy.QtGui import QColor
 
 from .pkg_info import __version__
 

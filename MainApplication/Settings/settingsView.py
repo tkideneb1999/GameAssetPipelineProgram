@@ -1,5 +1,5 @@
-from ..Common.qtpy import QtWidgets as qtw
-from ..Common.qtpy import QtCore as qtc
+from qtpy import QtWidgets as qtw
+from qtpy import QtCore as qtc
 
 from .settings_GUI import Ui_settings
 from MainApplication.Common.Core.settings import Settings

@@ -4,15 +4,15 @@ import queue
 import importlib
 import json
 
-from PySide2 import QtWidgets as qtw
-from PySide2 import QtCore as qtc
+from qtpy import QtWidgets as qtw
+from qtpy import QtCore as qtc
 
 import substance_painter.logging as spLog
 import substance_painter.project as spProj
 import substance_painter.textureset as spTexSet
 import substance_painter.export as spExp
 
-from .UI import exportWizardView
+from Common.Dialogs import exportWizardView
 from . import pipelineSettings as pS
 
 importlib.reload(exportWizardView)
@@ -41,7 +41,10 @@ class GAPAExport:
             self.project_info = Path(metadata.get("project_info"))
         else:
             print("[GAPA] Currently opened project is not part of the Pipeline")
-        export_dialog = exportWizardView.ExportWizardView(self.project_info, self.program, self.sp_main_window)
+        export_dialog = exportWizardView.ExportWizardView(self.project_info,
+                                                          self.program,
+                                                          pS.WORKFILE_SUFFIX,
+                                                          self.sp_main_window)
         export_dialog.register_export_func(self.export_file)
         export_dialog.register_save_workfile_func(self.save_workfile)
         export_dialog.register_get_output_sets_func(self.get_output_sets)

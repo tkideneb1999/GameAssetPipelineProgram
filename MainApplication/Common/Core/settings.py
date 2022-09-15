@@ -18,6 +18,7 @@ class Settings(object):
             cls.plugin_registration = PluginRegistration()
 
             cls.pyside_path = None
+            cls.common_path = None
             cls.current_project_info_path = Path()
             cls.has_settings = False
 
@@ -36,6 +37,9 @@ class Settings(object):
     def _set_pyside_path(self, path: Path) -> None:
         self.pyside_path = path
 
+    def _set_common_path(self, path: Path) -> None:
+        self.common_path = path
+
     def save(self) -> None:
         if not self.save_path.exists():
             self.save_path.mkdir(parents=True)
@@ -48,6 +52,7 @@ class Settings(object):
         data = {
             "current_project": str(self.current_project_info_path),
             "pyside_path": str(self.pyside_path),
+            "common_path": str(self.common_path),
         }
         with settings_path.open("w", encoding="utf-8") as f:
             f.write(json.dumps(data, indent=4))
@@ -71,6 +76,7 @@ class Settings(object):
             data = json.loads(f.read())
             self.current_project_info_path = Path(data["current_project"])
             self.pyside_path = Path(data["pyside_path"])
+            self.common_path = Path(data["common_path"])
             self.has_settings = True
 
     def enable_addon(self, name: str, addon_path: Path):

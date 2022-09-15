@@ -1,11 +1,9 @@
 import functools
 
-from PySide6 import QtWidgets as qtw
-from PySide6 import QtCore as qtc
+from qtpy import QtWidgets as qtw
+from qtpy import QtCore as qtc
 
-from .nodegraph.nodes.base_node import BaseNode
-
-from ..localSettingsView import LocalSettingsView
+from ..Common.localSettingsView import LocalSettingsView
 from .properties_bin_port_GUI import Ui_Port
 from . import node_factory
 from . import port_draw_functions

@@ -1,11 +1,11 @@
-from MainApplication.Common.qtpy import QtWidgets as qtw
+from qtpy import QtWidgets as qtw
 
-from MainApplication.Common.AssetDetailsView.assetDetails_GUI import Ui_asset_details
+from .assetDetails_GUI import Ui_asset_details
 
 
 class AssetDetailsView(qtw.QWidget):
     def __init__(self, parent=None):
-        super(AssetDetailsView, self).__init__(parent)
+        super().__init__(parent)
         self.ui = Ui_asset_details()
         self.ui.setupUi(self)
 

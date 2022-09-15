@@ -1,7 +1,7 @@
 import functools
 
-from MainApplication.Common.qtpy import QtWidgets as qtw
-from MainApplication.Common.qtpy import QtCore as qtc
+from qtpy import QtWidgets as qtw
+from qtpy import QtCore as qtc
 
 from .pipelineViewer_GUI import Ui_pipeline_viewer
 from .pipelineStepViewer_GUI import Ui_pipeline_step_viewer
@@ -41,7 +41,7 @@ class PipelineViewerView(qtw.QWidget):
     s_run_plugin = qtc.Signal(int)
 
     def __init__(self, current_program="standalone", parent=None):
-        super(PipelineViewerView, self).__init__(parent)
+        super().__init__(parent)
         self.ui = Ui_pipeline_viewer()
         self.ui.setupUi(self)
 

@@ -5,6 +5,9 @@ import pluginAPI
 importlib.reload(pluginAPI)
 
 
+WORKFILE_SUFFIX = "spp"
+
+
 def get_pipeline_settings_location() -> str:
     return os.path.abspath(__file__)
 

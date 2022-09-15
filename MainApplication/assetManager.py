@@ -3,13 +3,13 @@ import os
 import sys
 import re
 
-from .Common.qtpy import QtWidgets as qtw
-from .Common.qtpy import QtCore as qtc
+from qtpy import QtWidgets as qtw
+from qtpy import QtCore as qtc
 
 from .assetManager_GUI import Ui_asset_manager
 from .Common.Core.asset import Asset
 from .newAssetWizard import NewAssetWizard
-from . import pluginHandler
+from .Common import pluginHandler
 
 
 class AssetManager(qtw.QWidget):

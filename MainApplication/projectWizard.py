@@ -1,6 +1,6 @@
-from .Common.qtpy import QtWidgets as qtw
-from .Common.qtpy import QtCore as qtc
-from .Common.qtpy import QtGui as qtg
+from qtpy import QtWidgets as qtw
+from qtpy import QtCore as qtc
+from qtpy import QtGui as qtg
 from .projectWizard_GUI import Ui_project_wizard
 import re
 from pathlib import Path

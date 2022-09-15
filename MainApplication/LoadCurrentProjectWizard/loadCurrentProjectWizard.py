@@ -1,4 +1,4 @@
-from ..Common.qtpy import QtWidgets as qtw
+from qtpy import QtWidgets as qtw
 
 from .loadCurrentProjectWizard_GUI import Ui_loadCurrentProjectWizard
 

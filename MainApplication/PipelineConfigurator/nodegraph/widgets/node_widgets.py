@@ -1,5 +1,5 @@
 
-from ....Common.qtpy import QtCore, QtWidgets
+from qtpy import QtCore, QtWidgets
 
 from ..constants import VIEWER_FONT_COLOR, VIEWER_GRID_COLOR, Z_VAL_NODE_WIDGET
 from ..errors import NodeWidgetError

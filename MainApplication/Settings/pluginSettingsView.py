@@ -1,4 +1,4 @@
-from ..Common.qtpy import QtWidgets as qtw
+from qtpy import QtWidgets as qtw
 import MainApplication.Plugins.pluginAPI as pluginAPI
 
 

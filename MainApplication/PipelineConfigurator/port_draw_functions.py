@@ -1,5 +1,5 @@
-from ..Common.qtpy import QtCore as qtc
-from ..Common.qtpy import QtGui as qtg
+from qtpy import QtCore as qtc
+from qtpy import QtGui as qtg
 
 
 def draw_square_port(painter, rect, info):

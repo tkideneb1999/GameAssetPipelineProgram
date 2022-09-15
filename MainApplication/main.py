@@ -2,12 +2,12 @@ import sys
 from pathlib import Path
 import json
 
-from .Common.qtpy import QtWidgets as qtw
-from .Common.qtpy import QtCore as qtc
+from qtpy import QtWidgets as qtw
+from qtpy import QtCore as qtc
 
 from .MainApplication_GUI import Ui_MainWindow
 from .PipelineConfigurator.pipelineConfigurator import PipelineConfigurator
-from MainApplication.Settings.settingsView import SettingsView
+from .Settings.settingsView import SettingsView
 from .assetManager import AssetManager
 from .projectWizard import ProjectWizard
 from .LoadCurrentProjectWizard.loadCurrentProjectWizard import LoadCurrentProjectWizard

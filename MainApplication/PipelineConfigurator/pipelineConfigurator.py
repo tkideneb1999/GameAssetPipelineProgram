@@ -1,8 +1,8 @@
 from pathlib import Path
 import importlib.util
 
-from ..Common.qtpy import QtWidgets as qtw
-from ..Common.qtpy import QtCore as qtc
+from qtpy import QtWidgets as qtw
+from qtpy import QtCore as qtc
 
 from .nodegraph.base import graph as ng
 from .nodegraph import constants

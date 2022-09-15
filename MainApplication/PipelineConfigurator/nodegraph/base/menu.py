@@ -1,7 +1,7 @@
 
 from distutils.version import LooseVersion
 
-from ....Common.qtpy import QtGui, QtCore
+from qtpy import QtGui, QtCore
 
 from ..errors import NodeMenuError
 from ..widgets.actions import BaseMenu, GraphAction, NodeAction

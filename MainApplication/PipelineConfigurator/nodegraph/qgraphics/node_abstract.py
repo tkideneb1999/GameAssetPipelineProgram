@@ -1,4 +1,4 @@
-from ....Common.qtpy import QtCore, QtWidgets
+from qtpy import QtCore, QtWidgets
 
 from ..constants import (Z_VAL_NODE,
                          NODE_WIDTH,

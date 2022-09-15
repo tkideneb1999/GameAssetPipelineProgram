@@ -1,11 +1,11 @@
 from pathlib import Path
 import json
 
-from ..Common.qtpy import QtWidgets as qtw
-from ..Common.qtpy import QtCore as qtc
+from qtpy import QtWidgets as qtw
+from qtpy import QtCore as qtc
 
-from MainApplication.Common.Core.settings import Settings
-from ..localSettingsView import LocalSettingsView
+from ..Common.Core.settings import Settings
+from ..Common.localSettingsView import LocalSettingsView
 from ..TagDatabase.tagDatabaseWidget import TagDatabaseWidget
 
 

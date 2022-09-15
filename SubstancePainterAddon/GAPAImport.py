@@ -4,14 +4,14 @@ import queue
 import functools
 import shutil
 
-from PySide2 import QtWidgets as qtw
-from PySide2 import QtCore as qtc
+from qtpy import QtWidgets as qtw
+from qtpy import QtCore as qtc
 
 import substance_painter.logging as spLog
 import substance_painter.project as spProj
 
-from .UI import importWizardView
-from .Core import settings as settingsModule
+from Common.Dialogs import importWizardView
+from Common.Core import settings as settingsModule
 
 importlib.reload(importWizardView)
 importlib.reload(settingsModule)

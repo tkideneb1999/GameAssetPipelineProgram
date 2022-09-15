@@ -2,7 +2,7 @@
 import re
 from collections import OrderedDict
 
-from ....Common.qtpy import QtCore, QtWidgets, QtGui
+from qtpy import QtCore, QtWidgets, QtGui
 
 from ..constants import (
     VIEWER_BG_COLOR,

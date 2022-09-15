@@ -1,9 +1,9 @@
 from pathlib import Path
 import re
 
-from ..Common.qtpy import QtWidgets as qtw
+from qtpy import QtWidgets as qtw
 
-from .. import spellcheckHelper as scH
+from ..Common import spellcheckHelper as scH
 from .tagDatabase_GUI import Ui_tagDatabase
 from.tagDatabase import TagDatabase
 

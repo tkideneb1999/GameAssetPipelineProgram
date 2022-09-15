@@ -1,5 +1,5 @@
 
-from ....Common.qtpy import QtGui, QtCore, QtWidgets
+from qtpy import QtGui, QtCore, QtWidgets
 
 from ..constants import (
     IN_PORT, OUT_PORT,

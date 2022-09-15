@@ -1,7 +1,7 @@
 
 import math
 
-from ....Common.qtpy import QtCore, QtGui, QtWidgets
+from qtpy import QtCore, QtGui, QtWidgets
 
 from ..constants import (
     PIPE_DEFAULT_COLOR, PIPE_ACTIVE_COLOR,

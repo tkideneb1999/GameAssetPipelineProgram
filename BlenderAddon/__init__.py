@@ -5,31 +5,29 @@ bl_info = {
 }
 
 
-import sys
 from pathlib import Path
 
 import bpy
 
-from .Core.settings import Settings
+from . import settingsLoader
+settingsLoader.load_required_packages(use_main_app_pyside=True)
 
-settings = Settings()
-settings.load()
-sys.path.append(str(settings.pyside_path))
+from Common.Core.settings import Settings
+SETTINGS = Settings()
+SETTINGS.load()
 
-from . import GAPA_Export
-from . import GAPA_Import
+from . import GAPAExport
+from . import GAPAImport
 
 from .pipelineSettings import get_pipeline_settings_location
 
 
-
-
 def menu_func(self, context):
-    self.layout.operator(GAPA_Export.GAPAExport.bl_idname)
-    self.layout.operator(GAPA_Import.GAPAImport.bl_idname)
+    self.layout.operator(GAPAExport.GAPAExport.bl_idname)
+    self.layout.operator(GAPAImport.GAPAImport.bl_idname)
 
 
-classes = [GAPA_Export.GAPAExport, GAPA_Import.GAPAImport]
+classes = [GAPAExport.GAPAExport, GAPAImport.GAPAImport]
 
 
 def register():

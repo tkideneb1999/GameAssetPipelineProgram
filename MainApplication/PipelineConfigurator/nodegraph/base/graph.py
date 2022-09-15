@@ -3,7 +3,7 @@ import json
 import os
 import re
 
-from ....Common.qtpy import QtCore, QtWidgets, QtGui
+from qtpy import QtCore, QtWidgets, QtGui
 
 from .commands import (NodeAddedCmd,
                        NodeRemovedCmd,
