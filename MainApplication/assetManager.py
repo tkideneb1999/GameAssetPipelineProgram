@@ -10,6 +10,7 @@ from .assetManager_GUI import Ui_asset_manager
 from .Common.Core.asset import Asset
 from .newAssetWizard import NewAssetWizard
 from .Common import pluginHandler
+from .TagDatabase.tagDatabase import TagDatabase
 
 
 class AssetManager(qtw.QWidget):
@@ -48,7 +49,12 @@ class AssetManager(qtw.QWidget):
         print(f"Level Selected: {lvl_selected}, Level Name: {lvl_name}")
 
         pipeline_names = list(self.pipelines.keys())
-        dialog = NewAssetWizard(list(self.assets.keys()), pipeline_names)
+
+        tag_database = TagDatabase()
+        print("Tag Database")
+        print(tag_database)
+
+        dialog = NewAssetWizard(list(self.assets.keys()), pipeline_names, tag_database.tag_names)
         dialog.setWindowModality(qtc.Qt.ApplicationModal)
         if lvl_selected:
             dialog.set_starting_level(lvl_name)

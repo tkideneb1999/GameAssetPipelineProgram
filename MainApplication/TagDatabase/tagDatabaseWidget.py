@@ -5,7 +5,7 @@ from qtpy import QtWidgets as qtw
 
 from ..Common import spellcheckHelper as scH
 from .tagDatabase_GUI import Ui_tagDatabase
-from.tagDatabase import TagDatabase
+from .tagDatabase import TagDatabase
 
 
 class TagDatabaseWidget(qtw.QWidget):
@@ -19,6 +19,8 @@ class TagDatabaseWidget(qtw.QWidget):
         # Data
         self.project_dir: Path = None
         self.tag_database = TagDatabase()
+        print("Tag Database:")
+        print(self.tag_database)
         self.special_characters = re.compile(r'[@!#$%^&*()<>?/\|}{~:]')
 
     def load_tags(self, path: Path):
@@ -42,6 +44,7 @@ class TagDatabaseWidget(qtw.QWidget):
 
     def update_view(self):
         self.ui.tag_list.clear()
-        for uid in self.tag_database.tags:
-            self.ui.tag_list.addItem(self.tag_database.tags[uid])
+        for tag in self.tag_database.tag_names:
+            self.ui.tag_list.addItem(tag)
+
 

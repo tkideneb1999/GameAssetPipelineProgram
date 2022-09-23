@@ -87,13 +87,6 @@
      </property>
     </widget>
    </item>
-   <item row="3" column="1">
-    <widget class="QLabel" name="tags_label">
-     <property name="text">
-      <string/>
-     </property>
-    </widget>
-   </item>
    <item row="4" column="0">
     <widget class="QLabel" name="comment_d_label">
      <property name="text">
@@ -107,6 +100,9 @@
       <string/>
      </property>
     </widget>
+   </item>
+   <item row="3" column="1">
+    <layout class="QHBoxLayout" name="tags_layout"/>
    </item>
   </layout>
  </widget>

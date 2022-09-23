@@ -8,15 +8,15 @@
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
 
-from qtpy.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
-                                                QMetaObject, QObject, QPoint, QRect,
-                                                QSize, QTime, QUrl, Qt)
-from qtpy.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
+from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
+    QMetaObject, QObject, QPoint, QRect,
+    QSize, QTime, QUrl, Qt)
+from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QFont, QFontDatabase, QGradient, QIcon,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
-from qtpy.QtWidgets import (QApplication, QFormLayout, QLabel, QSizePolicy,
-                                                   QWidget)
+from PySide6.QtWidgets import (QApplication, QFormLayout, QHBoxLayout, QLabel,
+    QSizePolicy, QWidget)
 
 class Ui_asset_details(object):
     def setupUi(self, asset_details):
@@ -67,11 +67,6 @@ class Ui_asset_details(object):
 
         self.formLayout.setWidget(3, QFormLayout.LabelRole, self.tags_d_label)
 
-        self.tags_label = QLabel(asset_details)
-        self.tags_label.setObjectName(u"tags_label")
-
-        self.formLayout.setWidget(3, QFormLayout.FieldRole, self.tags_label)
-
         self.comment_d_label = QLabel(asset_details)
         self.comment_d_label.setObjectName(u"comment_d_label")
 
@@ -81,6 +76,11 @@ class Ui_asset_details(object):
         self.comment_label.setObjectName(u"comment_label")
 
         self.formLayout.setWidget(4, QFormLayout.FieldRole, self.comment_label)
+
+        self.tags_layout = QHBoxLayout()
+        self.tags_layout.setObjectName(u"tags_layout")
+
+        self.formLayout.setLayout(3, QFormLayout.FieldRole, self.tags_layout)
 
 
         self.retranslateUi(asset_details)
@@ -97,7 +97,6 @@ class Ui_asset_details(object):
         self.pipeline_d_label.setText(QCoreApplication.translate("asset_details", u"Pipeline:", None))
         self.pipeline_label.setText("")
         self.tags_d_label.setText(QCoreApplication.translate("asset_details", u"Tags:", None))
-        self.tags_label.setText("")
         self.comment_d_label.setText(QCoreApplication.translate("asset_details", u"Comment:", None))
         self.comment_label.setText("")
     # retranslateUi

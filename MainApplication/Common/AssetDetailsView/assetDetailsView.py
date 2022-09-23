@@ -1,13 +1,14 @@
 from qtpy import QtWidgets as qtw
 
 from .assetDetails_GUI import Ui_asset_details
-
+from ..TagSearchbar import tagView
 
 class AssetDetailsView(qtw.QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.ui = Ui_asset_details()
         self.ui.setupUi(self)
+        self.tags: list[tagView.TagView] = []
 
     def update_asset_details(self,
                              name: str, level: str, pipeline_name: str,
@@ -15,10 +16,12 @@ class AssetDetailsView(qtw.QWidget):
         self.ui.name_label.setText(name)
         self.ui.level_label.setText(level)
         self.ui.pipeline_label.setText(pipeline_name)
-        tags_string = ""
-        for t in range(len(tags)):
-            tags_string += tags[t]
-            if t < len(tags) - 1:
-                tags_string += ", "
-        self.ui.tags_label.setText(tags_string)
+        for t in self.tags:
+            self.ui.tags_layout.removeWidget(t)
+            t.deleteLater()
+        self.tags.clear()
+        for nt in tags:
+            tag = tagView.TagView(nt, removable=False, parent=self)
+            self.ui.tags_layout.addWidget(tag)
+            self.tags.append(tag)
         self.ui.comment_label.setText(comment)

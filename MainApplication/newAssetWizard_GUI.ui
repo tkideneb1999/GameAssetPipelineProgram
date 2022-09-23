@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>400</width>
-    <height>212</height>
+    <height>225</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -125,7 +125,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QLineEdit" name="tags_line_edit"/>
+        <widget class="TagSearchbarView" name="tags_line_edit"/>
        </item>
       </layout>
      </item>
@@ -195,6 +195,13 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>TagSearchbarView</class>
+   <extends>QLineEdit</extends>
+   <header>.Common.TagSearchbar.tagSearchbarView</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections>
   <connection>

@@ -8,23 +8,25 @@
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
 
-from qtpy.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
+from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
     QMetaObject, QObject, QPoint, QRect,
     QSize, QTime, QUrl, Qt)
-from qtpy.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
+from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QFont, QFontDatabase, QGradient, QIcon,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
-from qtpy.QtWidgets import (QAbstractButton, QApplication, QComboBox, QDialog,
+from PySide6.QtWidgets import (QAbstractButton, QApplication, QComboBox, QDialog,
     QDialogButtonBox, QHBoxLayout, QLabel, QLayout,
     QLineEdit, QSizePolicy, QSpacerItem, QVBoxLayout,
     QWidget)
+
+from .Common.TagSearchbar.tagSearchbarView import TagSearchbarView
 
 class Ui_new_asset_wizard(object):
     def setupUi(self, new_asset_wizard):
         if not new_asset_wizard.objectName():
             new_asset_wizard.setObjectName(u"new_asset_wizard")
-        new_asset_wizard.resize(400, 212)
+        new_asset_wizard.resize(400, 225)
         self.verticalLayout = QVBoxLayout(new_asset_wizard)
         self.verticalLayout.setObjectName(u"verticalLayout")
         self.verticalLayout.setSizeConstraint(QLayout.SetDefaultConstraint)
@@ -102,7 +104,7 @@ class Ui_new_asset_wizard(object):
 
         self.horizontalLayout_3.addWidget(self.tags_label)
 
-        self.tags_line_edit = QLineEdit(new_asset_wizard)
+        self.tags_line_edit = TagSearchbarView(parent=new_asset_wizard)
         self.tags_line_edit.setObjectName(u"tags_line_edit")
 
         self.horizontalLayout_3.addWidget(self.tags_line_edit)
