@@ -57,14 +57,7 @@
     </widget>
    </item>
    <item>
-    <widget class="QLineEdit" name="search_bar">
-     <property name="enabled">
-      <bool>false</bool>
-     </property>
-     <property name="text">
-      <string>not available</string>
-     </property>
-    </widget>
+    <widget class="TagSearchbarView" name="tag_searchbar"/>
    </item>
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
@@ -121,6 +114,13 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>TagSearchbarView</class>
+   <extends>QLineEdit</extends>
+   <header>..TagSearchbar.tagSearchbarView</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

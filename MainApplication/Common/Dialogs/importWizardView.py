@@ -11,6 +11,8 @@ from qtpy import QtCore as qtc
 from ..Core import asset as assetModule
 from . import importWizard_GUI
 from .. import pluginHandler
+from ..Core.assetDatabase import AssetDatabase
+from ..Core.tagDatabase import TagDatabase
 
 importlib.reload(assetModule)
 importlib.reload(importWizard_GUI)
@@ -31,7 +33,10 @@ class ImportWizardView(qtw.QDialog):
         self.project_dir = project_info.parent
         self.levels = []  # list[str]
         self.pipelines = {}  # dict[str, Path]
-        self.assets = {}  # dict[str, list[str]]
+
+        self.asset_database = AssetDatabase()
+        self.tag_database = TagDatabase()
+
         self.loaded_asset = None  # assetModule.Asset
         self.program = program
         self.workfile_suffix = workfile_suffix
@@ -41,6 +46,7 @@ class ImportWizardView(qtw.QDialog):
         self.save_workfile_func = None  # Callable[Path]
 
         self.load_project_info(project_info)
+        self.post_init(self.project_dir)
         self.load_asset_list()
         # TODO(Blender Addon): Check if work file is already saved for a specific asset
         # TODO(Blender Addon): Actually filter asset list -> traffic light, name system
@@ -50,11 +56,20 @@ class ImportWizardView(qtw.QDialog):
         self.ui.pipeline_viewer.s_open_file_explorer.connect(self.open_step_in_explorer)
         self.ui.pipeline_viewer.s_run_plugin.connect(self.run_plugin)
         self.ui.asset_list.s_open_file_explorer.connect(self.open_asset_in_explorer)
+        self.ui.asset_list.s_tag_searchbar_selected.connect(self.tag_searchbar_selected)
+        self.ui.asset_list.s_tag_selection_changed.connect(self.update_asset_list)
 
         self.ui.import_button.clicked.connect(self.import_assets)
 
         # Plugins
         self.plugin_handler = pluginHandler.PluginHandler(self.project_dir, self)
+
+    def post_init(self, project_dir: Path):
+        self.asset_database.set_project_dir(project_dir)
+        if not self.tag_database.is_loaded():
+            self.tag_database.load(project_dir)
+        if self.tag_database.is_loaded():
+            self.ui.asset_list.update_tags(self.tag_database.tag_names)
 
     def close_dialog(self):
         print("Closing Window")
@@ -123,8 +138,9 @@ class ImportWizardView(qtw.QDialog):
 
         self.accept()
 
-    def display_selected_asset(self, level_name, asset_name) -> None:  # level: str, index: int
-        self.loaded_asset = assetModule.Asset(asset_name, level_name, project_dir=self.project_dir)
+    def display_selected_asset(self, asset_id: int) -> None:
+        asset_info = self.asset_database.get_asset_by_id(asset_id)
+        self.loaded_asset = assetModule.Asset(asset_info[0], asset_info[1], project_dir=self.project_dir)
 
         self.ui.asset_details.update_asset_details(self.loaded_asset.name,
                                                    self.loaded_asset.level,
@@ -147,22 +163,8 @@ class ImportWizardView(qtw.QDialog):
         self.ui.inputs_list.addItems(inputs_names)
 
     def load_asset_list(self):
-        path = self.project_dir / "assets.meta"
-        if not path.exists():
-            if not path.is_file():
-                raise Exception("Asset List does not exist.")
-        with path.open("r", encoding="utf-8") as f:
-            asset_list_info = f.readline()
-            num_assets = int(asset_list_info.split()[1])
-            for i in range(num_assets):
-                asset_data_s = f.readline()
-                asset_data = asset_data_s.split(',')
-                asset_data[1] = asset_data[1].replace('\n', '')
-                if self.assets.get(asset_data[1]) is None:
-                    self.assets[asset_data[1]] = [asset_data[0]]
-                else:
-                    self.assets[asset_data[1]].append(asset_data[0])
-        self.ui.asset_list.update_asset_list(self.assets)
+        self.asset_database.load_asset_list()
+        self.update_asset_list()
 
     def load_project_info(self, path):  # path: Path
         if not path.exists():
@@ -182,10 +184,6 @@ class ImportWizardView(qtw.QDialog):
             pipeline_data = project_data["pipelines"]
             for name in pipeline_data:
                 self.pipelines[name] = Path(pipeline_data[name])
-
-    def load_asset_details(self, name, level) -> assetModule.Asset:  # name: str, level: str
-        asset = assetModule.Asset(name, level, self.project_dir)
-        return asset
 
     def save_workfile(self, save_dir):  # save_dir: Path
         # TODO(Blender Addon): Determine actual location (make dependent on user whether multi asset file or not)
@@ -210,3 +208,13 @@ class ImportWizardView(qtw.QDialog):
         self.plugin_handler.run_plugin(self.loaded_asset, step_index)
         self.loaded_asset.load(self.project_dir)
         self.ui.pipeline_viewer.update_view(self.loaded_asset)
+
+    def tag_searchbar_selected(self):
+        self.ui.asset_list.update_tags(self.tag_database.tag_names)
+
+    def update_asset_list(self, tags=None):
+        if tags is None or tags == []:
+            self.ui.asset_list.update_asset_list(self.asset_database.get_all_assets())
+        else:
+            tag_IDs = self.tag_database.get_tag_IDs(tags)
+            self.ui.asset_list.update_asset_list(self.asset_database.get_assets_by_tag(tag_IDs))

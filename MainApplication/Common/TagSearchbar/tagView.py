@@ -45,7 +45,6 @@ class TagView(qtw.QWidget):
         painter.setPen(qtc.Qt.NoPen)
 
         # Tag Shape
-        painter.begin(self)
         tri_start_x = int(width - height * 0.5)
         polygon = qtg.QPolygon()
         polygon << qtc.QPoint(0, 0)

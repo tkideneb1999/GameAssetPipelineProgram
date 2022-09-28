@@ -9,15 +9,17 @@
 ################################################################################
 
 from qtpy.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
-                                                QMetaObject, QObject, QPoint, QRect,
-                                                QSize, QTime, QUrl, Qt)
+    QMetaObject, QObject, QPoint, QRect,
+    QSize, QTime, QUrl, Qt)
 from qtpy.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
-                                               QFont, QFontDatabase, QGradient, QIcon,
-                                               QImage, QKeySequence, QLinearGradient, QPainter,
-                                               QPalette, QPixmap, QRadialGradient, QTransform)
+    QFont, QFontDatabase, QGradient, QIcon,
+    QImage, QKeySequence, QLinearGradient, QPainter,
+    QPalette, QPixmap, QRadialGradient, QTransform)
 from qtpy.QtWidgets import (QApplication, QCheckBox, QHBoxLayout, QHeaderView,
-                                                   QLabel, QLineEdit, QSizePolicy, QTreeWidget,
-                                                   QTreeWidgetItem, QVBoxLayout, QWidget)
+    QLabel, QSizePolicy, QTreeWidget, QTreeWidgetItem,
+    QVBoxLayout, QWidget)
+
+from ..TagSearchbar.tagSearchbarView import TagSearchbarView
 
 class Ui_asset_list_widget(object):
     def setupUi(self, asset_list_widget):
@@ -42,11 +44,10 @@ class Ui_asset_list_widget(object):
 
         self.verticalLayout.addWidget(self.assets_label)
 
-        self.search_bar = QLineEdit(asset_list_widget)
-        self.search_bar.setObjectName(u"search_bar")
-        self.search_bar.setEnabled(False)
+        self.tag_searchbar = TagSearchbarView(None, asset_list_widget)
+        self.tag_searchbar.setObjectName(u"tag_searchbar")
 
-        self.verticalLayout.addWidget(self.search_bar)
+        self.verticalLayout.addWidget(self.tag_searchbar)
 
         self.horizontalLayout = QHBoxLayout()
         self.horizontalLayout.setObjectName(u"horizontalLayout")
@@ -83,7 +84,6 @@ class Ui_asset_list_widget(object):
     def retranslateUi(self, asset_list_widget):
         asset_list_widget.setWindowTitle(QCoreApplication.translate("asset_list_widget", u"Form", None))
         self.assets_label.setText(QCoreApplication.translate("asset_list_widget", u"Assets", None))
-        self.search_bar.setText(QCoreApplication.translate("asset_list_widget", u"not available", None))
         self.checkBox.setText(QCoreApplication.translate("asset_list_widget", u"Tag Search (not available)", None))
         ___qtreewidgetitem = self.asset_tree.headerItem()
         ___qtreewidgetitem.setText(0, QCoreApplication.translate("asset_list_widget", u"1", None));

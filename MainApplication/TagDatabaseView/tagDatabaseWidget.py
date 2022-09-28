@@ -2,13 +2,16 @@ from pathlib import Path
 import re
 
 from qtpy import QtWidgets as qtw
+from qtpy import QtCore as qtc
 
 from ..Common import spellcheckHelper as scH
 from .tagDatabase_GUI import Ui_tagDatabase
-from .tagDatabase import TagDatabase
+from ..Common.Core.tagDatabase import TagDatabase
 
 
 class TagDatabaseWidget(qtw.QWidget):
+    s_tag_added = qtc.Signal(int, str)  # tag ID, tag name
+
     def __init__(self, parent=None):
         super(TagDatabaseWidget, self).__init__(parent)
         self.ui = Ui_tagDatabase()
@@ -35,12 +38,13 @@ class TagDatabaseWidget(qtw.QWidget):
         if text == "" or scH.contains_special_characters(text):
             print("[GAPA] Tag contains forbidden characters")
             self.add_tag()
-        self.tag_database.add_tag(text)
+        tid = self.tag_database.add_tag(text)
         if self.project_dir is not None:
             self.tag_database.save(self.project_dir)
         else:
             print("[GAPA] Can not save tags as there is no project dir")
         self.update_view()
+        self.s_tag_added.emit(tid, text)
 
     def update_view(self):
         self.ui.tag_list.clear()

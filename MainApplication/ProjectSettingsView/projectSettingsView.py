@@ -6,7 +6,7 @@ from qtpy import QtCore as qtc
 
 from ..Common.Core.settings import Settings
 from ..Common.localSettingsView import LocalSettingsView
-from ..TagDatabase.tagDatabaseWidget import TagDatabaseWidget
+from ..TagDatabaseView.tagDatabaseWidget import TagDatabaseWidget
 
 
 class ProjectSettingsView(qtw.QWidget):

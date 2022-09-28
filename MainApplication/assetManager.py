@@ -10,7 +10,8 @@ from .assetManager_GUI import Ui_asset_manager
 from .Common.Core.asset import Asset
 from .newAssetWizard import NewAssetWizard
 from .Common import pluginHandler
-from .TagDatabase.tagDatabase import TagDatabase
+from .Common.Core.tagDatabase import TagDatabase
+from .Common.Core.assetDatabase import AssetDatabase
 
 
 class AssetManager(qtw.QWidget):
@@ -31,12 +32,15 @@ class AssetManager(qtw.QWidget):
         self.ui.asset_list.s_remove_asset.connect(self.remove_asset)
         self.ui.asset_list.s_add_level.connect(self.add_new_level)
         self.ui.asset_list.s_remove_level.connect(self.remove_level)
+        self.ui.asset_list.s_tag_searchbar_selected.connect(self.tag_searchbar_selected)
+        self.ui.asset_list.s_tag_selection_changed.connect(self.update_asset_list)
 
         self.ui.pipeline_viewer.s_open_file_explorer.connect(self.open_step_in_explorer)
         self.ui.pipeline_viewer.s_run_plugin.connect(self.run_plugin)
 
         # Data
-        self.assets: dict[str, list[str]] = {}
+        self.asset_database = AssetDatabase()
+        self.tag_database = TagDatabase()
         self.loaded_asset: Asset = None
         self.project_dir: Path = Path()
         self.pipelines: dict[str, Path] = {}
@@ -50,11 +54,7 @@ class AssetManager(qtw.QWidget):
 
         pipeline_names = list(self.pipelines.keys())
 
-        tag_database = TagDatabase()
-        print("Tag Database")
-        print(tag_database)
-
-        dialog = NewAssetWizard(list(self.assets.keys()), pipeline_names, tag_database.tag_names)
+        dialog = NewAssetWizard(self.asset_database.levels, pipeline_names, self.tag_database.tag_names)
         dialog.setWindowModality(qtc.Qt.ApplicationModal)
         if lvl_selected:
             dialog.set_starting_level(lvl_name)
@@ -84,16 +84,11 @@ class AssetManager(qtw.QWidget):
 
         # Check Data
         # Check if Asset Name already exists in Level
-        for a in self.assets:
-            if a[0] == asset_name and a[1] == asset_level:
-                print(f"Asset{asset_name} already exists in Level {asset_level}.")
-                # TODO: Assets: Optimize Asset search
-                self.add_new_asset()
-                return
-
-        # Check if selected level is viable
-        if asset_level not in list(self.assets.keys()):
-            print(f"{asset_level} is not a valid Level.")
+        tagIDs = []
+        for tn in asset_tags:
+            tagIDs.append(self.tag_database.get_tag_ID(tn))
+        result = self.asset_database.add_new_asset(asset_name, asset_level, tagIDs)
+        if result < 0:
             self.add_new_asset()
             return
 
@@ -107,8 +102,7 @@ class AssetManager(qtw.QWidget):
             asset_type="Model",
             comment=asset_comment)
 
-        self.assets[asset_level].append(asset_name)
-        self.ui.asset_list.update_asset_list(self.assets)
+        self.update_asset_list()
 
         # Serialize Asset
         new_asset.save(self.project_dir)
@@ -121,38 +115,36 @@ class AssetManager(qtw.QWidget):
         else:
             self.add_new_asset()
 
-    def remove_asset(self, level: str, name: str) -> None:
-        print(f"[GAPA] Removing Asset {name} from Level {level}")
-        self.assets[level].remove(name)
+    def remove_asset(self, asset_id: int) -> None:
+        result = self.asset_database.remove_asset(asset_id)
         self.save_asset_list()
-        path = self.project_dir / level / name
-        path.rename(path.parent / f"deprecated_{name}")
-        self.ui.asset_list.update_asset_list(self.assets)
+        path = self.project_dir / result[1] / result[0]
+        path.rename(path.parent / f"deprecated_{result[0]}")
+        self.update_asset_list()
 
     def add_new_level(self) -> None:
-        print("[GAPA] Adding Levels not yet implemented")
         text, ok = qtw.QInputDialog().getText(self, "Add Level", "Level Name:", qtw.QLineEdit.Normal, "")
         if not ok:
             return
+
         text_no_spaces = text.replace(' ', '')
-        if text_no_spaces in list(self.assets.keys()):
-            print("[GAPA] Level name already exists")
-            self.add_new_level()
         if self.special_characters.search(text_no_spaces):
             self.add_new_level()
-        self.assets[text_no_spaces] = []
+        if not self.asset_database.add_level(text_no_spaces):
+            self.add_new_level()
+
         self.s_level_added.emit(text_no_spaces)
-        self.ui.asset_list.update_asset_list(self.assets)
+        self.update_asset_list()
 
     def remove_level(self, level_name: str):
-        print(f"[GAPA] Removing Level: {level_name}")
-        del self.assets[level_name]
+        self.asset_database.remove_level(level_name)
         self.s_level_removed.emit(level_name)
         self.save_asset_list()
-        self.ui.asset_list.update_asset_list(self.assets)
+        self.update_asset_list()
 
-    def display_selected_asset(self, level_name: str, asset_name: str) -> None:
-        self.loaded_asset = Asset(asset_name, level_name, project_dir=self.project_dir)
+    def display_selected_asset(self, asset_id: int) -> None:
+        asset_info = self.asset_database.get_asset_by_id(asset_id)
+        self.loaded_asset = Asset(asset_info[0], asset_info[1], project_dir=self.project_dir)
 
         self.ui.asset_details.update_asset_details(self.loaded_asset.name,
                                                    self.loaded_asset.level,
@@ -160,6 +152,9 @@ class AssetManager(qtw.QWidget):
                                                    self.loaded_asset.tags,
                                                    self.loaded_asset.comment)
         self.ui.pipeline_viewer.update_view(self.loaded_asset)
+
+    def tag_searchbar_selected(self):
+        self.ui.asset_list.update_tags(self.tag_database.tag_names)
 
     def open_asset_in_explorer(self, level: str, asset: str) -> None:
         if sys.platform == "win32":
@@ -182,8 +177,9 @@ class AssetManager(qtw.QWidget):
 
     def add_levels(self, levels):
         for lvl in levels:
-            self.assets[lvl] = []
-        print("Viable Levels: ", list(self.assets.keys()))
+            self.asset_database.add_level(lvl)
+        print("Viable Levels: ", self.asset_database.levels)
+        self.update_asset_list()
 
     def update_pipelines(self, pipelines):
         self.pipelines = pipelines
@@ -192,45 +188,26 @@ class AssetManager(qtw.QWidget):
     def set_project_dir(self, project_dir):
         self.project_dir = project_dir
         self.plugin_handler.set_project_dir(project_dir)
+        self.asset_database.set_project_dir(project_dir)
+        if not self.tag_database.is_loaded():
+            self.tag_database.load(project_dir)
+        if self.tag_database.is_loaded():
+            self.ui.asset_list.update_tags(self.tag_database.tag_names)
 
-    def update_asset_list(self):
-        self.ui.asset_list.update_asset_list(self.assets)
+    def update_asset_list(self, tags=None):
+        if tags is None or tags == []:
+            self.ui.asset_list.update_asset_list(self.asset_database.get_all_assets())
+        else:
+            tag_IDs = self.tag_database.get_tag_IDs(tags)
+            self.ui.asset_list.update_asset_list(self.asset_database.get_assets_by_tag(tag_IDs))
 
     # -------------
     # SERIALIZATION
     # -------------
     def save_asset_list(self) -> None:
-        path = self.project_dir / "assets.meta"
-        if not path.exists():
-            if not path.is_file():
-                path.touch()
-        with path.open("w", encoding="utf-8") as f:
-            num_assets = 0
-            for level in self.assets:
-                num_assets += len(self.assets[level])
-            f.write(f"assets {num_assets}\n")
-            for level in self.assets:
-                for asset in self.assets[level]:
-                    data = f"{asset},{level}\n"
-                    f.write(data)
-            f.close()
+        self.asset_database.save_asset_list()
 
     def load_asset_list(self) -> None:
-        path = self.project_dir / "assets.meta"
-        if not path.exists():
-            raise Exception("Asset List does not exist.")
-        if not path.is_file():
-            raise Exception("Asset List does not exist.")
-        with path.open("r", encoding="utf-8") as f:
-            asset_list_info = f.readline()
-            num_assets = int(asset_list_info.split()[1])
-            for i in range(num_assets):
-                asset_data_s = f.readline()
-                asset_data = asset_data_s.split(',')
-                asset_data[1] = asset_data[1].replace('\n', '')
-                if self.assets.get(asset_data[1]) is None:
-                    self.assets[asset_data[1]] = [asset_data[0]]
-                else:
-                    self.assets[asset_data[1]].append(asset_data[0])
-        self.ui.asset_list.update_asset_list(self.assets)
+        self.asset_database.load_asset_list()
+        self.update_asset_list()
 

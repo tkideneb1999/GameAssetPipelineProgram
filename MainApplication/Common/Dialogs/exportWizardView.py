@@ -6,13 +6,15 @@ import os
 import importlib
 
 from qtpy import QtWidgets as qtw
-from qtpy import QtCore as qtc
 
-from ..Core import asset
+from ..Core import asset as assetModule
+from ..Core.assetDatabase import AssetDatabase
+from ..Core.tagDatabase import TagDatabase
 from . import exportWizard_GUI
 from .. import pluginHandler
 
-importlib.reload(asset)
+
+importlib.reload(assetModule)
 importlib.reload(exportWizard_GUI)
 importlib.reload(pluginHandler)
 
@@ -32,7 +34,8 @@ class ExportWizardView(qtw.QDialog):
         self.project_dir = project_info.parent  # Path
         self.levels = []  # list[str]
         self.pipelines = {}  # dict[str, Path]
-        self.assets = {}  # dict[str, list[str]]
+        self.asset_database = AssetDatabase()
+        self.tag_database = TagDatabase()
         self.loaded_asset = None  # asset.Asset
         self.program = program  # str
         self.workfile_suffix = workfile_suffix  # str
@@ -43,6 +46,7 @@ class ExportWizardView(qtw.QDialog):
         self.get_output_sets_func = None  # Callable[]
 
         self.load_project_info(project_info)
+        self.post_init(self.project_dir)
         self.load_asset_list()
         # TODO(Blender Addon): Check if work file is already saved for a specific asset
 
@@ -54,19 +58,36 @@ class ExportWizardView(qtw.QDialog):
         self.ui.pipeline_viewer.s_run_plugin.connect(self.run_plugin)
         self.ui.pipeline_viewer.s_open_file_explorer.connect(self.open_step_in_explorer)
         self.ui.asset_list.s_open_file_explorer.connect(self.open_asset_in_explorer)
+        self.ui.asset_list.s_tag_searchbar_selected.connect(self.tag_searchbar_selected)
+        self.ui.asset_list.s_tag_selection_changed.connect(self.update_asset_list)
 
         # Plugins
         self.plugin_handler = pluginHandler.PluginHandler(self.project_dir, self)
+
+    def post_init(self, project_dir: Path):
+        self.asset_database.set_project_dir(project_dir)
+        if not self.tag_database.is_loaded():
+            self.tag_database.load(project_dir)
+        if self.tag_database.is_loaded():
+            self.ui.asset_list.update_tags(self.tag_database.tag_names)
 
     def close_dialog(self):
         print("Closing Window")
         self.accept()
 
     def register_save_workfile_func(self, func) -> None:
+        """
+        Registers the function that will save the workfile, to be executed when needed.
+        :param func: Function object that has a path as an input that contains the path for the work file to be saved to
+        """
         # func: Callable[Path]
         self.save_workfile_func = func
 
     def register_export_func(self, func) -> None:
+        """
+        Registers the function that will import files from steps that have outputs connected to the inputs of the selected step.
+        :param func: Function object that takes a list of paths. The paths contain the location of the exported files of the outputs
+        """
         # func: Callable[Path, str, dict]
         self.export_file_func = func
 
@@ -144,9 +165,9 @@ class ExportWizardView(qtw.QDialog):
 
         self.accept()
 
-    def display_selected_asset(self, level_name, asset_name) -> None:
-        # level: str, index: int
-        self.loaded_asset = asset.Asset(asset_name, level_name, project_dir=self.project_dir)
+    def display_selected_asset(self, asset_id: int) -> None:
+        asset_info = self.asset_database.get_asset_by_id(asset_id)
+        self.loaded_asset = assetModule.Asset(asset_info[0], asset_info[1], project_dir=self.project_dir)
 
         self.ui.asset_details.update_asset_details(self.loaded_asset.name,
                                                    self.loaded_asset.level,
@@ -169,22 +190,8 @@ class ExportWizardView(qtw.QDialog):
             self.ui.outputs_list.setSelectionMode(qtw.QAbstractItemView.SingleSelection)
 
     def load_asset_list(self):
-        path = self.project_dir / "assets.meta"
-        if not path.exists():
-            if not path.is_file():
-                raise Exception("Asset List does not exist.")
-        with path.open("r", encoding="utf-8") as f:
-            asset_list_info = f.readline()
-            num_assets = int(asset_list_info.split()[1])
-            for i in range(num_assets):
-                asset_data_s = f.readline()
-                asset_data = asset_data_s.split(',')
-                asset_data[1] = asset_data[1].replace('\n', '')
-                if self.assets.get(asset_data[1]) is None:
-                    self.assets[asset_data[1]] = [asset_data[0]]
-                else:
-                    self.assets[asset_data[1]].append(asset_data[0])
-        self.ui.asset_list.update_asset_list(self.assets)
+        self.asset_database.load_asset_list()
+        self.update_asset_list()
 
     def load_project_info(self, path):
         # path: Path
@@ -236,3 +243,13 @@ class ExportWizardView(qtw.QDialog):
         self.plugin_handler.run_plugin(self.loaded_asset, step_index)
         self.loaded_asset.load(self.project_dir)
         self.ui.pipeline_viewer.update_view(self.loaded_asset)
+
+    def tag_searchbar_selected(self):
+        self.ui.asset_list.update_tags(self.tag_database.tag_names)
+
+    def update_asset_list(self, tags=None):
+        if tags is None or tags == []:
+            self.ui.asset_list.update_asset_list(self.asset_database.get_all_assets())
+        else:
+            tag_IDs = self.tag_database.get_tag_IDs(tags)
+            self.ui.asset_list.update_asset_list(self.asset_database.get_assets_by_tag(tag_IDs))

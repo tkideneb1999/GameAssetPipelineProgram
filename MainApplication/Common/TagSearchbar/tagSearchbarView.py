@@ -6,12 +6,14 @@ from qtpy import QtCore as qtc
 
 from . import tagSearchbarConstants as tSC
 from .tagView import TagView
+from ..Core.tagDatabase import TagDatabase
 
 
 class TagSearchbarView(qtw.QWidget):
 
     s_added_tag = qtc.Signal(str)
     s_removed_tag = qtc.Signal(str)
+    s_tag_edit_focused = qtc.Signal()
 
     def __init__(self, tag_list=None, parent=None):
         super().__init__(parent=parent)
@@ -40,10 +42,11 @@ class TagSearchbarView(qtw.QWidget):
         self.setLayout(self.h_layout)
 
         # Tag Edit
-        self.tag_edit = qtw.QLineEdit(self)
+        self.tag_edit = TagLineEditView(self)
         self.tag_edit.setFrame(False)
         self.tag_edit.textChanged.connect(self.textChanged)
         self.tag_edit.returnPressed.connect(self.returnPressed)
+        self.tag_edit.s_focused.connect(self.line_edit_focused)
         self.h_layout.addWidget(self.tag_edit)
         if len(self.__tag_pool) == 0:
             self.tag_edit.setDisabled(True)
@@ -55,6 +58,9 @@ class TagSearchbarView(qtw.QWidget):
 
         self.spacer = qtw.QSpacerItem(1, self.init_height - 2, qtw.QSizePolicy.Expanding, qtw.QSizePolicy.Minimum)
         self.h_layout.addSpacerItem(self.spacer)
+
+    def line_edit_focused(self):
+        self.s_tag_edit_focused.emit()
 
     def paintEvent(self, event: qtg.QPaintEvent) -> None:
         painter = qtg.QPainter(self)
@@ -76,7 +82,6 @@ class TagSearchbarView(qtw.QWidget):
         super().paintEvent(event)
 
     def moveEvent(self, event: qtg.QMoveEvent) -> None:
-        print("Move")
         new_pos = self.mapToGlobal(qtc.QPoint(self.tag_edit.pos().x(), self.height()))
         self.tag_selector.move(new_pos)
         super().moveEvent(event)
@@ -138,6 +143,7 @@ class TagSearchbarView(qtw.QWidget):
         index = self.h_layout.count() - 2
         self.h_layout.insertWidget(index, tag_widget)
         self.tag_edit.clear()
+        self.s_added_tag.emit(tag)
 
     def delete_tag(self, tag: str) -> None:
         """
@@ -147,6 +153,7 @@ class TagSearchbarView(qtw.QWidget):
         self.__tag_pool.append(tag)
         widget: TagView = self.__selected_tags.pop(tag)
         widget.deleteLater()
+        self.s_removed_tag.emit(tag)
 
     def update_tags(self, new_tag_list: list) -> None:
         """
@@ -203,7 +210,6 @@ class TagSelectorView(qtw.QWidget):
     def paintEvent(self, event: qtg.QPaintEvent) -> None:
         painter = qtg.QPainter(self)
         painter.save()
-
         # Painter Init
         pen = painter.pen()
         pen.setColor(self.border_color)
@@ -217,6 +223,7 @@ class TagSelectorView(qtw.QWidget):
         painter.drawRect(panel_rect)
 
         painter.restore()
+        painter.end()
         super().paintEvent(event)
 
     def update_selector(self, tags: list, global_pos: qtc.QPoint):
@@ -246,8 +253,19 @@ class TagSelectorView(qtw.QWidget):
                 w: TagView = self.tags[t]
                 rect = qtc.QRect(w.pos().x(), w.pos().y(), w.width(), w.height())
                 if rect.contains(event.pos()):
-                    print(f"Tag selected: {t}")
                     self.s_tag_selected.emit(t)
                     break
         super().mouseReleaseEvent(event)
+
+
+class TagLineEditView(qtw.QLineEdit):
+    s_focused = qtc.Signal()
+
+    def __init__(self, parent=None):
+        super(TagLineEditView, self).__init__(parent=parent)
+
+    def focusInEvent(self, event: qtg.QFocusEvent):
+        self.s_focused.emit()
+        super().focusInEvent(event)
+
 
