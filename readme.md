@@ -5,7 +5,7 @@
 3. **Run the Start.bat file at least once** before using add-ons
 
 ## Blender Addon Installation
-Works for Blender 2.93 to 3.00, 3.1 and above not supported because Python was upgraded from 3.9 to 3.10
+Works for Blender 2.93 to 3.3
 1. Navigate to the BlenderAddon folder of the downloaded files
 2. Put the Files from the Blender Addon Folder in a folder called GAPA, then put this in a zip Archive with the same name
 3. Install the add-on as you would with any other Blender add-on
